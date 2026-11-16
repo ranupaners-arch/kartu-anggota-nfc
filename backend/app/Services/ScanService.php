@@ -13,7 +13,6 @@ use App\Models\User;
 use App\Support\CardPayload;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Storage;
 
 class ScanService
 {
@@ -167,7 +166,7 @@ class ScanService
             'member' => $member ? [
                 'id' => $member->id, 'member_no' => $member->member_no, 'name' => $member->name,
                 'division' => $membership?->division?->name,
-                'photo_url' => $member->photo_path ? Storage::url($member->photo_path) : null,
+                'photo_url' => $member->photo_path ? route('members.photo', $member) : null,
             ] : null,
         ];
     }

@@ -21,7 +21,10 @@ class CardController extends Controller
             'status' => Card::UNASSIGNED,
         ]);
 
-        return response()->json(['id' => $card->id, 'public_id' => $card->public_id, 'payload' => CardPayload::make($card)], 201);
+        return response()->json([
+            'id' => $card->id, 'public_id' => $card->public_id, 'payload' => CardPayload::make($card),
+            'ntag' => CardPayload::ntagPassword($card), // untuk proteksi tulis di kartu
+        ], 201);
     }
 
     /** Langkah 2: dipanggil setelah penulisan ke kartu BERHASIL. Kartu lama anggota diblokir. */

@@ -59,6 +59,23 @@ class CardPayload
         return str_starts_with($payload, $head) ? substr($payload, strlen($head)) ?: null : null;
     }
 
+    /**
+     * Password proteksi tulis NTAG21x per kartu (PWD 4 byte + PACK 2 byte, hex),
+     * diturunkan dari secret server agar perangkat tidak menyimpan secret master.
+     *
+     * @return array{pwd:string,pack:string}|null
+     */
+    public static function ntagPassword(Card $card): ?array
+    {
+        $secret = config("attendance.card_keys.{$card->key_id}");
+        if (! $secret) {
+            return null;
+        }
+        $raw = hash_hmac('sha256', 'ntag-pwd|'.$card->public_id, $secret, true);
+
+        return ['pwd' => bin2hex(substr($raw, 0, 4)), 'pack' => bin2hex(substr($raw, 4, 2))];
+    }
+
     /** Hash payload untuk verifikasi offline tanpa membocorkan secret ke perangkat. */
     public static function fingerprint(string $payload): string
     {

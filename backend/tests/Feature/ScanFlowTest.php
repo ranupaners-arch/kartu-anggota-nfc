@@ -226,6 +226,9 @@ class ScanFlowTest extends TestCase
     {
         $payload = $this->issueCard($this->member());
         $this->assertStringStartsWith('card:v1:k1:', $payload);
+        $init = $this->actingAs($this->admin, 'sanctum')->postJson('/api/cards/init')->assertCreated();
+        $this->assertMatchesRegularExpression('/^[0-9a-f]{8}$/', $init['ntag']['pwd']);
+        $this->assertMatchesRegularExpression('/^[0-9a-f]{4}$/', $init['ntag']['pack']);
 
         config(['attendance.payload_prefix' => 'lain']);
         $this->scan($payload)->assertJson(['status' => 'invalid']); // prefix berbeda = kartu asing
