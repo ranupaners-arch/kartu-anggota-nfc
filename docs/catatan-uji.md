@@ -20,14 +20,14 @@ APK terpasang: debug dari run `43815488268` (commit sebelum perbaikan di bawah).
 | 4 | e-KTP ditempel tanpa menekan tombol | Ditangkap app: "Kartu terdeteksi (IsoDep, NfcA). Pilih aksi dulu" — menu aplikasi bank **tidak** muncul | OK (perbaikan #3 bekerja) |
 | 5 | "Deteksi tag" + e-KTP, 2 kali | Keduanya terbaca: IsoDep, NfcA, UID 7 byte diawali `05` | OK |
 | 6 | UID e-KTP acak atau tetap? | 7 byte, byte pertama sama di kedua tap → kemungkinan **tetap** (UID acak umumnya 4 byte diawali `08`). Belum pasti karena UID disamarkan | Catatan |
-| 7 | Laporan "kartu tidak terdeteksi" | Sedang ditanyakan: kartu/tombol mana yang tidak terdeteksi | Terbuka |
+| 7 | Laporan "kartu tidak terdeteksi" | Salah baca hasil; NFC berfungsi normal | Selesai |
 
 ## Perbaikan yang sudah ada di kode (sebelumnya belum terpasang di HP)
 
 - **NFC dipegang selama layar terbuka** (reader mode), dilepas saat app ke background.
   Tap tanpa aksi menampilkan "Kartu terdeteksi … pilih aksi dulu". (temuan #3)
 - **Layar Uji QR menolak URL selain `http://`** dengan pesan jelas. (temuan #1)
-- **APK uji memakai build profile per arsitektur** (±20 MB, bukan debug 181 MB).
+- **APK uji memakai build profile arm64** (36 MB, bukan debug 181 MB).
 
 ## Belum diuji
 
