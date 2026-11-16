@@ -1,6 +1,11 @@
 <?php
 
 return [
+    // Identitas server untuk app (GET /api/instance). Pada server self-hosted biasanya nama organisasi.
+    'instance_name' => env('INSTANCE_NAME', env('APP_NAME', 'Kartu Anggota')),
+    // Versi kontrak API; app menolak server dengan versi di bawah yang ia butuhkan.
+    'api_version' => 1,
+
     // Prefix payload NDEF/QR. Ganti HANYA sebelum kartu pertama ditulis:
     // kartu yang sudah ditulis tidak akan terbaca bila prefix berubah.
     'payload_prefix' => env('CARD_PAYLOAD_PREFIX', 'card'),

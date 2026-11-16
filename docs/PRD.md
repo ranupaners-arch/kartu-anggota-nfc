@@ -230,6 +230,10 @@ ESP32+PN532 (fase 3) ───────────────────�
 - Satu aplikasi Laravel: `routes/api.php` untuk mobile, `routes/web.php` untuk dashboard; logika bersama di Service/Action class.
 - Node/Express tidak dipakai; realtime (jika perlu) via Laravel Reverb.
 - Deploy: satu VPS dengan Docker Compose (Nginx, PHP-FPM, PostgreSQL, Redis), CI dari GitHub Actions.
+- **Mode server** (dipilih saat build app, tanpa ubah kode):
+  - `SERVER_MODE=fixed` + `API_URL=https://...`: satu server pusat untuk banyak organisasi (data terpisah per akun). App tidak menampilkan pilihan server.
+  - `SERVER_MODE=selectable` (bawaan): tiap organisasi memasang server sendiri. Saat pertama dibuka, app meminta **Hubungkan ke Organisasi** lewat scan QR di dashboard (Pengaturan → Aplikasi) atau alamat server; app memeriksa `GET /api/instance` lalu mengingat server itu. "Ganti organisasi" tersedia di layar login.
+  - APK rilis hanya mau terhubung ke `https://`; HTTP hanya untuk build uji.
 
 ## 10a. Menu dashboard
 
@@ -296,6 +300,7 @@ POST /api/excuses                  PATCH /api/excuses/{id}  (approve/reject)
 PATCH /api/attendances/{id}        { status|void, reason }
 
 GET  /api/members/{id}/summary     GET  /api/me/qr
+GET  /api/instance                 (publik: identitas server untuk app)
 ```
 
 Respons scan: `status` (`ok`, `duplicate`, `blocked`, `invalid`, `not_target`, `outside_window`), data anggota, dan `attendance_status`.

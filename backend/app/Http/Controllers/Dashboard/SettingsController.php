@@ -20,7 +20,25 @@ class SettingsController extends Controller
             'org' => $r->user()->organization->only('name', 'slug'),
             'terms' => Term::orderByDesc('starts_on')->get(),
             'divisions' => Division::withCount('memberships')->orderBy('name')->get(),
+            'connect' => self::connectInfo(),
         ]);
+    }
+
+    /**
+     * Data QR "Hubungkan app": alamat server ini + nama instans.
+     * Format: kartuanggota://connect?server=<url>&name=<nama>
+     */
+    public static function connectInfo(): array
+    {
+        $server = rtrim(url('/'), '/');
+        $name = config('attendance.instance_name');
+
+        return [
+            'server' => $server,
+            'name' => $name,
+            'payload' => 'kartuanggota://connect?'.http_build_query(['server' => $server, 'name' => $name]),
+            'https' => str_starts_with($server, 'https://'),
+        ];
     }
 
     public function updateOrganization(Request $r)

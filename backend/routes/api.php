@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\DivisionController;
 use App\Http\Controllers\Api\EventController;
 use App\Http\Controllers\Api\ExcuseController;
 use App\Http\Controllers\Api\ExportController;
+use App\Http\Controllers\Api\InstanceController;
 use App\Http\Controllers\Api\MemberAdminController;
 use App\Http\Controllers\Api\MemberController;
 use App\Http\Controllers\Api\MemberImportController;
@@ -16,6 +17,7 @@ use App\Http\Controllers\Api\ScanController;
 use App\Http\Controllers\Api\TermController;
 use Illuminate\Support\Facades\Route;
 
+Route::get('instance', InstanceController::class)->middleware('throttle:60,1');
 Route::post('auth/login', [AuthController::class, 'login'])->middleware('throttle:10,1');
 
 Route::middleware('auth:sanctum')->group(function () {
