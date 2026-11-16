@@ -4,4 +4,6 @@
          to allow setting breakpoints, to provide hot reload, etc.
     -->
     <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- Build profile dipakai untuk uji di HP: izinkan HTTP ke server lokal/Tailscale. Release wajib HTTPS. -->
+    <application android:usesCleartextTraffic="true" />
 </manifest>

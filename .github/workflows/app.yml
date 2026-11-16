@@ -46,8 +46,9 @@ jobs:
       - run: flutter analyze
       - run: flutter test
 
-      # Debug: untuk uji di HP (boleh HTTP ke server lokal).
-      - run: flutter build apk --debug
+      # Profile: untuk uji di HP. Dikompilasi seperti release (kecil & cepat), boleh HTTP
+      # ke server uji, dipisah per arsitektur (pasang yang arm64-v8a di HP modern).
+      - run: flutter build apk --profile --split-per-abi
       # Release memakai signing debug bawaan template sampai keystore rilis disiapkan.
       - run: flutter build apk --release
 
@@ -55,7 +56,8 @@ jobs:
         with:
           name: kartuanggota-apk-${{ github.sha }}
           path: |
-            app/build/app/outputs/flutter-apk/app-debug.apk
+            app/build/app/outputs/flutter-apk/app-arm64-v8a-profile.apk
+            app/build/app/outputs/flutter-apk/app-armeabi-v7a-profile.apk
             app/build/app/outputs/flutter-apk/app-release.apk
           retention-days: 14
 
