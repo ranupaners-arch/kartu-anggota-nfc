@@ -97,7 +97,9 @@ class EventService
     /** Tutup manual: tandai Alpa/Izin/Sakit untuk yang tidak scan. */
     public function close(Event $event): int
     {
-        abort_if($event->closed_at, 422, 'Kegiatan sudah ditutup.');
+        if ($event->closed_at) {
+            throw ValidationException::withMessages(['event' => 'Kegiatan sudah ditutup.']);
+        }
 
         return $this->closer->handle($event);
     }
@@ -105,7 +107,9 @@ class EventService
     /** Hapus hanya bila belum ada absensi; selain itu tutup saja. */
     public function delete(Event $event): void
     {
-        abort_if($event->attendances()->exists(), 422, 'Kegiatan sudah memiliki absensi; tutup kegiatan, jangan dihapus.');
+        if ($event->attendances()->exists()) {
+            throw ValidationException::withMessages(['event' => 'Kegiatan sudah memiliki absensi; tutup kegiatan, jangan dihapus.']);
+        }
         $event->delete();
         AuditLogger::log('event.deleted', 'event', $event->id, ['title' => $event->title]);
     }

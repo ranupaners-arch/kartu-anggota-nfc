@@ -23,6 +23,7 @@ class AuthController extends Controller
         if (! $user || ! Hash::check($d['password'], $user->password)) {
             throw ValidationException::withMessages(['email' => 'Email atau password salah.']);
         }
+        abort_if($user->disabled_at, 403, 'Akun dinonaktifkan. Hubungi pengurus.');
 
         $device = Device::firstOrNew(['uuid' => $d['device_uuid']]);
         if ($device->isRevoked()) {

@@ -11,6 +11,11 @@ class Term extends Model
 
     protected $guarded = [];
 
+    protected function casts(): array
+    {
+        return ['starts_on' => 'date:Y-m-d', 'ends_on' => 'date:Y-m-d', 'is_current' => 'boolean'];
+    }
+
 
 
 }

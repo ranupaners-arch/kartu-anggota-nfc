@@ -13,5 +13,10 @@ class EventSession extends Model
 
     protected $guarded = [];
 
+    protected function casts(): array
+    {
+        return ['starts_at' => 'datetime', 'ends_at' => 'datetime'];
+    }
+
     public function event() { return $this->belongsTo(Event::class); }
 }

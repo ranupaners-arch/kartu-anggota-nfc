@@ -11,6 +11,5 @@ class Division extends Model
 
     protected $guarded = [];
 
-
-
+    public function memberships() { return $this->hasMany(Membership::class); }
 }

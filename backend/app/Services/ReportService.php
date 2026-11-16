@@ -30,7 +30,7 @@ class ReportService
             $a = $attendances->get($m->id);
 
             return [
-                'member_id' => $m->id, 'member_no' => $m->member_no, 'name' => $m->name,
+                'member_id' => $m->id, 'attendance_id' => $a?->id, 'member_no' => $m->member_no, 'name' => $m->name,
                 'division' => $m->memberships->first()?->division?->name,
                 'status' => $a?->status ?? 'belum_absen',
                 'scanned_at' => $a?->scanned_at?->toIso8601String(), 'source' => $a?->source,

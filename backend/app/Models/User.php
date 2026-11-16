@@ -27,11 +27,14 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'two_factor_confirmed_at' => 'datetime',
+            'disabled_at' => 'datetime',
             'password' => 'hashed',
         ];
     }
 
     public function member() { return $this->belongsTo(Member::class); }
+    public function organization() { return $this->belongsTo(Organization::class); }
+    public function division() { return $this->belongsTo(Division::class); }
     public function isSuperAdmin(): bool { return $this->role === self::SUPER_ADMIN; }
     public function isAdmin(): bool { return in_array($this->role, [self::SUPER_ADMIN, self::DIVISION_ADMIN], true); }
 }

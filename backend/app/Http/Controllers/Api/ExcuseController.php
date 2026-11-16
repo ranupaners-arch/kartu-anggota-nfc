@@ -7,6 +7,7 @@ use App\Models\Event;
 use App\Models\ExcuseRequest;
 use App\Models\Member;
 use App\Services\AuditLogger;
+use App\Services\ExcuseService;
 use Illuminate\Http\Request;
 
 class ExcuseController extends Controller
@@ -43,14 +44,7 @@ class ExcuseController extends Controller
     public function review(Request $r, ExcuseRequest $excuse)
     {
         $d = $r->validate(['status' => 'required|in:approved,rejected', 'note' => 'nullable|string|max:500']);
-        $user = $r->user();
-        abort_if($user->role === 'division_admin' && $excuse->event->division_id
-            && $excuse->event->division_id !== $user->division_id, 403, 'Bukan kegiatan divisi Anda.');
 
-        $excuse->update(['status' => $d['status'], 'review_note' => $d['note'] ?? null,
-            'reviewed_by' => $user->id, 'reviewed_at' => now()]);
-        AuditLogger::log("excuse.{$d['status']}", 'excuse', $excuse->id);
-
-        return $excuse->fresh();
+        return app(ExcuseService::class)->review($r->user(), $excuse, $d['status'], $d['note'] ?? null);
     }
 }

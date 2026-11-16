@@ -50,9 +50,7 @@ class CardController extends Controller
     public function block(Request $r, Card $card)
     {
         $d = $r->validate(['status' => 'sometimes|in:blocked,lost']);
-        $card->update(['status' => $d['status'] ?? Card::BLOCKED, 'revoked_at' => now()]);
-        AuditLogger::log('card.blocked', 'card', $card->id, ['status' => $card->status]);
 
-        return $card->fresh();
+        return app(\App\Services\CardService::class)->block($card, $d['status'] ?? Card::BLOCKED);
     }
 }
