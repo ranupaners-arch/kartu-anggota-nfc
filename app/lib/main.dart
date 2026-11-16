@@ -1,121 +1,131 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:nfc_manager/nfc_manager.dart';
 
-void main() {
-  runApp(const MyApp());
-}
+import 'nfc/nfc_service.dart';
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+void main() => runApp(const KartuAnggotaApp());
 
-  // This widget is the root of your application.
+class KartuAnggotaApp extends StatelessWidget {
+  const KartuAnggotaApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: .fromSeed(seedColor: Colors.deepPurple),
-      ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      title: 'Kartu Anggota',
+      theme: ThemeData(colorSchemeSeed: Colors.indigo, useMaterial3: true),
+      home: const NfcDebugPage(),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
+/// Layar uji NFC sementara (prototipe M0), bukan UI final.
+class NfcDebugPage extends StatefulWidget {
+  const NfcDebugPage({super.key, this.service});
 
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
+  final NfcService? service;
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  State<NfcDebugPage> createState() => _NfcDebugPageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+class _NfcDebugPageState extends State<NfcDebugPage> {
+  late final NfcService _nfc = widget.service ?? NfcService();
+  final _payload = TextEditingController();
+  final _pwd = TextEditingController();
+  final _pack = TextEditingController();
+  final _log = <String>[];
+  bool _protect = true;
+  bool _busy = false;
 
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
+  void _add(String line) => setState(() => _log.insert(0, line));
+
+  Future<void> _run(String label, Future<String> Function() op) async {
+    setState(() => _busy = true);
+    _add('▶ $label — tempelkan kartu ke belakang HP…');
+    try {
+      final status = await _nfc.availability();
+      if (status != NfcAvailability.enabled) {
+        _add('✗ NFC ${status.name}. Aktifkan NFC di pengaturan HP.');
+        return;
+      }
+      _add('✓ ${await op()}');
+    } catch (e) {
+      _add('✗ $e');
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  @override
+  void dispose() {
+    _nfc.cancel();
+    _payload.dispose();
+    _pwd.dispose();
+    _pack.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
     return Scaffold(
-      appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: .center,
-          children: [
-            const Text('You have pushed the button this many times:'),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-          ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
+      appBar: AppBar(title: const Text('Uji NFC')),
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          FilledButton.tonal(
+            onPressed: _busy
+                ? null
+                : () => _run('Deteksi', () async {
+                      final i = await _nfc.detect();
+                      return 'Terdeteksi: ${i.techs.join(', ')} · UID ${i.uidMasked}';
+                    }),
+            child: const Text('Deteksi tag (aman untuk e-KTP)'),
+          ),
+          const SizedBox(height: 8),
+          FilledButton.tonal(
+            onPressed: _busy
+                ? null
+                : () => _run('Baca kartu', () async {
+                      final r = await _nfc.read();
+                      final p = r.payload;
+                      return p == null
+                          ? 'Isi: ${r.text ?? '(kosong)'} — bukan format kartu anggota'
+                          : 'Kartu valid (format). key=${p.keyId} id=${p.publicId}';
+                    }),
+            child: const Text('Baca kartu anggota (NTAG)'),
+          ),
+          const Divider(height: 32),
+          const Text('Tulis kartu NTAG215 — isi dari respons POST /api/cards/init'),
+          TextField(controller: _payload, decoration: const InputDecoration(labelText: 'payload')),
+          Row(children: [
+            Expanded(child: TextField(controller: _pwd, decoration: const InputDecoration(labelText: 'ntag.pwd (8 hex)'))),
+            const SizedBox(width: 8),
+            Expanded(child: TextField(controller: _pack, decoration: const InputDecoration(labelText: 'ntag.pack (4 hex)'))),
+          ]),
+          CheckboxListTile(
+            value: _protect,
+            onChanged: (v) => setState(() => _protect = v ?? true),
+            title: const Text('Proteksi tulis dengan password'),
+            subtitle: const Text('Baca tetap bebas. Tidak permanen (bisa ditulis ulang dengan password).'),
+            contentPadding: EdgeInsets.zero,
+          ),
+          FilledButton(
+            onPressed: _busy
+                ? null
+                : () => _run('Tulis kartu', () async {
+                      final w = await _nfc.write(
+                        payload: _payload.text,
+                        pwdHex: _pwd.text,
+                        packHex: _pack.text,
+                        protect: _protect,
+                      );
+                      return 'Tertulis ke ${w.model.name}, proteksi=${w.protectedNow}. hw_uid untuk assign: ${w.uidHex}';
+                    }),
+            child: const Text('Tulis kartu'),
+          ),
+          const Divider(height: 32),
+          for (final line in _log) Padding(padding: const EdgeInsets.only(bottom: 6), child: SelectableText(line)),
+        ],
       ),
     );
   }
