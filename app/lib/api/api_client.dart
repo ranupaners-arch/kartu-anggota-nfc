@@ -13,14 +13,24 @@ class ApiException implements Exception {
 }
 
 class EventSummary {
-  const EventSummary(this.id, this.title);
+  const EventSummary(this.id, this.title, {this.location, this.checkinClosesAt});
+
+  factory EventSummary.fromJson(Map<String, dynamic> e) => EventSummary(
+        e['id'] as int,
+        e['title'] as String,
+        location: e['location'] as String?,
+        checkinClosesAt: DateTime.tryParse(e['checkin_closes_at'] as String? ?? '')?.toLocal(),
+      );
+
   final int id;
   final String title;
+  final String? location;
+  final DateTime? checkinClosesAt;
 }
 
 /// Hasil scan dari server: status ok|duplicate|blocked|invalid|not_target|outside_window|clock_drift.
 class ScanResult {
-  const ScanResult({required this.status, required this.message, this.attendanceStatus, this.memberName, this.memberNo});
+  const ScanResult({required this.status, required this.message, this.attendanceStatus, this.memberName, this.memberNo, this.division});
 
   factory ScanResult.fromJson(Map<String, dynamic> j) {
     final m = j['member'] as Map<String, dynamic>?;
@@ -30,6 +40,7 @@ class ScanResult {
       attendanceStatus: j['attendance_status'] as String?,
       memberName: m?['name'] as String?,
       memberNo: m?['member_no'] as String?,
+      division: m?['division'] as String?,
     );
   }
 
@@ -38,6 +49,7 @@ class ScanResult {
   final String? attendanceStatus;
   final String? memberName;
   final String? memberNo;
+  final String? division;
 
   bool get ok => status == 'ok';
 }
@@ -63,9 +75,18 @@ class ApiClient {
     return j['user'] as Map<String, dynamic>;
   }
 
+  Future<void> logout() async {
+    try {
+      await _send('POST', '/api/auth/logout');
+    } catch (_) {
+      // Token mungkin sudah tidak berlaku; tetap keluar di perangkat.
+    }
+    token = null;
+  }
+
   Future<List<EventSummary>> ongoingEvents() async {
     final j = await _send('GET', '/api/events?status=ongoing');
-    return [for (final e in j['data'] as List) EventSummary(e['id'] as int, e['title'] as String)];
+    return [for (final e in j['data'] as List) EventSummary.fromJson(e as Map<String, dynamic>)];
   }
 
   Future<ScanResult> scan(int eventId, String payload, {String source = 'nfc'}) async {
