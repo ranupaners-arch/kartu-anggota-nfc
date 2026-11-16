@@ -17,12 +17,24 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
+      # Runner bawaan hanya punya ~14 GB kosong; build Android + cache Flutter bisa
+      # memenuhinya sehingga penyimpanan cache gagal ("tar ... Wrote only N bytes").
+      - name: Bebaskan ruang disk
+        working-directory: /
+        run: |
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/share/boost /usr/local/.ghcup
+          df -h /
 
-      - uses: actions/setup-java@v4
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: '17'
+          cache: gradle
+          cache-dependency-path: |
+            app/android/*.gradle*
+            app/android/gradle/wrapper/gradle-wrapper.properties
 
       - uses: subosito/flutter-action@v2
         with:
@@ -39,10 +51,17 @@ jobs:
       # Release memakai signing debug bawaan template sampai keystore rilis disiapkan.
       - run: flutter build apk --release
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: kartuanggota-apk-${{ github.sha }}
           path: |
             app/build/app/outputs/flutter-apk/app-debug.apk
             app/build/app/outputs/flutter-apk/app-release.apk
           retention-days: 14
+
+      # Hapus hasil build agar langkah simpan cache (post-job) punya ruang disk.
+      - name: Bersihkan hasil build
+        if: always()
+        run: |
+          rm -rf build android/.gradle android/app/build
+          df -h /

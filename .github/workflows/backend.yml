@@ -33,7 +33,7 @@ jobs:
       DB_USERNAME: hmps
       DB_PASSWORD: hmps_dev
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: shivammathur/setup-php@v2
         with:
@@ -41,7 +41,7 @@ jobs:
           extensions: pdo_pgsql, pgsql, redis, intl, gd, bcmath, sodium
           coverage: none
 
-      - uses: actions/cache@v4
+      - uses: actions/cache@v6
         with:
           path: backend/vendor
           key: composer-${{ hashFiles('backend/composer.lock') }}
