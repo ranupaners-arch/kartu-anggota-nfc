@@ -34,11 +34,15 @@ jobs:
       - run: flutter analyze
       - run: flutter test
 
+      # Debug: untuk uji di HP (boleh HTTP ke server lokal).
+      - run: flutter build apk --debug
       # Release memakai signing debug bawaan template sampai keystore rilis disiapkan.
       - run: flutter build apk --release
 
       - uses: actions/upload-artifact@v4
         with:
           name: kartuanggota-apk-${{ github.sha }}
-          path: app/build/app/outputs/flutter-apk/app-release.apk
+          path: |
+            app/build/app/outputs/flutter-apk/app-debug.apk
+            app/build/app/outputs/flutter-apk/app-release.apk
           retention-days: 14

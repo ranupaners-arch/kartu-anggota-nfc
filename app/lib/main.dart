@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:nfc_manager/nfc_manager.dart';
 
+import 'debug/qr_scan_page.dart';
 import 'nfc/nfc_service.dart';
 
 void main() => runApp(const KartuAnggotaApp());
@@ -68,7 +69,16 @@ class _NfcDebugPageState extends State<NfcDebugPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Uji NFC')),
+      appBar: AppBar(
+        title: const Text('Uji NFC'),
+        actions: [
+          TextButton.icon(
+            onPressed: () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const QrScanPage())),
+            icon: const Icon(Icons.qr_code_scanner),
+            label: const Text('Uji QR'),
+          ),
+        ],
+      ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
