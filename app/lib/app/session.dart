@@ -14,6 +14,7 @@ class Session {
 
   ApiClient client() => ApiClient(baseUrl: baseUrl)..token = token;
 
+  // URL server disimpan bersama ServerConfig (kunci 'server_url').
   static const _kUrl = 'server_url', _kToken = 'token', _kName = 'user_name', _kRole = 'user_role';
 
   static Future<Session?> load() async {
@@ -22,8 +23,6 @@ class Session {
     if (url == null || token == null) return null;
     return Session(baseUrl: url, token: token, userName: p.getString(_kName) ?? '', role: p.getString(_kRole) ?? '');
   }
-
-  static Future<String?> lastServerUrl() async => (await SharedPreferences.getInstance()).getString(_kUrl);
 
   Future<void> save() async {
     final p = await SharedPreferences.getInstance();

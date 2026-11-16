@@ -2,8 +2,10 @@ import 'package:material_ui/material_ui.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
 import '../api/api_client.dart';
+import '../app/server_config.dart';
 import '../app/session.dart';
 import '../widgets/ui.dart';
+import 'connect_screen.dart';
 import 'login_screen.dart';
 import 'nfc_tools_screen.dart';
 import 'scan_screen.dart';
@@ -39,7 +41,12 @@ class _EventsScreenState extends State<EventsScreen> {
     if (!expired) await _api.logout();
     await Session.clear();
     if (!mounted) return;
-    Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute<void>(builder: (_) => const LoginScreen()), (_) => false);
+    final server = await ServerConfig.load();
+    if (!mounted) return;
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute<void>(builder: (_) => server == null ? const ConnectScreen() : LoginScreen(server: server)),
+      (_) => false,
+    );
   }
 
   String _hhmm(DateTime t) => '${t.hour.toString().padLeft(2, '0')}.${t.minute.toString().padLeft(2, '0')}';

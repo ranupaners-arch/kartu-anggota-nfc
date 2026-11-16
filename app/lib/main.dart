@@ -1,7 +1,9 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
+import 'app/server_config.dart';
 import 'app/session.dart';
+import 'screens/connect_screen.dart';
 import 'screens/events_screen.dart';
 import 'screens/login_screen.dart';
 
@@ -30,17 +32,21 @@ class KartuAnggotaApp extends StatelessWidget {
   }
 }
 
-/// Buka daftar kegiatan bila sudah login, selain itu halaman login.
+/// Urutan awal: sudah login → kegiatan; server diketahui → login; selain itu → hubungkan organisasi.
 class _StartGate extends StatelessWidget {
   const _StartGate();
 
+  static Future<(Session?, ServerConfig?)> _load() async => (await Session.load(), await ServerConfig.load());
+
   @override
-  Widget build(BuildContext context) => FutureBuilder<Session?>(
-        future: Session.load(),
+  Widget build(BuildContext context) => FutureBuilder<(Session?, ServerConfig?)>(
+        future: _load(),
         builder: (context, snap) {
           if (snap.connectionState != ConnectionState.done) return const Scaffold(body: Center(child: CircularProgressIndicator()));
-          final s = snap.data;
-          return s == null ? const LoginScreen() : EventsScreen(session: s);
+          final (session, server) = snap.data!;
+          if (session != null) return EventsScreen(session: session);
+          if (server != null) return LoginScreen(server: server);
+          return const ConnectScreen();
         },
       );
 }
