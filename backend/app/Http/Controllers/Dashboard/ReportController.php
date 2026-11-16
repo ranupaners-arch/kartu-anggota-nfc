@@ -9,6 +9,7 @@ use App\Models\Term;
 use App\Services\ExportService;
 use App\Services\ReportService;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 use Illuminate\Support\Facades\Storage;
 
 class ReportController extends Controller
@@ -23,9 +24,9 @@ class ReportController extends Controller
         $term = $terms->firstWhere('id', (int) $r->query('term_id')) ?? $terms->firstWhere('is_current', true) ?? $terms->first();
         $divisionId = $tab === 'divisi' ? $this->exports->divisionScope($user, $r->integer('division_id') ?: null) : null;
 
-        return view('reports.index', [
-            'tab' => $tab, 'terms' => $terms, 'term' => $term, 'divisionId' => $divisionId,
-            'divisions' => $user->isSuperAdmin() ? Division::orderBy('name')->get() : Division::whereKey($user->division_id)->get(),
+        return Inertia::render('reports/index', [
+            'tab' => $tab, 'terms' => $terms->map->only('id', 'name'), 'term' => $term?->only('id', 'name'), 'divisionId' => $divisionId,
+            'divisions' => ($user->isSuperAdmin() ? Division::query() : Division::whereKey($user->division_id))->orderBy('name')->get(['id', 'name']),
             'report' => $term && $tab !== 'ekspor' && ($tab === 'periode' || $divisionId) ? $reports->term($term, $divisionId) : null,
             'exports' => $tab === 'ekspor'
                 ? Export::query()->when(! $user->isSuperAdmin(), fn ($q) => $q->where('user_id', $user->id))->latest()->paginate(20)->withQueryString()

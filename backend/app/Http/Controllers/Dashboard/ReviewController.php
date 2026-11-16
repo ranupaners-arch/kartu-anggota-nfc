@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Attendance;
 use App\Services\AttendanceService;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 /** Perlu Ditinjau: konflik offline, override di luar jendela, anomali kartu. */
 class ReviewController extends Controller
@@ -17,7 +18,7 @@ class ReviewController extends Controller
         $tab = $r->query('tab', 'offline');
         $kind = ['offline' => 'offline', 'override' => 'override', 'anomali' => 'anomaly'][$tab] ?? 'offline';
 
-        return view('reviews.index', ['tab' => $tab, 'items' => $this->attendances->reviewQueue($r->user(), $kind)->paginate(30)->withQueryString()]);
+        return Inertia::render('reviews/index', ['tab' => $tab, 'items' => $this->attendances->reviewQueue($r->user(), $kind)->paginate(30)->withQueryString()]);
     }
 
     public function accept(Request $r, Attendance $attendance)

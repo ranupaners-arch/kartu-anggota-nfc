@@ -7,6 +7,7 @@ use App\Models\ExcuseRequest;
 use App\Services\EventService;
 use App\Services\ExcuseService;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 use Illuminate\Support\Facades\Storage;
 
 class ExcuseController extends Controller
@@ -20,7 +21,7 @@ class ExcuseController extends Controller
             ->when($tab === 'menunggu', fn ($q) => $q->where('status', 'pending')->oldest(),
                 fn ($q) => $q->where('status', '!=', 'pending')->latest('reviewed_at'));
 
-        return view('excuses.index', ['tab' => $tab, 'excuses' => $q->paginate(30)->withQueryString()]);
+        return Inertia::render('excuses/index', ['tab' => $tab, 'excuses' => $q->paginate(30)->withQueryString()]);
     }
 
     public function review(Request $r, ExcuseRequest $excuse)

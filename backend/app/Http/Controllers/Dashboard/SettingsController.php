@@ -7,6 +7,7 @@ use App\Models\Division;
 use App\Models\Term;
 use App\Services\AuditLogger;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
@@ -14,9 +15,9 @@ class SettingsController extends Controller
 {
     public function index(Request $r)
     {
-        return view('settings.index', [
+        return Inertia::render('settings/index', [
             'tab' => $r->query('tab', 'organisasi'),
-            'org' => $r->user()->organization,
+            'org' => $r->user()->organization->only('name', 'slug'),
             'terms' => Term::orderByDesc('starts_on')->get(),
             'divisions' => Division::withCount('memberships')->orderBy('name')->get(),
         ]);

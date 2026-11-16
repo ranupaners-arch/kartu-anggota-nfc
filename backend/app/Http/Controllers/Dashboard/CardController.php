@@ -8,6 +8,7 @@ use App\Models\Card;
 use App\Models\User;
 use App\Services\CardService;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 class CardController extends Controller
 {
@@ -20,7 +21,12 @@ class CardController extends Controller
                 ->latest('created_at')->paginate(30)->withQueryString();
             $cards = Card::with('member:id,member_no,name')->whereIn('id', $items->pluck('entity_id'))->get()->keyBy('id');
 
-            return view('cards.index', compact('tab', 'items', 'cards'));
+            return Inertia::render('cards/index', ['tab' => $tab, 'filters' => ['q' => null, 'status' => null],
+                'items' => $items->through(fn (AuditLog $l) => [
+                    'id' => $l->id, 'created_at' => $l->created_at, 'card_status' => $l->payload['status'] ?? null,
+                    'event_id' => $l->payload['event_id'] ?? null, 'device_id' => $l->payload['device_id'] ?? null,
+                    'member' => $cards[$l->entity_id]?->member?->only('member_no', 'name'),
+                ])]);
         }
 
         $items = Card::with('member:id,member_no,name')
@@ -29,7 +35,7 @@ class CardController extends Controller
                 ->where('name', 'ilike', "%$s%")->orWhere('member_no', 'ilike', "%$s%")))
             ->latest('issued_at')->paginate(30)->withQueryString();
 
-        return view('cards.index', compact('tab', 'items'));
+        return Inertia::render('cards/index', ['tab' => $tab, 'items' => $items, 'filters' => ['q' => $r->query('q'), 'status' => $r->query('status')]]);
     }
 
     public function block(Request $r, Card $card, CardService $cards)

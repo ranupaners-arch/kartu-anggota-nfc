@@ -18,3 +18,13 @@ export const roleLabel: Record<string, string> = {
     scanner: 'Petugas Scan',
     member: 'Anggota',
 };
+
+/** ISO → nilai input datetime-local (zona Asia/Jakarta), mis. "2026-11-16T14:05". */
+export function toLocalInput(v?: string | null): string {
+    if (!v) return '';
+    const p = Object.fromEntries(
+        new Intl.DateTimeFormat('en-CA', { timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' })
+            .formatToParts(new Date(v)).map((x) => [x.type, x.value]),
+    );
+    return `${p.year}-${p.month}-${p.day}T${p.hour}:${p.minute}`;
+}

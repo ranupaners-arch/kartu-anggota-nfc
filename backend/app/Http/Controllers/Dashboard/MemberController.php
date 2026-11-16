@@ -10,6 +10,7 @@ use App\Models\Membership;
 use App\Services\MemberImportService;
 use App\Services\MemberService;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 use Illuminate\Support\Facades\Storage;
 
 class MemberController extends Controller
@@ -28,12 +29,21 @@ class MemberController extends Controller
             ->when($r->query('division_id'), fn ($q, $d) => $q->whereHas('memberships', fn ($m) => $m->where('term_id', $term->id)->where('division_id', $d)))
             ->orderBy('name');
 
-        return view('members.index', ['tab' => $tab, 'members' => $q->paginate(30)->withQueryString(), 'divisions' => Division::orderBy('name')->get(), 'term' => $term]);
+        return Inertia::render('members/index', [
+            'tab' => $tab, 'term' => $term->only('id', 'name'),
+            'members' => $q->paginate(30)->withQueryString()->through(fn (Member $m) => [
+                'id' => $m->id, 'member_no' => $m->member_no, 'name' => $m->name, 'cohort' => $m->cohort,
+                'division' => $m->memberships->first()?->division?->name, 'status' => $m->memberships->first()?->status,
+                'has_card' => (bool) $m->activeCard,
+            ]),
+            'divisions' => Division::orderBy('name')->get(['id', 'name']),
+            'filters' => ['q' => $r->query('q'), 'division_id' => $r->query('division_id')],
+        ]);
     }
 
     public function create()
     {
-        return view('members.form', ['member' => new Member, 'membership' => new Membership(['status' => 'active']), 'divisions' => Division::orderBy('name')->get()]);
+        return Inertia::render('members/form', ['member' => (object) [], 'membership' => ['division_id' => null, 'status' => 'active', 'role' => null], 'divisions' => Division::orderBy('name')->get(['id', 'name'])]);
     }
 
     public function store(Request $r)
@@ -48,8 +58,14 @@ class MemberController extends Controller
         $tab = $r->query('tab', 'profil');
         $member->load(['memberships.term:id,name', 'memberships.division:id,name', 'cards']);
 
-        return view('members.show', [
-            'member' => $member, 'tab' => $tab,
+        return Inertia::render('members/show', [
+            'member' => $member->only('id', 'member_no', 'name', 'email', 'phone', 'cohort')
+                + ['photo_url' => $member->photo_path ? route('members.photo', $member).'?v='.substr(md5($member->photo_path), 0, 8) : null],
+            'tab' => $tab,
+            'memberships' => $member->memberships->sortByDesc('term_id')->values()->map(fn ($ms) => [
+                'id' => $ms->id, 'term' => $ms->term?->name, 'division' => $ms->division?->name, 'role' => $ms->role, 'status' => $ms->status,
+            ]),
+            'cards' => $member->cards->sortByDesc('issued_at')->values()->map->only('id', 'public_id', 'status', 'issued_at', 'revoked_at'),
             'attendances' => $tab === 'riwayat'
                 ? Attendance::with('event:id,title,starts_at')->where('member_id', $member->id)->latest('scanned_at')->paginate(30)->withQueryString()
                 : null,
@@ -60,7 +76,11 @@ class MemberController extends Controller
     {
         $membership = Membership::firstOrNew(['member_id' => $member->id, 'term_id' => $this->members->currentTerm()->id]);
 
-        return view('members.form', ['member' => $member, 'membership' => $membership, 'divisions' => Division::orderBy('name')->get()]);
+        return Inertia::render('members/form', [
+            'member' => $member->only('id', 'member_no', 'name', 'email', 'phone', 'cohort'),
+            'membership' => ['division_id' => $membership->division_id, 'status' => $membership->status ?? 'active', 'role' => $membership->role],
+            'divisions' => Division::orderBy('name')->get(['id', 'name']),
+        ]);
     }
 
     public function update(Request $r, Member $member)
@@ -97,14 +117,14 @@ class MemberController extends Controller
 
     public function importForm()
     {
-        return view('members.import');
+        return Inertia::render('members/import', ['preview' => null]);
     }
 
     public function importPreview(Request $r, MemberImportService $import)
     {
         $r->validate(['file' => 'required|file|mimes:csv,txt|max:2048']);
 
-        return view('members.import', ['preview' => $import->preview($r->user(), $r->file('file')->getRealPath())]);
+        return Inertia::render('members/import', ['preview' => $import->preview($r->user(), $r->file('file')->getRealPath())]);
     }
 
     public function importCommit(Request $r, MemberImportService $import)

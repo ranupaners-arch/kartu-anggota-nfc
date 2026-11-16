@@ -11,7 +11,9 @@ class AccountController extends Controller
 {
     public function edit(Request $r)
     {
-        return view('account.edit', ['user' => $r->user()->load('member')]);
+        $user = $r->user()->load('member:id,member_no,name');
+
+        return \Inertia\Inertia::render('account/edit', ['user' => $user->only('name', 'email', 'role') + ['member' => $user->member?->only('member_no', 'name')]]);
     }
 
     public function password(Request $r)

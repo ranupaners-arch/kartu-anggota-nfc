@@ -11,6 +11,7 @@ use App\Services\AttendanceService;
 use App\Services\EventService;
 use App\Services\ReportService;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 class EventController extends Controller
 {
@@ -26,13 +27,13 @@ class EventController extends Controller
             default => $q->whereNull('closed_at')->where('checkin_opens_at', '<=', now())->where('checkin_closes_at', '>=', now())->orderBy('starts_at'),
         };
 
-        return view('events.index', ['tab' => $tab, 'events' => $q->withCount(['attendances as present_count' => fn ($w) => $w
+        return Inertia::render('events/index', ['tab' => $tab, 'events' => $q->withCount(['attendances as present_count' => fn ($w) => $w
             ->whereNull('voided_at')->whereIn('status', ['hadir', 'telat'])])->paginate(20)->withQueryString()]);
     }
 
     public function create()
     {
-        return view('events.form', ['event' => new Event(['is_mandatory' => true, 'type' => 'rapat']), 'divisions' => Division::orderBy('name')->get()]);
+        return Inertia::render('events/form', ['event' => (object) [], 'divisions' => Division::orderBy('name')->get(['id', 'name']), 'windowLocked' => false]);
     }
 
     public function store(Request $r)
@@ -50,11 +51,15 @@ class EventController extends Controller
         $tab = $r->query('tab', 'ringkasan');
         $event->load(['sessions', 'targets']);
 
-        return view('events.show', [
-            'event' => $event, 'tab' => $tab,
+        return Inertia::render('events/show', [
+            'event' => $event->only('id', 'title', 'location', 'starts_at', 'ends_at', 'checkin_opens_at', 'late_after', 'checkin_closes_at', 'closed_at'),
+            'tab' => $tab,
             'report' => in_array($tab, ['ringkasan', 'hadir'], true) ? $reports->event($event) : null,
-            'divisions' => Division::orderBy('name')->get(),
-            'targetMembers' => Member::whereIn('id', $event->targets->pluck('member_id')->filter())->get(),
+            'canDelete' => ! $event->attendances()->exists(),
+            'sessions' => $event->sessions->map->only('id', 'title', 'starts_at', 'ends_at')->values(),
+            'divisions' => Division::orderBy('name')->get(['id', 'name']),
+            'targetDivisionIds' => $event->targets->pluck('division_id')->filter()->values(),
+            'targetMemberNos' => Member::whereIn('id', $event->targets->pluck('member_id')->filter())->pluck('member_no'),
         ]);
     }
 
@@ -62,7 +67,11 @@ class EventController extends Controller
     {
         $this->events->authorize($r->user(), $event);
 
-        return view('events.form', ['event' => $event, 'divisions' => Division::orderBy('name')->get()]);
+        return Inertia::render('events/form', [
+            'event' => $event->only('id', 'title', 'type', 'location', 'is_mandatory', 'starts_at', 'ends_at', 'checkin_opens_at', 'late_after', 'checkin_closes_at'),
+            'divisions' => Division::orderBy('name')->get(['id', 'name']),
+            'windowLocked' => $event->checkin_opens_at->lte(now()),
+        ]);
     }
 
     public function update(Request $r, Event $event)

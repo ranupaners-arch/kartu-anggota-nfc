@@ -101,7 +101,7 @@ class DashboardTest extends TestCase
             route('users.index'), route('users.create'), route('users.edit', $this->humasAdmin), route('devices.index'), route('logs.index'),
             route('settings.index'), route('settings.index', ['tab' => 'periode']), route('settings.index', ['tab' => 'divisi']),
         ] as $url) {
-            $this->get($url)->assertOk();
+            $this->get($url)->assertOk()->assertInertia(fn (Assert $page) => $page->has('auth.user'));
         }
     }
 
@@ -176,9 +176,10 @@ class DashboardTest extends TestCase
         $this->get(route('members.photo', $m))->assertOk();
 
         $csv = UploadedFile::fake()->createWithContent('a.csv', "member_no;name;division\nY1;Siti;Humas\nY2;;Gaib\n");
-        $preview = $this->post(route('members.import.preview'), ['file' => $csv])->assertOk()->assertSee('1 baris valid');
-        preg_match('/name="token" value="([^"]+)"/', $preview->getContent(), $mm);
-        $this->post(route('members.import.commit'), ['token' => $mm[1], 'skip_errors' => '1'])->assertRedirect(route('members.index'));
+        $preview = $this->post(route('members.import.preview'), ['file' => $csv])->assertOk()->assertInertia(fn (Assert $page) => $page
+            ->component('members/import')->where('preview.summary.valid', 1)->where('preview.summary.errors', 1));
+        $token = $preview->viewData('page')['props']['preview']['token'];
+        $this->post(route('members.import.commit'), ['token' => $token, 'skip_errors' => '1'])->assertRedirect(route('members.index'));
         $this->assertDatabaseHas('members', ['member_no' => 'Y1']);
 
         $card = Card::create(['organization_id' => $this->org->id, 'public_id' => (string) Str::ulid(), 'member_id' => $m->id, 'status' => 'active']);

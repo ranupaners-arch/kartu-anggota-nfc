@@ -24,4 +24,18 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->shouldRenderJsonWhen(
             fn (Request $request) => $request->is('api/*') || $request->expectsJson(),
         );
+
+        // Navigasi dashboard (Inertia): error HTTP jangan tampil sebagai modal berisi halaman error.
+        $exceptions->render(function (\Symfony\Component\HttpKernel\Exception\HttpExceptionInterface $e, Request $request) {
+            if (! $request->header('X-Inertia') || $request->is('api/*') || $e->getStatusCode() === 419 || ! auth()->check()) {
+                return null;
+            }
+            $message = $e->getMessage() ?: ($e->getStatusCode() === 404 ? 'Data tidak ditemukan.' : 'Permintaan tidak bisa diproses.');
+            if (! $request->isMethod('GET')) {
+                return back()->withErrors(['error' => $message]);
+            }
+
+            return \Inertia\Inertia::render('error', ['status' => $e->getStatusCode(), 'message' => $message])
+                ->toResponse($request)->setStatusCode($e->getStatusCode());
+        });
     })->create();

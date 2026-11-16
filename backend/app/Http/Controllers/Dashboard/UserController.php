@@ -8,6 +8,7 @@ use App\Models\Member;
 use App\Models\User;
 use App\Services\UserService;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 /** Pengguna & Peran (Super Admin). User tidak memakai global scope, jadi dibatasi eksplisit per organisasi. */
 class UserController extends Controller
@@ -21,12 +22,12 @@ class UserController extends Controller
             ->when($r->query('role'), fn ($q, $role) => $q->where('role', $role))
             ->orderBy('name')->paginate(30)->withQueryString();
 
-        return view('users.index', ['users' => $users]);
+        return Inertia::render('users/index', ['users' => $users, 'filters' => ['role' => $r->query('role')]]);
     }
 
     public function create()
     {
-        return view('users.form', ['user' => new User(['role' => User::SCANNER]), 'divisions' => Division::orderBy('name')->get()]);
+        return Inertia::render('users/form', ['user' => ['role' => User::SCANNER], 'divisions' => Division::orderBy('name')->get(['id', 'name'])]);
     }
 
     public function store(Request $r)
@@ -41,7 +42,12 @@ class UserController extends Controller
     {
         $this->own($r, $user);
 
-        return view('users.form', ['user' => $user->load('member'), 'divisions' => Division::orderBy('name')->get()]);
+        $user->load('member:id,member_no');
+
+        return Inertia::render('users/form', [
+            'user' => $user->only('id', 'name', 'email', 'role', 'division_id') + ['member_no' => $user->member?->member_no],
+            'divisions' => Division::orderBy('name')->get(['id', 'name']),
+        ]);
     }
 
     public function update(Request $r, User $user)
