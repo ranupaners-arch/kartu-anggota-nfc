@@ -17,8 +17,8 @@ class HomeController extends Controller
         $user = $r->user();
         $term = Term::where('is_current', true)->first();
 
-        return view('dashboard.home', [
-            'term' => $term,
+        return \Inertia\Inertia::render('home', [
+            'term' => $term?->only('id', 'name'),
             'activeMembers' => $term ? Membership::where('term_id', $term->id)->where('status', 'active')
                 ->when($user->role === 'division_admin', fn ($q) => $q->where('division_id', $user->division_id))
                 ->whereHas('member')->count() : 0,

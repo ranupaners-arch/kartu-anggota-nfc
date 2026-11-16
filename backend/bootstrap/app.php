@@ -18,6 +18,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'dashboard' => \App\Http\Middleware\EnsureDashboardAccess::class,
         ]);
         $middleware->redirectUsersTo('/');
+        $middleware->web(append: [\App\Http\Middleware\HandleInertiaRequests::class]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

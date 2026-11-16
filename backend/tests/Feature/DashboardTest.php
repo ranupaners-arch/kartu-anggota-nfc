@@ -18,6 +18,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
 class DashboardTest extends TestCase
@@ -68,7 +69,8 @@ class DashboardTest extends TestCase
         $this->get('/')->assertRedirect(route('login'));
         $this->post(route('login'), ['email' => $this->admin->email, 'password' => 'salah'])->assertSessionHasErrors('email');
         $this->post(route('login'), ['email' => $this->admin->email, 'password' => 'rahasia123'])->assertRedirect(route('home'));
-        $this->get('/')->assertOk()->assertSee('Beranda');
+        $this->get('/')->assertOk()->assertInertia(fn (Assert $page) => $page->component('home')
+            ->where('auth.user.email', $this->admin->email)->has('ongoing', 1)->has('navBadges'));
         $this->post(route('logout'))->assertRedirect(route('login'));
 
         $scanner = User::factory()->create(['organization_id' => $this->org->id, 'role' => 'scanner', 'password' => 'rahasia123']);
@@ -114,7 +116,7 @@ class DashboardTest extends TestCase
         foreach ([route('members.index'), route('cards.index'), route('users.index'), route('logs.index'), route('settings.index')] as $url) {
             $this->get($url)->assertForbidden();
         }
-        $this->get('/')->assertOk()->assertDontSee('Pengguna &amp; Peran', false);
+        $this->get('/')->assertOk()->assertInertia(fn (Assert $page) => $page->where('auth.isSuperAdmin', false));
     }
 
     public function test_event_lifecycle_and_correction(): void
