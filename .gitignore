@@ -1,0 +1,9 @@
+# Editor / OS
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+.zed/
+
+# Laporan & artefak lokal
+*.log

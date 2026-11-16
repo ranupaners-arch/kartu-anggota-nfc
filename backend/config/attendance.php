@@ -1,0 +1,20 @@
+<?php
+
+return [
+    // Prefix payload NDEF/QR. Ganti HANYA sebelum kartu pertama ditulis:
+    // kartu yang sudah ditulis tidak akan terbaca bila prefix berubah.
+    'payload_prefix' => env('CARD_PAYLOAD_PREFIX', 'card'),
+
+    // Kunci HMAC kartu per key_id (mendukung rotasi). Isi dari environment.
+    'card_active_key' => env('CARD_ACTIVE_KEY', 'k1'),
+    'card_keys' => [
+        'k1' => env('CARD_KEY_k1'),
+    ],
+    'hmac_bytes' => 12,
+
+    'clock_drift_minutes' => 10,   // toleransi drift scan online
+    'qr_ttl_seconds' => 90,        // QR dianggap kedaluwarsa setelah ini
+    'qr_rotate_seconds' => 60,     // QR dirotasi bila lebih tua dari ini
+    'anomaly_seconds' => 60,       // kartu sama di event/perangkat berbeda
+    'auto_close_grace_minutes' => 5,
+];
