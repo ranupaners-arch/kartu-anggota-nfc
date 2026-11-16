@@ -46,19 +46,14 @@ jobs:
       - run: flutter analyze
       - run: flutter test
 
-      # Profile: untuk uji di HP. Dikompilasi seperti release (kecil & cepat), boleh HTTP
-      # ke server uji, dipisah per arsitektur (pasang yang arm64-v8a di HP modern).
-      - run: flutter build apk --profile --split-per-abi
-      # Release memakai signing debug bawaan template sampai keystore rilis disiapkan.
-      - run: flutter build apk --release
+      # Satu APK uji: build profile (dikompilasi seperti release, kecil & cepat, boleh HTTP
+      # ke server uji) khusus arm64. Build release ditambahkan lagi saat siap rilis.
+      - run: flutter build apk --profile --target-platform android-arm64
 
       - uses: actions/upload-artifact@v7
         with:
-          name: kartuanggota-apk-${{ github.sha }}
-          path: |
-            app/build/app/outputs/flutter-apk/app-arm64-v8a-profile.apk
-            app/build/app/outputs/flutter-apk/app-armeabi-v7a-profile.apk
-            app/build/app/outputs/flutter-apk/app-release.apk
+          name: kartuanggota-uji-${{ github.sha }}
+          path: app/build/app/outputs/flutter-apk/app-profile.apk
           retention-days: 14
 
       # Hapus hasil build agar langkah simpan cache (post-job) punya ruang disk.
