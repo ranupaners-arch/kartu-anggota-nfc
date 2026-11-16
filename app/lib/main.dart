@@ -29,7 +29,7 @@ class NfcDebugPage extends StatefulWidget {
   State<NfcDebugPage> createState() => _NfcDebugPageState();
 }
 
-class _NfcDebugPageState extends State<NfcDebugPage> {
+class _NfcDebugPageState extends State<NfcDebugPage> with WidgetsBindingObserver {
   late final NfcService _nfc = widget.service ?? NfcService();
   final _payload = TextEditingController();
   final _pwd = TextEditingController();
@@ -38,7 +38,40 @@ class _NfcDebugPageState extends State<NfcDebugPage> {
   bool _protect = true;
   bool _busy = false;
 
-  void _add(String line) => setState(() => _log.insert(0, line));
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _nfc.onIdleTag = (i) => _add('• Kartu terdeteksi (${i.techs.join(', ')}). Pilih aksi dulu, lalu tempel lagi.');
+    _startNfc();
+  }
+
+  /// Pegang NFC selama layar terbuka agar kartu tidak dilempar ke aplikasi lain.
+  Future<void> _startNfc() async {
+    try {
+      final status = await _nfc.availability();
+      if (status != NfcAvailability.enabled) {
+        _add('✗ NFC ${status.name}. Aktifkan NFC di pengaturan HP, lalu buka ulang app.');
+        return;
+      }
+      await _nfc.start();
+    } catch (e) {
+      _add('✗ Gagal mengaktifkan NFC: $e');
+    }
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _startNfc();
+    } else if (state == AppLifecycleState.paused) {
+      _nfc.stop();
+    }
+  }
+
+  void _add(String line) {
+    if (mounted) setState(() => _log.insert(0, line));
+  }
 
   Future<void> _run(String label, Future<String> Function() op) async {
     setState(() => _busy = true);
@@ -59,7 +92,8 @@ class _NfcDebugPageState extends State<NfcDebugPage> {
 
   @override
   void dispose() {
-    _nfc.cancel();
+    WidgetsBinding.instance.removeObserver(this);
+    _nfc.stop();
     _payload.dispose();
     _pwd.dispose();
     _pack.dispose();

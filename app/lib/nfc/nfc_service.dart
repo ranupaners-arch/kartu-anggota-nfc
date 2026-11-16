@@ -44,15 +44,44 @@ class NfcException implements Exception {
   String toString() => message;
 }
 
-/// Akses NFC (Android). Setiap operasi menunggu satu tap lalu menutup sesi.
+/// Akses NFC (Android).
+///
+/// Selama [start] aktif (layar petugas terbuka), app memegang NFC dalam reader mode,
+/// sehingga kartu yang ditempel tidak dilempar Android ke aplikasi lain (bank/e-money).
+/// Operasi ([detect], [read], [write]) menunggu tap berikutnya; tap tanpa operasi
+/// aktif diteruskan ke [onIdleTag].
 class NfcService {
   NfcService([NfcManager? manager]) : _nfc = manager ?? NfcManager.instance;
 
   final NfcManager _nfc;
+  bool _listening = false;
+  Completer<Object?>? _pending;
+  Future<Object?> Function(NfcTag tag)? _op;
+
+  /// Dipanggil saat kartu ditempel tanpa operasi yang sedang menunggu.
+  void Function(TagInfo info)? onIdleTag;
+
+  bool get isListening => _listening;
 
   Future<NfcAvailability> availability() => _nfc.checkAvailability();
 
-  Future<void> cancel() => _nfc.stopSession();
+  /// Mulai memegang NFC. Aman dipanggil berulang.
+  Future<void> start() async {
+    if (_listening) return;
+    await _nfc.startSession(pollingOptions: {NfcPollingOption.iso14443}, onDiscovered: _onTag);
+    _listening = true;
+  }
+
+  /// Lepas NFC (mis. saat layar ditutup atau app ke background).
+  Future<void> stop() async {
+    _failPending(NfcException('Dibatalkan.'));
+    if (!_listening) return;
+    _listening = false;
+    await _nfc.stopSession();
+  }
+
+  /// Batalkan operasi yang sedang menunggu tanpa melepas NFC.
+  void cancel() => _failPending(NfcException('Dibatalkan.'));
 
   /// Deteksi saja: jenis teknologi dan UID tersamar. Tidak membaca isi chip.
   /// Aman untuk kartu apa pun (termasuk e-KTP) karena tidak mengirim perintah ke chip.
@@ -129,20 +158,35 @@ class NfcService {
     return TagInfo(uidMasked: maskUid(a?.id ?? const []), techList: a?.techList ?? const []);
   }
 
+  Future<void> _onTag(NfcTag tag) async {
+    final op = _op, done = _pending;
+    if (op == null || done == null) {
+      onIdleTag?.call(_info(tag));
+      return;
+    }
+    _op = null;
+    _pending = null;
+    try {
+      done.complete(await op(tag));
+    } catch (e) {
+      done.completeError(e is NfcException ? e : NfcException('Gagal: $e'));
+    }
+  }
+
+  void _failPending(NfcException e) {
+    final done = _pending;
+    _op = null;
+    _pending = null;
+    if (done != null && !done.isCompleted) done.completeError(e);
+  }
+
+  /// Tunggu satu tap untuk [op]. Operasi sebelumnya yang belum selesai dibatalkan.
   Future<T> _once<T>(Future<T> Function(NfcTag tag) op) async {
-    final done = Completer<T>();
-    await _nfc.startSession(
-      pollingOptions: {NfcPollingOption.iso14443},
-      onDiscovered: (tag) async {
-        try {
-          done.complete(await op(tag));
-        } catch (e) {
-          done.completeError(e is NfcException ? e : NfcException('Gagal: $e'));
-        } finally {
-          await _nfc.stopSession();
-        }
-      },
-    );
-    return done.future;
+    await start();
+    _failPending(NfcException('Digantikan operasi baru.'));
+    final done = Completer<Object?>();
+    _pending = done;
+    _op = op;
+    return (await done.future) as T;
   }
 }

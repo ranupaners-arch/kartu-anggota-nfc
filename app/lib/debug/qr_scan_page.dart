@@ -39,8 +39,16 @@ class _QrScanPageState extends State<QrScanPage> {
       _busy = true;
       _error = null;
     });
+    final url = _url.text.trim();
+    if (!url.startsWith('http://')) {
+      setState(() {
+        _busy = false;
+        _error = 'URL harus diawali http:// (server uji tidak memakai HTTPS), contoh http://100.84.251.14:8000';
+      });
+      return;
+    }
     try {
-      final api = ApiClient(baseUrl: _url.text.trim());
+      final api = ApiClient(baseUrl: url);
       await api.login(_email.text.trim(), _password.text, deviceUuid: await deviceUuid());
       final events = await api.ongoingEvents();
       (await SharedPreferences.getInstance()).setString('server_url', _url.text.trim());
