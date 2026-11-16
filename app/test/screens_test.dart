@@ -7,6 +7,13 @@ import 'package:material_ui/material_ui.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
+  test('URL tanpa skema otomatis diberi http://', () {
+    expect(LoginScreenValidation.normalize(' 100.84.251.14:8000/ '), 'http://100.84.251.14:8000');
+    expect(LoginScreenValidation.normalize('https://absen.org.id'), 'https://absen.org.id');
+    expect(LoginScreenValidation.normalize('ftp://x'), 'ftp://x'); // skema lain dibiarkan → ditolak check()
+    expect(LoginScreenValidation.check(LoginScreenValidation.normalize('ftp://x')), isNotNull);
+  });
+
   test('validasi URL server', () {
     expect(LoginScreenValidation.check('http://100.84.251.14:8000'), isNull);
     expect(LoginScreenValidation.check('https://absen.organisasi.id'), isNull);
@@ -22,11 +29,17 @@ void main() {
     expect(find.text('Masuk'), findsOneWidget);
   });
 
-  testWidgets('URL tidak valid ditolak sebelum menghubungi server', (tester) async {
+  testWidgets('URL server terisi otomatis dan tersembunyi; bisa diganti', (tester) async {
     SharedPreferences.setMockInitialValues({});
     await tester.pumpWidget(const KartuAnggotaApp(home: LoginScreen()));
     await tester.pumpAndSettle();
-    await tester.enterText(find.byType(EditableText).first, 'server-tanpa-skema');
+    expect(find.text(defaultServerUrl), findsOneWidget); // tampil sebagai teks, bukan kolom isian
+    expect(find.text('URL server'), findsNothing);
+
+    await tester.tap(find.text('Ganti server'));
+    await tester.pumpAndSettle();
+    expect(find.text('URL server'), findsOneWidget);
+    await tester.enterText(find.byType(EditableText).last, 'ftp://salah');
     await tester.tap(find.text('Masuk'));
     await tester.pumpAndSettle();
     expect(find.textContaining('harus diawali http://'), findsOneWidget);

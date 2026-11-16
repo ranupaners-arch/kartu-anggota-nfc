@@ -13,8 +13,12 @@ class LoginScreen extends StatefulWidget {
   State<LoginScreen> createState() => _LoginScreenState();
 }
 
+/// URL server bawaan, diatur saat build: `--dart-define=API_URL=https://...`.
+const defaultServerUrl = String.fromEnvironment('API_URL', defaultValue: 'http://100.84.251.14:8000');
+
 class _LoginScreenState extends State<LoginScreen> {
-  final _url = TextEditingController(text: 'http://');
+  final _url = TextEditingController(text: defaultServerUrl);
+  bool _showServer = false;
   final _email = TextEditingController();
   final _password = TextEditingController();
   String? _error;
@@ -37,9 +41,15 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _login() async {
-    final url = _url.text.trim().replaceAll(RegExp(r'/+$'), '');
+    final url = LoginScreenValidation.normalize(_url.text);
     final invalid = LoginScreenValidation.check(url);
-    if (invalid != null) return setState(() => _error = invalid);
+    if (invalid != null) {
+      return setState(() {
+        _error = invalid;
+        _showServer = true;
+      });
+    }
+    _url.text = url;
 
     setState(() {
       _busy = true;
@@ -82,11 +92,19 @@ class _LoginScreenState extends State<LoginScreen> {
                     spacing: 12,
                     children: [
                       if (_error != null) ShadAlert.destructive(icon: const Icon(LucideIcons.circleAlert), description: Text(_error!)),
-                      _field('URL server', ShadInput(controller: _url, keyboardType: TextInputType.url, leading: const Icon(LucideIcons.server, size: 16))),
                       _field('Email', ShadInput(controller: _email, keyboardType: TextInputType.emailAddress, placeholder: const Text('nama@organisasi.id'),
                           leading: const Icon(LucideIcons.mail, size: 16))),
                       _field('Password', ShadInput(controller: _password, obscureText: true, leading: const Icon(LucideIcons.lock, size: 16),
                           onSubmitted: (_) => _busy ? null : _login())),
+                      if (_showServer)
+                        _field('URL server', ShadInput(controller: _url, keyboardType: TextInputType.url, leading: const Icon(LucideIcons.server, size: 16)))
+                      else
+                        Row(children: [
+                          Icon(LucideIcons.server, size: 14, color: ShadTheme.of(context).colorScheme.mutedForeground),
+                          const SizedBox(width: 6),
+                          Expanded(child: Text(_url.text, style: ShadTheme.of(context).textTheme.muted, overflow: TextOverflow.ellipsis)),
+                          ShadButton.link(size: ShadButtonSize.sm, onPressed: () => setState(() => _showServer = true), child: const Text('Ganti server')),
+                        ]),
                       const SizedBox(height: 4),
                       ShadButton(onPressed: _busy ? null : _login, child: Text(_busy ? 'Memproses…' : 'Masuk')),
                     ],
@@ -109,6 +127,13 @@ class _LoginScreenState extends State<LoginScreen> {
 
 /// Validasi URL server (dipisah agar bisa dites).
 abstract final class LoginScreenValidation {
+  /// Rapikan input: buang spasi & garis miring akhir, tambahkan http:// bila tanpa skema.
+  static String normalize(String input) {
+    var url = input.trim().replaceAll(RegExp(r'/+$'), '');
+    if (url.isNotEmpty && !RegExp(r'^[a-zA-Z][a-zA-Z0-9+.-]*://').hasMatch(url)) url = 'http://$url';
+    return url;
+  }
+
   /// Null bila valid; selain itu pesan kesalahan.
   static String? check(String url) {
     final ok = (url.startsWith('http://') && url.length > 'http://'.length) || (url.startsWith('https://') && url.length > 'https://'.length);
