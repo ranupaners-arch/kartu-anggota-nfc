@@ -29,6 +29,14 @@ APK terpasang: debug dari run `43815488268` (commit sebelum perbaikan di bawah).
 - **Layar Uji QR menolak URL selain `http://`** dengan pesan jelas. (temuan #1)
 - **APK uji memakai build profile arm64** (36 MB, bukan debug 181 MB).
 
+## Siap diuji (belum terpasang di HP)
+
+- **Mode offline (F9):** matikan data/Wi-Fi di HP saat layar Scan terbuka → tap kartu NTAG
+  → hasil berlabel "Offline" + "N scan belum tersinkron"; nyalakan lagi → tersinkron otomatis
+  (≤30 detik) atau tombol "Sinkron". Butuh kartu NTAG; QR memang butuh internet.
+- **Hubungkan organisasi:** dashboard → Pengaturan → Aplikasi → scan QR dari app.
+- **Kunci tanda tangan tetap:** uninstall app lama sekali; APK berikutnya cukup "Perbarui".
+
 ## Belum diuji
 
 - Baca/tulis kartu NTAG215 (kartu belum ada).

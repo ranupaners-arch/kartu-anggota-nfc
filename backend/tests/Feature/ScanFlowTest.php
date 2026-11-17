@@ -273,4 +273,19 @@ class ScanFlowTest extends TestCase
         $this->actingAs($orphan, 'sanctum')->getJson('/api/events')->assertOk()->assertJsonCount(0, 'data');
         $this->actingAs($orphan, 'sanctum')->getJson("/api/events/{$this->event->id}/roster")->assertNotFound();
     }
+
+    public function test_roster_contract_for_offline_app(): void
+    {
+        // Kontrak dengan app (lib/offline/roster.dart): sidik jari = sha256 payload kartu persis,
+        // dan event memuat jendela check-in yang dipakai pemeriksaan offline.
+        $payload = $this->issueCard($this->member());
+        $roster = $this->actingAs($this->scanner, 'sanctum')->getJson("/api/events/{$this->event->id}/roster")->assertOk();
+
+        $this->assertSame(hash('sha256', $payload), $roster->json('members.0.cards.0.payload_sha256'));
+        $roster->assertJsonStructure([
+            'event' => ['id', 'title', 'checkin_opens_at', 'late_after', 'checkin_closes_at', 'closed_at'],
+            'members' => [['id', 'member_no', 'name', 'division', 'cards' => [['public_id', 'status', 'payload_sha256']]]],
+            'generated_at',
+        ]);
+    }
 }
