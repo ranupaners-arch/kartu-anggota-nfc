@@ -20,3 +20,15 @@ APK uji dibuild dalam mode profile khusus arm64.
 
 Penomoran versi tidak mengatasi perbedaan sertifikat signing; pembaruan tanpa
 uninstall tetap memerlukan APK yang ditandatangani dengan keystore yang sama.
+
+## Kunci tanda tangan APK uji
+
+Build debug/profile ditandatangani kunci tetap `apk-uji` agar APK dari build
+berbeda bisa saling memperbarui. Kunci **tidak** ada di repo:
+
+- Lokal: `~/.config/kartu-anggota/apk-uji.jks` + `apk-uji.properties`
+  (atau path lain lewat `APK_UJI_PROPERTIES`). Cadangkan file ini; bila hilang,
+  APK berikutnya harus di-uninstall dulu sebelum dipasang.
+- CI: secret repo `APK_UJI_*`, diisi dengan `bash app/scripts/pasang-kunci-ci.sh`.
+
+Kunci rilis Play Store dibuat terpisah saat siap rilis.

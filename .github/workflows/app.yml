@@ -16,6 +16,13 @@ jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    env:
+      # Kunci tanda tangan APK uji (secret repo). Tanpa ini APK memakai kunci debug acak per run,
+      # sehingga tidak bisa memperbarui APK sebelumnya tanpa uninstall.
+      APK_UJI_KEYSTORE_BASE64: ${{ secrets.APK_UJI_KEYSTORE_BASE64 }}
+      APK_UJI_STORE_PASSWORD: ${{ secrets.APK_UJI_STORE_PASSWORD }}
+      APK_UJI_KEY_ALIAS: ${{ secrets.APK_UJI_KEY_ALIAS }}
+      APK_UJI_KEY_PASSWORD: ${{ secrets.APK_UJI_KEY_PASSWORD }}
     steps:
       # Runner bawaan hanya punya ~14 GB kosong; build Android + cache Flutter bisa
       # memenuhinya sehingga penyimpanan cache gagal ("tar ... Wrote only N bytes").
@@ -42,6 +49,15 @@ jobs:
           channel: stable
           cache: true
 
+      - name: Siapkan kunci tanda tangan APK uji
+        run: |
+          if [ -z "$APK_UJI_KEYSTORE_BASE64" ]; then
+            echo "::warning::Secret APK_UJI_* belum diisi: APK ditandatangani kunci debug acak dan tidak bisa memperbarui APK lama tanpa uninstall."
+            exit 0
+          fi
+          echo "$APK_UJI_KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/apk-uji.jks"
+          echo "APK_UJI_KEYSTORE_PATH=$RUNNER_TEMP/apk-uji.jks" >> "$GITHUB_ENV"
+
       - run: flutter pub get
       - run: flutter analyze
       - run: flutter test
@@ -58,6 +74,9 @@ jobs:
           apk_name="kartu-anggota-${build_name}-arm64.apk"
           mv build/app/outputs/flutter-apk/app-profile.apk "build/app/outputs/flutter-apk/$apk_name"
           printf 'build_name=%s\napk_name=%s\n' "$build_name" "$apk_name" >> "$GITHUB_OUTPUT"
+
+      - name: Tampilkan sidik jari sertifikat APK
+        run: keytool -printcert -jarfile "build/app/outputs/flutter-apk/${{ steps.apk.outputs.apk_name }}" | grep -E "Owner|SHA256:" | head -2
 
       - uses: actions/upload-artifact@v7
         with:
