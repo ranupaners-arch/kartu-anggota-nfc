@@ -75,17 +75,21 @@ jobs:
           mv build/app/outputs/flutter-apk/app-profile.apk "build/app/outputs/flutter-apk/$apk_name"
           printf 'build_name=%s\napk_name=%s\n' "$build_name" "$apk_name" >> "$GITHUB_OUTPUT"
 
-      # keytool tidak bisa membaca tanda tangan APK v2/v3; pakai apksigner dari Android SDK runner.
-      - name: Tampilkan sidik jari sertifikat APK
-        run: |
-          apksigner="$(ls -d "$ANDROID_HOME"/build-tools/*/apksigner | sort -V | tail -1)"
-          "$apksigner" verify --print-certs "build/app/outputs/flutter-apk/${{ steps.apk.outputs.apk_name }}" | grep -E "Signer #1 certificate (DN|SHA-256)"
-
       - uses: actions/upload-artifact@v7
         with:
           name: kartuanggota-${{ steps.apk.outputs.build_name }}-${{ github.sha }}
           path: app/build/app/outputs/flutter-apk/${{ steps.apk.outputs.apk_name }}
           retention-days: 14
+
+      # Informasi saja (tidak menggagalkan build): keytool tidak bisa membaca tanda tangan v2/v3,
+      # jadi pakai apksigner dari Android SDK runner bila ada.
+      - name: Tampilkan sidik jari sertifikat APK
+        continue-on-error: true
+        run: |
+          apk="build/app/outputs/flutter-apk/${{ steps.apk.outputs.apk_name }}"
+          apksigner="$(ls -d "${ANDROID_HOME:-$ANDROID_SDK_ROOT}"/build-tools/*/apksigner 2>/dev/null | sort -V | tail -1)"
+          if [ -z "$apksigner" ]; then echo "apksigner tidak ditemukan"; exit 0; fi
+          "$apksigner" verify --print-certs "$apk" 2>&1 | grep -iE "signer|sha-256|DN" || "$apksigner" verify --print-certs "$apk" 2>&1 | head -20
 
       # Hapus hasil build agar langkah simpan cache (post-job) punya ruang disk.
       - name: Bersihkan hasil build
