@@ -1,17 +1,22 @@
-# kartuanggota
+# Kartu Anggota NFC
 
-A new Flutter project.
+Aplikasi Flutter untuk petugas dan anggota sistem Kartu Anggota NFC.
 
-## Getting Started
+## Versi APK pengembangan
 
-This project is a starting point for a Flutter application.
+Versi dasar di `pubspec.yaml` memakai penanda `dev`: `1.0.0-dev+1`.
+Workflow **App (Flutter)** menambahkan nomor run GitHub Actions pada nama versi
+dan memakainya sebagai nomor build Android (`versionCode`).
 
-A few resources to get you started if this is your first Flutter project:
+Contoh untuk run nomor 42:
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+- Versi Android (`versionName`): `1.0.0-dev.42`.
+- Nomor build Android (`versionCode`): `42`.
+- Nama APK: `kartu-anggota-1.0.0-dev.42-arm64.apk`.
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+Setiap run baru mendapat nomor lebih besar. Mengulang run yang sama tetap
+memakai nomor yang sama. Build lokal tanpa override memakai `1.0.0-dev+1`.
+APK uji dibuild dalam mode profile khusus arm64.
+
+Penomoran versi tidak mengatasi perbedaan sertifikat signing; pembaruan tanpa
+uninstall tetap memerlukan APK yang ditandatangani dengan keystore yang sama.

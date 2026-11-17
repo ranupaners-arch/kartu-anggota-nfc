@@ -48,12 +48,21 @@ jobs:
 
       # Satu APK uji: build profile (dikompilasi seperti release, kecil & cepat, boleh HTTP
       # ke server uji) khusus arm64. Build release ditambahkan lagi saat siap rilis.
-      - run: flutter build apk --profile --target-platform android-arm64
+      - name: Build APK pengembangan (arm64)
+        id: apk
+        run: |
+          app_version=$(awk '/^version:/ { print $2; exit }' pubspec.yaml)
+          build_name="${app_version%%+*}.${GITHUB_RUN_NUMBER}"
+          flutter build apk --profile --target-platform android-arm64 \
+            --build-name "$build_name" --build-number "$GITHUB_RUN_NUMBER"
+          apk_name="kartu-anggota-${build_name}-arm64.apk"
+          mv build/app/outputs/flutter-apk/app-profile.apk "build/app/outputs/flutter-apk/$apk_name"
+          printf 'build_name=%s\napk_name=%s\n' "$build_name" "$apk_name" >> "$GITHUB_OUTPUT"
 
       - uses: actions/upload-artifact@v7
         with:
-          name: kartuanggota-uji-${{ github.sha }}
-          path: app/build/app/outputs/flutter-apk/app-profile.apk
+          name: kartuanggota-${{ steps.apk.outputs.build_name }}-${{ github.sha }}
+          path: app/build/app/outputs/flutter-apk/${{ steps.apk.outputs.apk_name }}
           retention-days: 14
 
       # Hapus hasil build agar langkah simpan cache (post-job) punya ruang disk.
