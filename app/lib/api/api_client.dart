@@ -30,7 +30,16 @@ class EventSummary {
 
 /// Hasil scan dari server: status ok|duplicate|blocked|invalid|not_target|outside_window|clock_drift.
 class ScanResult {
-  const ScanResult({required this.status, required this.message, this.attendanceStatus, this.memberName, this.memberNo, this.division});
+  const ScanResult({
+    required this.status,
+    required this.message,
+    this.attendanceStatus,
+    this.memberId,
+    this.memberName,
+    this.memberNo,
+    this.division,
+    this.offline = false,
+  });
 
   factory ScanResult.fromJson(Map<String, dynamic> j) {
     final m = j['member'] as Map<String, dynamic>?;
@@ -38,6 +47,7 @@ class ScanResult {
       status: j['status'] as String,
       message: j['message'] as String? ?? '',
       attendanceStatus: j['attendance_status'] as String?,
+      memberId: m?['id'] as int?,
       memberName: m?['name'] as String?,
       memberNo: m?['member_no'] as String?,
       division: m?['division'] as String?,
@@ -47,9 +57,13 @@ class ScanResult {
   final String status;
   final String message;
   final String? attendanceStatus;
+  final int? memberId;
   final String? memberName;
   final String? memberNo;
   final String? division;
+
+  /// Hasil diperiksa di perangkat (tanpa internet); keputusan akhir saat sinkron.
+  final bool offline;
 
   bool get ok => status == 'ok';
 }
@@ -89,14 +103,23 @@ class ApiClient {
     return [for (final e in j['data'] as List) EventSummary.fromJson(e as Map<String, dynamic>)];
   }
 
-  Future<ScanResult> scan(int eventId, String payload, {String source = 'nfc'}) async {
+  Future<ScanResult> scan(int eventId, String payload, {String source = 'nfc', String? clientUuid, DateTime? scannedAt}) async {
     final j = await _send('POST', '/api/events/$eventId/scan', {
       'payload': payload,
       'source': source,
-      'client_uuid': uuidV4(),
-      'scanned_at': DateTime.now().toUtc().toIso8601String(),
+      'client_uuid': clientUuid ?? uuidV4(),
+      'scanned_at': (scannedAt ?? DateTime.now()).toUtc().toIso8601String(),
     });
     return ScanResult.fromJson(j);
+  }
+
+  /// Data offline kegiatan: jendela waktu + peserta & sidik jari kartu.
+  Future<Map<String, dynamic>> roster(int eventId) => _send('GET', '/api/events/$eventId/roster');
+
+  /// Kirim antrean offline; hasil per item memuat client_uuid.
+  Future<List<Map<String, dynamic>>> scanBatch(int eventId, List<Map<String, dynamic>> scans) async {
+    final j = await _send('POST', '/api/events/$eventId/scan/batch', {'scans': scans});
+    return [for (final r in j['results'] as List) r as Map<String, dynamic>];
   }
 
   Future<Map<String, dynamic>> _send(String method, String path, [Map<String, dynamic>? body]) async {

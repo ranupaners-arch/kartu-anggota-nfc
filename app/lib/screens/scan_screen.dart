@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
@@ -5,8 +7,13 @@ import 'package:nfc_manager/nfc_manager.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
 import '../api/api_client.dart';
+import '../api/ids.dart';
 import '../app/session.dart';
 import '../nfc/nfc_service.dart';
+import '../offline/offline_store.dart';
+import '../offline/offline_verifier.dart';
+import '../offline/roster.dart';
+import '../offline/sync_service.dart';
 import '../widgets/scan_result_card.dart';
 import '../widgets/ui.dart';
 
@@ -14,19 +21,32 @@ enum ScanMode { nfc, qr }
 
 /// Layar scan petugas: kartu NFC dibaca terus selama layar terbuka; QR lewat kamera.
 class ScanScreen extends StatefulWidget {
-  const ScanScreen({super.key, required this.session, required this.event, this.nfc});
+  const ScanScreen({super.key, required this.session, required this.event, this.nfc, this.api, this.store, this.clock});
 
   final Session session;
   final EventSummary event;
   final NfcService? nfc;
+
+  /// Untuk tes.
+  final ApiClient? api;
+  final OfflineStore? store;
+  final DateTime Function()? clock;
 
   @override
   State<ScanScreen> createState() => _ScanScreenState();
 }
 
 class _ScanScreenState extends State<ScanScreen> with WidgetsBindingObserver {
-  late final ApiClient _api = widget.session.client();
+  late final ApiClient _api = widget.api ?? widget.session.client();
   late final NfcService _nfc = widget.nfc ?? NfcService();
+  DateTime _now() => (widget.clock ?? DateTime.now)();
+  OfflineStore? _store;
+  Roster? _roster;
+  int _pending = 0;
+  bool _syncing = false;
+  String? _syncNote;
+  Timer? _syncTimer;
+  final Set<int> _present = {}; // anggota yang sudah tercatat di sesi ini (cek duplikat offline)
   ScanMode _mode = ScanMode.nfc;
   ScanResult? _last;
   String? _nfcProblem;
@@ -41,11 +61,48 @@ class _ScanScreenState extends State<ScanScreen> with WidgetsBindingObserver {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _startNfc();
+    _initOffline();
+  }
+
+  /// Ambil roster terbaru bila online (simpan untuk offline), selain itu pakai yang tersimpan.
+  Future<void> _initOffline() async {
+    final store = widget.store ?? await OfflineStore.open();
+    if (!mounted) return;
+    _store = store;
+    try {
+      final roster = Roster.fromApi(await _api.roster(widget.event.id));
+      await store.saveRoster(roster);
+      _roster = roster;
+    } catch (_) {
+      _roster = store.loadRoster(widget.event.id);
+    }
+    if (!mounted) return;
+    setState(() => _pending = store.pending(eventId: widget.event.id).length);
+    _syncTimer = Timer.periodic(const Duration(seconds: 30), (_) => _sync(quiet: true));
+    if (_pending > 0) _sync(quiet: true);
+  }
+
+  Future<void> _sync({bool quiet = false}) async {
+    final store = _store;
+    if (store == null || _syncing || store.pending(eventId: widget.event.id).isEmpty) return;
+    setState(() => _syncing = true);
+    final r = await SyncService(_api, store).sync(widget.event.id);
+    if (!mounted) return;
+    setState(() {
+      _syncing = false;
+      _pending = r.remaining;
+      if (r.sent > 0) {
+        _syncNote = '${r.sent} scan tersinkron (${r.accepted} diterima, ${r.duplicates} duplikat, ${r.rejected} ditolak).';
+      } else if (!quiet && r.error != null) {
+        _syncNote = r.error;
+      }
+    });
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _syncTimer?.cancel();
     _loop++;
     _nfc.stop();
     super.dispose();
@@ -113,15 +170,38 @@ class _ScanScreenState extends State<ScanScreen> with WidgetsBindingObserver {
 
   Future<void> _submit(String payload, String source) async {
     setState(() => _busy = true);
+    final uuid = uuidV4();
+    final scannedAt = _now();
     try {
-      _show(await _api.scan(widget.event.id, payload, source: source));
+      final r = await _api.scan(widget.event.id, payload, source: source, clientUuid: uuid, scannedAt: scannedAt);
+      if ((r.ok || r.status == 'duplicate') && r.memberId != null) _present.add(r.memberId!);
+      _show(r);
+      if (_pending > 0) unawaited(_sync(quiet: true)); // sedang online: kirim antrean
     } on ApiException catch (e) {
       _show(ScanResult(status: 'error', message: e.status == 401 ? 'Sesi berakhir. Keluar lalu masuk lagi.' : e.message));
     } catch (_) {
-      _show(const ScanResult(status: 'error', message: 'Server tidak terjangkau. Periksa koneksi.'));
+      await _offline(payload, source, uuid, scannedAt); // jaringan putus
     } finally {
       if (mounted) setState(() => _busy = false);
     }
+  }
+
+  /// Tanpa internet: periksa dengan roster lokal lalu simpan ke antrean.
+  Future<void> _offline(String payload, String source, String uuid, DateTime scannedAt) async {
+    final roster = _roster, store = _store;
+    if (source == 'qr') {
+      return _show(const ScanResult(status: 'error', message: 'QR butuh koneksi internet. Gunakan kartu NFC saat offline.', offline: true));
+    }
+    if (roster == null || store == null) {
+      return _show(const ScanResult(status: 'error', message: 'Offline dan belum ada data peserta. Buka layar ini sekali saat online.', offline: true));
+    }
+    final r = OfflineVerifier.check(roster, payload, scannedAt, alreadyPresent: _present);
+    if (r.ok) {
+      await store.enqueue(PendingScan(clientUuid: uuid, eventId: widget.event.id, payload: payload, source: source, scannedAt: scannedAt));
+      _present.add(r.memberId!);
+      if (mounted) setState(() => _pending = store.pending(eventId: widget.event.id).length);
+    }
+    _show(r);
   }
 
   void _show(ScanResult r) {
@@ -171,7 +251,23 @@ class _ScanScreenState extends State<ScanScreen> with WidgetsBindingObserver {
               child: AspectRatio(aspectRatio: 1, child: MobileScanner(onDetect: _onQr)),
             ),
           const SizedBox(height: 16),
+          if (_pending > 0 || _syncNote != null) ...[
+            ShadCard(
+              padding: const EdgeInsets.all(12),
+              child: Row(spacing: 8, children: [
+                Icon(_pending > 0 ? LucideIcons.cloudOff : LucideIcons.cloudCheck, size: 18, color: theme.colorScheme.mutedForeground),
+                Expanded(child: Text(_pending > 0 ? '$_pending scan belum tersinkron${_syncNote != null ? '\n$_syncNote' : ''}' : _syncNote!, style: theme.textTheme.small)),
+                if (_pending > 0)
+                  ShadButton.outline(size: ShadButtonSize.sm, enabled: !_syncing, onPressed: _sync, child: Text(_syncing ? 'Mengirim…' : 'Sinkron')),
+              ]),
+            ),
+            const SizedBox(height: 12),
+          ],
           if (_last != null) ScanResultCard(result: _last!),
+          if (_roster != null) ...[
+            const SizedBox(height: 8),
+            Center(child: Text('Data offline: ${_roster!.members.length} peserta', style: theme.textTheme.muted)),
+          ],
           const SizedBox(height: 12),
           Center(child: Text('$_okCount berhasil tercatat di sesi ini', style: theme.textTheme.muted)),
         ],

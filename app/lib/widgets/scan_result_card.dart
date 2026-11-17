@@ -39,7 +39,10 @@ class ScanResultCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               spacing: 2,
               children: [
-                Text(s.label, style: theme.textTheme.small.copyWith(color: s.color, fontWeight: FontWeight.w600)),
+                Row(spacing: 6, children: [
+                  Text(s.label, style: theme.textTheme.small.copyWith(color: s.color, fontWeight: FontWeight.w600)),
+                  if (result.offline) ShadBadge.outline(child: const Text('Offline')),
+                ]),
                 Text(result.memberName ?? result.message, style: theme.textTheme.h4),
                 if (result.memberName != null)
                   Text([result.memberNo, result.division, result.message].whereType<String>().join(' · '), style: theme.textTheme.muted),
