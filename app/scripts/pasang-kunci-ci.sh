@@ -3,6 +3,8 @@
 # Membaca ~/.config/kartu-anggota/apk-uji.properties (dibuat sekali; JANGAN di-commit).
 # Pemakaian (dari root repo): bash app/scripts/pasang-kunci-ci.sh
 set -euo pipefail
+# gh menentukan repo dari folder kerja: pindah ke root repo agar bisa dijalankan dari mana saja.
+cd "$(dirname "$(readlink -f "$0")")/../.."
 P="${APK_UJI_PROPERTIES:-$HOME/.config/kartu-anggota/apk-uji.properties}"
 [ -f "$P" ] || { echo "Tidak ada $P"; exit 1; }
 get() { grep "^$1=" "$P" | cut -d= -f2-; }
