@@ -26,7 +26,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('me/qr', [MemberController::class, 'myQr']);
     Route::get('members/{member}/summary', [MemberController::class, 'summary']);
     Route::post('excuses', [ExcuseController::class, 'store']);
-    Route::get('members/{member}/photo', [MemberAdminController::class, 'photo'])->name('members.photo');
+    Route::get('members/{member}/photo', [MemberAdminController::class, 'photo'])->name('api.members.photo');
     Route::get('exports/{export}', [ExportController::class, 'show']);
     Route::get('exports/{export}/download', [ExportController::class, 'download']);
 

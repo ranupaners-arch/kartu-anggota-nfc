@@ -173,7 +173,10 @@ class DashboardTest extends TestCase
         $this->assertDatabaseHas('memberships', ['member_id' => $m->id, 'division_id' => $this->inti->id, 'status' => 'alumni']);
 
         $this->post(route('members.photo.upload', $m), ['photo' => UploadedFile::fake()->image('f.jpg')])->assertRedirect();
-        $this->get(route('members.photo', $m))->assertOk();
+        // URL foto yang dipakai halaman harus route dashboard (session), bukan route API (token).
+        $photoUrl = $this->get(route('members.show', $m))->viewData('page')['props']['member']['photo_url'];
+        $this->assertStringContainsString('/anggota/'.$m->id.'/foto', $photoUrl);
+        $this->get($photoUrl)->assertOk();
 
         $csv = UploadedFile::fake()->createWithContent('a.csv', "member_no;name;division\nY1;Siti;Humas\nY2;;Gaib\n");
         $preview = $this->post(route('members.import.preview'), ['file' => $csv])->assertOk()->assertInertia(fn (Assert $page) => $page

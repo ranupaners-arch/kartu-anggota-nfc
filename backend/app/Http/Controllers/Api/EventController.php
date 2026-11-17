@@ -47,7 +47,7 @@ class EventController extends Controller
             ->map(fn ($m) => [
                 'id' => $m->id, 'member_no' => $m->member_no, 'name' => $m->name,
                 'division' => $m->memberships->sortByDesc('term_id')->first()?->division?->name,
-                'photo_url' => $m->photo_path ? route('members.photo', $m) : null,
+                'photo_url' => $m->photo_path ? route('api.members.photo', $m) : null,
                 'cards' => $m->cards->map(fn (Card $c) => [
                     'public_id' => $c->public_id, 'status' => $c->status,
                     // sha256 payload: verifikasi offline tanpa secret HMAC di perangkat

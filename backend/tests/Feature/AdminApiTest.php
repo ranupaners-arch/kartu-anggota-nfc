@@ -178,6 +178,7 @@ class AdminApiTest extends TestCase
 
         $scanner = User::factory()->create(['organization_id' => $this->org->id, 'role' => 'scanner']);
         $this->as($scanner)->get("/api/members/{$m->id}/photo")->assertOk();
+        $this->assertStringContainsString("/api/members/{$m->id}/photo", route('api.members.photo', $m));
         $otherMember = User::factory()->create(['organization_id' => $this->org->id, 'role' => 'member', 'member_id' => $this->member('p2')->id]);
         $this->as($otherMember)->get("/api/members/{$m->id}/photo")->assertForbidden();
         $self = User::factory()->create(['organization_id' => $this->org->id, 'role' => 'member', 'member_id' => $m->id]);
