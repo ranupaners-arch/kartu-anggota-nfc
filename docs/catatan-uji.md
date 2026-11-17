@@ -29,6 +29,14 @@ APK terpasang: debug dari run `43815488268` (commit sebelum perbaikan di bawah).
 - **Layar Uji QR menolak URL selain `http://`** dengan pesan jelas. (temuan #1)
 - **APK uji memakai build profile arm64** (36 MB, bukan debug 181 MB).
 
+## 2026-11-17 · Uji ketiga (APK `1.0.0-dev.8`, commit `7e86ad8`)
+
+APK pertama dengan kunci tanda tangan tetap (SHA-256 `B6:AD:47:45…DF:8D`):
+app lama di-uninstall sekali; APK berikutnya cukup "Perbarui".
+
+| # | Yang diuji | Hasil | Status |
+|---|---|---|---|
+
 ## Siap diuji (belum terpasang di HP)
 
 - **Mode offline (F9):** matikan data/Wi-Fi di HP saat layar Scan terbuka → tap kartu NTAG
