@@ -113,6 +113,20 @@ class ApiClient {
     return ScanResult.fromJson(j);
   }
 
+  /// Cari anggota (Super Admin) untuk penerbitan kartu.
+  Future<List<MemberHit>> searchMembers(String query) async {
+    final j = await _send('GET', '/api/members?per_page=30&q=${Uri.encodeQueryComponent(query.trim())}');
+    return [for (final m in j['data'] as List) MemberHit.fromJson(m as Map<String, dynamic>)];
+  }
+
+  /// Langkah 1 penerbitan: buat kartu kosong di server + payload & password NTAG.
+  Future<CardInit> initCard() async => CardInit.fromJson(await _send('POST', '/api/cards/init', {}));
+
+  /// Langkah 3 penerbitan (setelah kartu berhasil ditulis): tautkan ke anggota; kartu lama diblokir server.
+  Future<void> assignCard(int cardId, {required int memberId, String? hwUid}) async {
+    await _send('POST', '/api/cards/$cardId/assign', {'member_id': memberId, 'hw_uid': ?hwUid});
+  }
+
   /// Data offline kegiatan: jendela waktu + peserta & sidik jari kartu.
   Future<Map<String, dynamic>> roster(int eventId) => _send('GET', '/api/events/$eventId/roster');
 
@@ -139,4 +153,35 @@ class ApiClient {
     }
     return decoded as Map<String, dynamic>;
   }
+}
+
+class MemberHit {
+  const MemberHit({required this.id, required this.memberNo, required this.name, this.division, this.hasActiveCard = false});
+
+  factory MemberHit.fromJson(Map<String, dynamic> j) {
+    final ms = (j['memberships'] as List?)?.cast<Map<String, dynamic>>() ?? const [];
+    final division = ms.isEmpty ? null : (ms.first['division'] as Map<String, dynamic>?)?['name'] as String?;
+    return MemberHit(
+      id: j['id'] as int, memberNo: j['member_no'] as String, name: j['name'] as String,
+      division: division, hasActiveCard: j['active_card'] != null,
+    );
+  }
+
+  final int id;
+  final String memberNo, name;
+  final String? division;
+  final bool hasActiveCard;
+}
+
+class CardInit {
+  const CardInit({required this.id, required this.payload, required this.pwd, required this.pack});
+
+  factory CardInit.fromJson(Map<String, dynamic> j) {
+    final ntag = j['ntag'] as Map<String, dynamic>?;
+    if (ntag == null) throw ApiException(500, 'Server belum menyiapkan kunci kartu (CARD_KEY).');
+    return CardInit(id: j['id'] as int, payload: j['payload'] as String, pwd: ntag['pwd'] as String, pack: ntag['pack'] as String);
+  }
+
+  final int id;
+  final String payload, pwd, pack;
 }

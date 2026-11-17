@@ -6,6 +6,7 @@ import '../app/server_config.dart';
 import '../app/session.dart';
 import '../widgets/ui.dart';
 import 'connect_screen.dart';
+import 'issue_card_screen.dart';
 import 'login_screen.dart';
 import 'nfc_tools_screen.dart';
 import 'scan_screen.dart';
@@ -57,6 +58,9 @@ class _EventsScreenState extends State<EventsScreen> {
     return AppPage(
       title: 'Kegiatan Berlangsung',
       actions: [
+        if (widget.session.role == 'super_admin')
+          ShadIconButton.ghost(icon: const Icon(LucideIcons.creditCard, size: 18),
+              onPressed: () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => IssueCardScreen(session: widget.session)))),
         ShadIconButton.ghost(icon: const Icon(LucideIcons.wrench, size: 18),
             onPressed: () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const NfcToolsScreen()))),
         ShadIconButton.ghost(icon: const Icon(LucideIcons.logOut, size: 18), onPressed: _logout),

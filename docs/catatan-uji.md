@@ -34,6 +34,8 @@ APK terpasang: debug dari run `43815488268` (commit sebelum perbaikan di bawah).
 - **Mode offline (F9):** matikan data/Wi-Fi di HP saat layar Scan terbuka → tap kartu NTAG
   → hasil berlabel "Offline" + "N scan belum tersinkron"; nyalakan lagi → tersinkron otomatis
   (≤30 detik) atau tombol "Sinkron". Butuh kartu NTAG; QR memang butuh internet.
+- **Terbitkan kartu (F3):** login Super Admin → ikon kartu di kanan atas → cari anggota →
+  "Terbitkan & tulis kartu" → tempel NTAG215 kosong. Lalu coba scan kartu itu di kegiatan. Butuh kartu NTAG.
 - **Hubungkan organisasi:** dashboard → Pengaturan → Aplikasi → scan QR dari app.
 - **Kunci tanda tangan tetap:** uninstall app lama sekali; APK berikutnya cukup "Perbarui".
 
