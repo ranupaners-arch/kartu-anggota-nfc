@@ -44,7 +44,8 @@ app lama di-uninstall sekali; APK berikutnya cukup "Perbarui".
 
 - **Foto anggota di hasil scan:** unggah foto anggota di dashboard (Anggota → detail → Unggah foto),
   lalu scan QR/kartu anggota itu → foto tampil besar di kartu hasil; ketuk untuk memperbesar.
-  Offline: ikon pengganti (foto butuh koneksi).
+  Offline: foto tetap tampil bila layar Scan kegiatan itu pernah dibuka saat online (foto peserta
+  diunduh ke HP di latar belakang). Ganti foto di dashboard → buka layar Scan lagi saat online → foto baru.
 - **Mode gelap (#10):** semua teks terbaca.
 - **App anggota:** login `anggota@hmps.test` / `password` → tab **QR Saya** (QR berganti tiap menit;
   scan dari HP lain sebagai petugas), **Kegiatan** (status + Ajukan izin dengan lampiran gambar/PDF),

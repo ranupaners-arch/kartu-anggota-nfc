@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:material_ui/material_ui.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
@@ -6,7 +8,10 @@ import 'member_photo.dart';
 
 /// Hasil scan terakhir: hijau (hadir), kuning (telat), biru (sudah absen), merah (ditolak).
 class ScanResultCard extends StatelessWidget {
-  const ScanResultCard({super.key, required this.result, this.token});
+  const ScanResultCard({super.key, required this.result, this.token, this.photoFile});
+
+  /// Foto tersimpan di HP untuk anggota ini (offline).
+  final File? photoFile;
 
   final ScanResult result;
 
@@ -38,7 +43,7 @@ class ScanResultCard extends StatelessWidget {
         spacing: 12,
         children: [
           if (result.memberName != null)
-            MemberPhoto(url: result.photoUrl, token: token, name: result.memberName)
+            MemberPhoto(url: result.photoUrl, token: token, name: result.memberName, file: photoFile)
           else
             Icon(s.icon, color: s.color, size: 36),
           Expanded(

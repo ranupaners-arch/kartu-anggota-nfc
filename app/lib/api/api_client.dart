@@ -193,6 +193,13 @@ class ApiClient {
   Future<Map<String, dynamic>> roster(int eventId) => _send('GET', '/api/events/$eventId/roster');
 
   /// Kirim antrean offline; hasil per item memuat client_uuid.
+  /// Unduh berkas ber-auth (mis. foto anggota) sebagai bytes.
+  Future<List<int>> downloadBytes(String url) async {
+    final res = await _http.get(Uri.parse(url), headers: {if (token != null) 'Authorization': 'Bearer $token'}).timeout(const Duration(seconds: 15));
+    if (res.statusCode != 200) throw ApiException(res.statusCode, errorMessage(res.statusCode, null));
+    return res.bodyBytes;
+  }
+
   Future<List<Map<String, dynamic>>> scanBatch(int eventId, List<Map<String, dynamic>> scans) async {
     final j = await _send('POST', '/api/events/$eventId/scan/batch', {'scans': scans});
     return [for (final r in j['results'] as List) r as Map<String, dynamic>];

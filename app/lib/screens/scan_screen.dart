@@ -11,6 +11,7 @@ import '../app/session.dart';
 import '../feedback/scan_feedback.dart';
 import '../nfc/nfc_service.dart';
 import '../offline/offline_store.dart';
+import '../offline/photo_cache.dart';
 import '../offline/offline_verifier.dart';
 import '../offline/roster.dart';
 import '../offline/sync_service.dart';
@@ -21,7 +22,7 @@ enum ScanMode { nfc, qr }
 
 /// Layar scan petugas: kartu NFC dibaca terus selama layar terbuka; QR lewat kamera.
 class ScanScreen extends StatefulWidget {
-  const ScanScreen({super.key, required this.session, required this.event, this.nfc, this.api, this.store, this.clock, this.feedback});
+  const ScanScreen({super.key, required this.session, required this.event, this.nfc, this.api, this.store, this.clock, this.feedback, this.photos});
 
   final Session session;
   final EventSummary event;
@@ -32,6 +33,7 @@ class ScanScreen extends StatefulWidget {
   final OfflineStore? store;
   final DateTime Function()? clock;
   final ScanFeedback? feedback;
+  final PhotoCache? photos;
 
   @override
   State<ScanScreen> createState() => _ScanScreenState();
@@ -43,6 +45,7 @@ class _ScanScreenState extends State<ScanScreen> with WidgetsBindingObserver {
   late final ScanFeedback _feedback = widget.feedback ?? ScanFeedback();
   DateTime _now() => (widget.clock ?? DateTime.now)();
   OfflineStore? _store;
+  PhotoCache? _photos;
   Roster? _roster;
   int _pending = 0;
   bool _syncing = false;
@@ -75,9 +78,15 @@ class _ScanScreenState extends State<ScanScreen> with WidgetsBindingObserver {
     if (!mounted) return;
     _store = store;
     try {
+      _photos = widget.photos ?? await PhotoCache.open(); // juga saat offline: foto yang sudah tersimpan
+    } catch (_) {
+      // Penyimpanan tidak tersedia: foto hanya dari server saat online.
+    }
+    try {
       final roster = Roster.fromApi(await _api.roster(widget.event.id));
       await store.saveRoster(roster);
       _roster = roster;
+      unawaited(_cachePhotos(roster)); // di latar belakang; scan tidak menunggu
     } catch (_) {
       _roster = store.loadRoster(widget.event.id);
     }
@@ -85,6 +94,14 @@ class _ScanScreenState extends State<ScanScreen> with WidgetsBindingObserver {
     setState(() => _pending = store.pending(eventId: widget.event.id).length);
     _syncTimer = Timer.periodic(const Duration(seconds: 30), (_) => _sync(quiet: true));
     if (_pending > 0) _sync(quiet: true);
+  }
+
+  Future<void> _cachePhotos(Roster roster) async {
+    try {
+      await _photos?.sync(roster, _api.downloadBytes);
+    } catch (_) {
+      // Penyimpanan penuh/tidak tersedia: foto tetap dimuat dari server saat online.
+    }
   }
 
   Future<void> _sync({bool quiet = false}) async {
@@ -273,7 +290,7 @@ class _ScanScreenState extends State<ScanScreen> with WidgetsBindingObserver {
             ),
             const SizedBox(height: 12),
           ],
-          if (_last != null) ScanResultCard(result: _last!, token: widget.session.token),
+          if (_last != null) ScanResultCard(result: _last!, token: widget.session.token, photoFile: _photos?.cached(_last!.memberId, _last!.photoUrl)),
           if (_roster != null) ...[
             const SizedBox(height: 8),
             Center(child: Text('Data offline: ${_roster!.members.length} peserta', style: theme.textTheme.muted)),
