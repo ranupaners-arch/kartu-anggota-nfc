@@ -5,9 +5,12 @@ import 'package:http/http.dart' as http;
 import 'ids.dart';
 
 class ApiException implements Exception {
-  ApiException(this.status, this.message);
+  ApiException(this.status, this.message, {this.otpRequired = false});
   final int status;
   final String message;
+
+  /// Server meminta kode 2FA (akun pengurus dengan 2FA aktif).
+  final bool otpRequired;
   @override
   String toString() => 'HTTP $status: $message';
 }
@@ -83,12 +86,13 @@ class ApiClient {
   final http.Client _http;
   String? token;
 
-  Future<Map<String, dynamic>> login(String email, String password, {required String deviceUuid, String deviceName = 'HP Petugas'}) async {
+  Future<Map<String, dynamic>> login(String email, String password, {required String deviceUuid, String deviceName = 'HP Petugas', String? otp}) async {
     final j = await _send('POST', '/api/auth/login', {
       'email': email,
       'password': password,
       'device_uuid': deviceUuid,
       'device_name': deviceName,
+      if (otp != null && otp.isNotEmpty) 'otp': otp,
     });
     token = j['token'] as String;
     return j['user'] as Map<String, dynamic>;
@@ -186,7 +190,7 @@ class ApiClient {
     final decoded = res.body.isEmpty ? <String, dynamic>{} : jsonDecode(res.body);
     if (res.statusCode >= 400) {
       final msg = decoded is Map ? (decoded['message'] ?? res.reasonPhrase) : res.reasonPhrase;
-      throw ApiException(res.statusCode, '$msg');
+      throw ApiException(res.statusCode, '$msg', otpRequired: decoded is Map && decoded['otp_required'] == true);
     }
     return decoded as Map<String, dynamic>;
   }

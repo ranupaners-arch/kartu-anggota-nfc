@@ -20,6 +20,8 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final _email = TextEditingController();
   final _password = TextEditingController();
+  final _otp = TextEditingController();
+  bool _needOtp = false;
   String? _error;
   bool _busy = false;
 
@@ -27,6 +29,7 @@ class _LoginScreenState extends State<LoginScreen> {
   void dispose() {
     _email.dispose();
     _password.dispose();
+    _otp.dispose();
     super.dispose();
   }
 
@@ -37,13 +40,19 @@ class _LoginScreenState extends State<LoginScreen> {
     });
     try {
       final api = ApiClient(baseUrl: widget.server.url);
-      final user = await api.login(_email.text.trim(), _password.text, deviceUuid: await deviceUuid());
+      final user = await api.login(_email.text.trim(), _password.text, deviceUuid: await deviceUuid(), otp: _needOtp ? _otp.text.trim() : null);
       final session = Session(baseUrl: widget.server.url, token: api.token!, userName: user['name'] as String? ?? '', role: user['role'] as String? ?? '');
       await session.save();
       if (!mounted) return;
       Navigator.of(context).pushReplacement(MaterialPageRoute<void>(builder: (_) => homeFor(session)));
     } on ApiException catch (e) {
-      setState(() => _error = e.message);
+      setState(() {
+        // Kolom kode 2FA muncul saat pertama diminta; pesan hanya ditampilkan bila kode sudah diisi.
+        final firstAsk = e.otpRequired && !_needOtp;
+        _needOtp = _needOtp || e.otpRequired;
+        _error = firstAsk ? null : e.message;
+        if (e.otpRequired) _otp.clear();
+      });
     } catch (_) {
       setState(() => _error = 'Server tidak terjangkau. Periksa koneksi.');
     } finally {
@@ -83,6 +92,10 @@ class _LoginScreenState extends State<LoginScreen> {
                           leading: const Icon(LucideIcons.mail, size: 16))),
                       _field('Password', ShadInput(controller: _password, obscureText: true, leading: const Icon(LucideIcons.lock, size: 16),
                           onSubmitted: (_) => _busy ? null : _login())),
+                      if (_needOtp)
+                        _field('Kode 2FA', ShadInput(controller: _otp, keyboardType: TextInputType.visiblePassword, autofocus: true,
+                            placeholder: const Text('6 digit dari aplikasi authenticator, atau kode cadangan'),
+                            leading: const Icon(LucideIcons.shieldCheck, size: 16), onSubmitted: (_) => _busy ? null : _login())),
                       const SizedBox(height: 4),
                       ShadButton(onPressed: _busy ? null : _login, child: Text(_busy ? 'Memproses…' : 'Masuk')),
                       if (serverMode == ServerMode.selectable)
