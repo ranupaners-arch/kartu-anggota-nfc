@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\EventController;
 use App\Http\Controllers\Api\ExcuseController;
 use App\Http\Controllers\Api\ExportController;
 use App\Http\Controllers\Api\InstanceController;
+use App\Http\Controllers\Api\MeController;
 use App\Http\Controllers\Api\MemberAdminController;
 use App\Http\Controllers\Api\MemberController;
 use App\Http\Controllers\Api\MemberImportController;
@@ -24,6 +25,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('auth/logout', [AuthController::class, 'logout']);
     Route::get('me', [AuthController::class, 'me']);
     Route::get('me/qr', [MemberController::class, 'myQr']);
+    Route::get('me/events', [MeController::class, 'events']);
+    Route::get('me/history', [MeController::class, 'history']);
     Route::get('members/{member}/summary', [MemberController::class, 'summary']);
     Route::post('excuses', [ExcuseController::class, 'store']);
     Route::get('members/{member}/photo', [MemberAdminController::class, 'photo'])->name('api.members.photo');
