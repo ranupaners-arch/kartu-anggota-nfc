@@ -117,7 +117,7 @@ class MultiSessionTest extends TestCase
         // Offline (batch): scan hari 2 yang dikirim belakangan tetap masuk sesi hari 2.
         $this->travelTo(Carbon::parse('2026-11-21 16:00:00'));
         $this->actingAs($this->scanner, 'sanctum')->postJson("/api/events/{$this->event->id}/scan/batch", ['scans' => [
-            ['payload' => $payload, 'client_uuid' => (string) \Illuminate\Support\Str::uuid(), 'scanned_at' => '2026-11-21T05:50:00Z', 'session_id' => $this->day2->id],
+            ['payload' => $payload, 'client_uuid' => (string) \Illuminate\Support\Str::uuid(), 'scanned_at' => Carbon::parse('2026-11-21 12:50:00')->toIso8601String(), 'session_id' => $this->day2->id],
         ]])->assertJsonPath('results.0.status', 'ok')->assertJsonPath('results.0.attendance_status', 'hadir');
     }
 
