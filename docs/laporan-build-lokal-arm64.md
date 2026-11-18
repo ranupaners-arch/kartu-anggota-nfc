@@ -7,6 +7,10 @@ Tanggal: 2026-11-16 · Mesin: Arch Linux ARM (aarch64) · Flutter 3.50.0 · JDK 
 **APK tidak bisa dibuild di mesin ini.** Build APK memakai GitHub Actions
 (`.github/workflows/app.yml`), dan itu sudah terbukti berhasil (APK debug dan release).
 
+Sejak 2026-11-18, push dan pull request hanya menjalankan `flutter analyze` + `flutter test`.
+APK dibangun hanya bila diminta: Actions → App (Flutter) → Run workflow, atau
+`gh workflow run app.yml --ref <branch>`; hasilnya di artifact run tersebut.
+
 ## Yang dicoba
 
 1. Android SDK dipasang ke folder sementara: cmdline-tools, `platform-tools`,

@@ -13,7 +13,26 @@ defaults:
     working-directory: app
 
 jobs:
+  # Setiap push ke main & pull request: analisis + tes saja (cepat, tanpa APK).
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.50.0'
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: flutter analyze
+      - run: flutter test
+
+  # APK uji hanya dibangun bila diminta: Actions → App (Flutter) → Run workflow
+  # (atau `gh workflow run app.yml --ref <branch>`).
   build:
+    if: github.event_name == 'workflow_dispatch'
+    needs: test
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
@@ -59,8 +78,6 @@ jobs:
           echo "APK_UJI_KEYSTORE_PATH=$RUNNER_TEMP/apk-uji.jks" >> "$GITHUB_ENV"
 
       - run: flutter pub get
-      - run: flutter analyze
-      - run: flutter test
 
       # Satu APK uji: build profile (dikompilasi seperti release, kecil & cepat, boleh HTTP
       # ke server uji) khusus arm64. Build release ditambahkan lagi saat siap rilis.
