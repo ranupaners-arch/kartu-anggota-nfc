@@ -18,7 +18,8 @@ class ReportController extends Controller
     {
         $this->events->authorize($r->user(), $event);
 
-        return $this->reports->event($event);
+        // ?session_id= untuk sesi tertentu (bawaan: sesi utama).
+        return $this->reports->event($event, $r->integer('session_id') ? $event->sessions()->findOrFail($r->integer('session_id')) : null);
     }
 
     /** Rekap periode; ?division_id= untuk rekap per divisi. Admin Divisi dipaksa ke divisinya. */

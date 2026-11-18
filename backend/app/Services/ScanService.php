@@ -6,6 +6,7 @@ use App\Models\Attendance;
 use App\Models\Card;
 use App\Models\Device;
 use App\Models\Event;
+use App\Models\EventSession;
 use App\Models\ExcuseRequest;
 use App\Models\Member;
 use App\Models\MemberQr;
@@ -74,28 +75,34 @@ class ScanService
             return $this->result('not_target', $member, null, 'Bukan peserta kegiatan ini.');
         }
 
-        // 3. Jendela check-in
+        // 3. Sesi: yang dipilih petugas, atau yang jendelanya mencakup waktu scan, atau sesi utama.
+        if (isset($in['session_id'])) {
+            $session = $event->sessions()->find($in['session_id']);
+            if (! $session) {
+                return $this->result('invalid', $member, null, 'Sesi tidak ditemukan di kegiatan ini.');
+            }
+        } else {
+            $session = $event->currentSession($scannedAt) ?? $event->defaultSession();
+        }
+        $multi = $event->sessions()->count() > 1;
+
+        // 4. Jendela check-in sesi itu
         $override = false;
-        $inWindow = (! $event->closed_at || $fromBatch)
-            && $scannedAt->gte($event->checkin_opens_at) && $scannedAt->lte($event->checkin_closes_at);
+        $inWindow = (! $event->closed_at || $fromBatch) && $scannedAt->between($session->checkin_opens_at, $session->checkin_closes_at);
         if (! $inWindow) {
             if (empty($in['override_reason'])) {
-                return $this->result('outside_window', $member, null, 'Di luar jendela check-in.');
+                return $this->result('outside_window', $member, null, $multi ? "Di luar jendela check-in sesi {$session->title}." : 'Di luar jendela check-in.', session: $session);
             }
             $override = true;
         }
 
-        $status = $scannedAt->lte($event->late_after) ? Attendance::HADIR : Attendance::TELAT;
+        $status = $scannedAt->lte($session->late_after) ? Attendance::HADIR : Attendance::TELAT;
 
-        // 4. Satu absensi per sesi
-        $session = isset($in['session_id'])
-            ? $event->sessions()->findOrFail($in['session_id'])
-            : $event->defaultSession();
-
+        // 5. Satu absensi per sesi
         $attendance = Attendance::where('session_id', $session->id)->where('member_id', $member->id)->first();
         if ($attendance && ! $attendance->voided_at && $attendance->status !== Attendance::ALPA
             && ! in_array($attendance->status, [Attendance::IZIN, Attendance::SAKIT], true)) {
-            return $this->result('duplicate', $member, $attendance->status, 'Sudah absen.');
+            return $this->result('duplicate', $member, $attendance->status, $multi ? 'Sudah absen di sesi ini.' : 'Sudah absen.', session: $session);
         }
 
         $data = [
@@ -112,7 +119,7 @@ class ScanService
             // Anggota yang tadinya Izin/Sakit/Alpa/void lalu scan -> status mengikuti scan.
             $attendance = $attendance ? tap($attendance)->update($data) : Attendance::create($data);
         } catch (UniqueConstraintViolationException) {
-            return $this->result('duplicate', $member, null, 'Sudah absen.');
+            return $this->result('duplicate', $member, null, 'Sudah absen.', session: $session);
         }
 
         ExcuseRequest::where('event_id', $event->id)->where('member_id', $member->id)
@@ -123,7 +130,7 @@ class ScanService
         }
         $this->detectAnomaly($card, $event, $device, $scannedAt, $user);
 
-        return $this->result('ok', $member, $status, $review ? 'Tercatat, perlu ditinjau admin.' : 'Berhasil.', $attendance->id);
+        return $this->result('ok', $member, $status, $review ? 'Tercatat, perlu ditinjau admin.' : 'Berhasil.', $attendance->id, $session);
     }
 
     private function memberFromQr(string $token, Carbon $at): ?Member
@@ -153,7 +160,7 @@ class ScanService
         }
     }
 
-    private function result(string $status, ?Member $member, ?string $attendanceStatus, string $message, ?int $attendanceId = null): array
+    private function result(string $status, ?Member $member, ?string $attendanceStatus, string $message, ?int $attendanceId = null, ?EventSession $session = null): array
     {
         $member?->loadMissing('memberships.division');
         $membership = $member?->memberships?->sortByDesc('term_id')->first();
@@ -163,6 +170,7 @@ class ScanService
             'attendance_status' => $attendanceStatus,
             'attendance_id' => $attendanceId,
             'message' => $message,
+            'session' => $session?->only('id', 'title'),
             'member' => $member ? [
                 'id' => $member->id, 'member_no' => $member->member_no, 'name' => $member->name,
                 'division' => $membership?->division?->name,

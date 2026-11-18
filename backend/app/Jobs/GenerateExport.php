@@ -34,10 +34,20 @@ class GenerateExport implements ShouldQueue
 
         if ($export->report === 'event') {
             $event = Event::where('organization_id', $org->id)->findOrFail($p['event_id']);
-            $data = $reports->event($event);
             $title = "Rekap {$event->title}";
+            $sessions = $event->sessions()->orderBy('id')->get();
             $headings = ['No. Anggota', 'Nama', 'Divisi', 'Status', 'Waktu Scan', 'Sumber'];
-            $rows = collect($data['rows'])->map(fn ($r) => [$r['member_no'], $r['name'], $r['division'], $r['status'], $r['scanned_at'], $r['source']])->all();
+            $rows = [];
+            // Multi-sesi: baris per sesi dengan kolom Sesi di depan.
+            foreach ($sessions as $session) {
+                foreach ($reports->event($event, $session)['rows'] as $r) {
+                    $row = [$r['member_no'], $r['name'], $r['division'], $r['status'], $r['scanned_at'], $r['source']];
+                    $rows[] = $sessions->count() > 1 ? [$session->title, ...$row] : $row;
+                }
+            }
+            if ($sessions->count() > 1) {
+                array_unshift($headings, 'Sesi');
+            }
         } else {
             $term = Term::where('organization_id', $org->id)->findOrFail($p['term_id']);
             $data = $reports->term($term, $p['division_id'] ?? null);

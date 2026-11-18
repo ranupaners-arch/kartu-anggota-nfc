@@ -32,7 +32,7 @@ class ExcuseController extends Controller
         abort_if($event->closed_at && ! $user->isAdmin(), 422, 'Kegiatan sudah ditutup; hubungi admin.');
         abort_unless($event->targetMembers()->whereKey($memberId)->exists(), 422, 'Anggota ini bukan peserta kegiatan tersebut.');
         abort_if(Attendance::where('event_id', $event->id)->where('member_id', $memberId)->whereNull('voided_at')
-            ->whereIn('status', ['hadir', 'telat'])->exists(), 422, 'Sudah tercatat hadir di kegiatan ini.');
+            ->whereIn('status', ['hadir', 'telat'])->count() >= $event->sessions()->count(), 422, 'Sudah tercatat hadir di kegiatan ini.');
 
         $excuse = ExcuseRequest::firstOrNew(['event_id' => $event->id, 'member_id' => $memberId]);
         // Yang sudah diputuskan tidak bisa dibuka ulang lewat pengajuan baru.

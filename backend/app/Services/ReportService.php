@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Attendance;
 use App\Models\Event;
+use App\Models\EventSession;
 use App\Models\Member;
 use App\Models\Term;
 
@@ -12,10 +13,11 @@ class ReportService
 {
     public const STATUSES = ['hadir', 'telat', 'izin', 'sakit', 'alpa'];
 
-    /** Rekap per kegiatan: jumlah per status, persentase, daftar hadir. */
-    public function event(Event $event): array
+    /** Rekap satu sesi kegiatan (bawaan: sesi utama): jumlah per status, persentase, daftar hadir. */
+    public function event(Event $event, ?EventSession $session = null): array
     {
-        $session = $event->defaultSession();
+        $session ??= $event->defaultSession();
+        abort_unless($session->event_id === $event->id, 404);
         $attendances = Attendance::where('session_id', $session->id)->whereNull('voided_at')->get()->keyBy('member_id');
         $members = $event->targetMembers()->with(['memberships' => fn ($q) => $q->where('term_id', $event->term_id)->with('division')])
             ->orderBy('name')->get();
@@ -40,6 +42,8 @@ class ReportService
 
         return [
             'event' => $event->only('id', 'title', 'type', 'location', 'starts_at', 'closed_at'),
+            'session' => $session->only('id', 'title'),
+            'sessions' => $this->sessions($event),
             'summary' => $this->summary($rows->pluck('status')),
             'rows' => $rows,
         ];
@@ -85,6 +89,13 @@ class ReportService
             'average_rate' => $rated->isNotEmpty() ? round($rated->avg('attendance_rate'), 1) : null,
             'rows' => $rows,
         ];
+    }
+
+    /** Daftar sesi kegiatan beserta jendela check-in-nya (urut sesi utama dulu). */
+    public function sessions(Event $event): array
+    {
+        return $event->sessions()->orderBy('id')->get()
+            ->map->only('id', 'title', 'starts_at', 'ends_at', 'checkin_opens_at', 'late_after', 'checkin_closes_at')->values()->all();
     }
 
     private function summary($statuses): array

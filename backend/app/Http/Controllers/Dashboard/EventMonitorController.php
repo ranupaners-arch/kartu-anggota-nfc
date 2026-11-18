@@ -20,9 +20,13 @@ class EventMonitorController extends Controller
     {
         $this->events->authorize($r->user(), $event);
         // Hitung sekali per request, lalu bagikan ke prop yang diminta (partial reload hanya meminta sebagian).
+        // ?sesi= memilih sesi; tanpa itu monitor mengikuti sesi yang sedang membuka check-in.
+        $sessionId = $r->integer('sesi') ?: null;
         $snapshot = null;
-        $snap = function () use (&$snapshot, $event) {
-            return $snapshot ??= $this->monitor->snapshot($event->fresh());
+        $snap = function () use (&$snapshot, $event, $sessionId) {
+            $event = $event->fresh();
+
+            return $snapshot ??= $this->monitor->snapshot($event, $this->monitor->sessionFor($event, $sessionId));
         };
 
         return Inertia::render('events/monitor', [
@@ -31,6 +35,9 @@ class EventMonitorController extends Controller
             'latest' => fn () => $snap()['latest'],
             'missing' => fn () => $snap()['missing'],
             'serverTime' => fn () => $snap()['serverTime'],
+            'session' => fn () => $snap()['session'],
+            'sessions' => fn () => $snap()['sessions'],
+            'pinnedSession' => $sessionId,
         ]);
     }
 

@@ -8,6 +8,7 @@ use App\Models\Division;
 use App\Models\Event;
 use App\Models\Member;
 use App\Services\AttendanceService;
+use App\Services\AuditLogger;
 use App\Services\EventService;
 use App\Services\ReportService;
 use Illuminate\Http\Request;
@@ -23,12 +24,11 @@ class EventController extends Controller
         $q = $this->events->visibleTo($r->user());
         match ($tab) {
             'akan-datang' => $q->where('checkin_opens_at', '>', now())->orderBy('starts_at'),
-            'selesai' => $q->where(fn ($w) => $w->whereNotNull('closed_at')->orWhere('checkin_closes_at', '<', now()))->orderByDesc('starts_at'),
-            default => $q->whereNull('closed_at')->where('checkin_opens_at', '<=', now())->where('checkin_closes_at', '>=', now())->orderBy('starts_at'),
+            'selesai' => $q->finished()->orderByDesc('starts_at'),
+            default => $q->ongoing()->orderBy('starts_at'),
         };
 
-        return Inertia::render('events/index', ['tab' => $tab, 'events' => $q->withCount(['attendances as present_count' => fn ($w) => $w
-            ->whereNull('voided_at')->whereIn('status', ['hadir', 'telat'])])->paginate(20)->withQueryString()]);
+        return Inertia::render('events/index', ['tab' => $tab, 'events' => $q->select('events.*')->withPresentCount()->paginate(20)->withQueryString()]);
     }
 
     public function create()
@@ -50,13 +50,15 @@ class EventController extends Controller
         $this->events->authorize($r->user(), $event);
         $tab = $r->query('tab', 'ringkasan');
         $event->load(['sessions', 'targets']);
+        // ?sesi= memilih sesi untuk ringkasan & daftar hadir (bawaan: sesi utama).
+        $session = $r->integer('sesi') ? $event->sessions()->findOrFail($r->integer('sesi')) : null;
 
         return Inertia::render('events/show', [
             'event' => $event->only('id', 'title', 'location', 'starts_at', 'ends_at', 'checkin_opens_at', 'late_after', 'checkin_closes_at', 'closed_at'),
             'tab' => $tab,
-            'report' => in_array($tab, ['ringkasan', 'hadir'], true) ? $reports->event($event) : null,
+            'report' => in_array($tab, ['ringkasan', 'hadir'], true) ? $reports->event($event, $session) : null,
             'canDelete' => ! $event->attendances()->exists(),
-            'sessions' => $event->sessions->map->only('id', 'title', 'starts_at', 'ends_at')->values(),
+            'sessions' => $reports->sessions($event),
             'divisions' => Division::orderBy('name')->get(['id', 'name']),
             'targetDivisionIds' => $event->targets->pluck('division_id')->filter()->values(),
             'targetMemberNos' => Member::whereIn('id', $event->targets->pluck('member_id')->filter())->pluck('member_no'),
@@ -117,11 +119,14 @@ class EventController extends Controller
     public function storeSession(Request $r, Event $event)
     {
         $this->events->authorize($r->user(), $event);
-        $d = $r->validate(['title' => 'required|string|max:200', 'starts_at' => 'nullable|date', 'ends_at' => 'nullable|date|after_or_equal:starts_at']);
+        abort_if($event->closed_at, 422, 'Kegiatan sudah ditutup.');
+        // Jam mulai wajib: jendela check-in sesi dihitung darinya (selisih sama dengan kegiatan).
+        $d = $r->validate(['title' => 'required|string|max:200', 'starts_at' => 'required|date', 'ends_at' => 'nullable|date|after_or_equal:starts_at']);
         $event->defaultSession(); // pastikan sesi utama ada lebih dulu
-        $event->sessions()->create($d);
+        $session = $event->sessions()->create($d);
+        AuditLogger::log('event.session_added', 'event', $event->id, ['session_id' => $session->id, 'title' => $session->title]);
 
-        return back()->with('status', 'Sesi ditambahkan.');
+        return back()->with('status', 'Sesi ditambahkan. Check-in dibuka '.$session->checkin_opens_at->timezone(config('app.timezone'))->format('d/m H:i').'.');
     }
 
     public function correct(Request $r, Attendance $attendance, AttendanceService $service)

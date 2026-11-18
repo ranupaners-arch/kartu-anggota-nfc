@@ -17,13 +17,17 @@ class EventController extends Controller
     {
         $q = $this->events->visibleTo($r->user())->orderByDesc('starts_at');
         match ($r->query('status')) {
-            'ongoing' => $q->whereNull('closed_at')->where('checkin_opens_at', '<=', now())->where('checkin_closes_at', '>=', now()),
+            'ongoing' => $q->ongoing(),
             'upcoming' => $q->where('checkin_opens_at', '>', now()),
             'closed' => $q->whereNotNull('closed_at'),
             default => null,
         };
 
-        return $q->paginate(30);
+        // Sesi + sesi yang sedang membuka check-in: app memilih sesi untuk scan.
+        $page = $q->with('sessions:id,event_id,title,starts_at,ends_at,checkin_opens_at,late_after,checkin_closes_at')->paginate(30);
+        $page->getCollection()->each(fn (Event $e) => $e->setAttribute('current_session_id', $e->currentSession()?->id));
+
+        return $page;
     }
 
     public function store(Request $r)
@@ -54,6 +58,8 @@ class EventController extends Controller
                     'payload_sha256' => CardPayload::fingerprint(CardPayload::make($c)),
                 ])->values(),
             ]);
+
+        $event->load('sessions:id,event_id,title,starts_at,ends_at,checkin_opens_at,late_after,checkin_closes_at');
 
         return ['event' => $event, 'members' => $members, 'generated_at' => now()->toIso8601String()];
     }

@@ -9,26 +9,28 @@ use Illuminate\Support\Facades\DB;
 
 class CloseEvent
 {
-    /** Tutup kegiatan dan tandai Alpa/Izin/Sakit otomatis untuk yang tidak scan. */
+    /** Tutup kegiatan dan tandai Alpa/Izin/Sakit otomatis untuk yang tidak scan, per sesi. */
     public function handle(Event $event): int
     {
         return DB::transaction(function () use ($event) {
-            $session = $event->defaultSession();
             $created = 0;
 
             if ($event->is_mandatory) {
-                $present = Attendance::where('session_id', $session->id)->pluck('member_id');
-                $excuses = ExcuseRequest::where('event_id', $event->id)->where('status', 'approved')
-                    ->pluck('type', 'member_id');
+                $excuses = ExcuseRequest::where('event_id', $event->id)->where('status', 'approved')->pluck('type', 'member_id');
+                $targets = $event->targetMembers()->pluck('id');
+                // Per sesi. Sesi yang check-in-nya belum dibuka saat ditutup dianggap tidak terlaksana: tidak ditandai.
+                $held = $event->sessions()->orderBy('id')->get()->filter(fn ($s) => $s->checkin_opens_at->lte(now()));
 
-                $event->targetMembers()->whereNotIn('id', $present)->get()
-                    ->each(function ($member) use ($event, $session, $excuses, &$created) {
+                foreach ($held as $session) {
+                    $present = Attendance::where('session_id', $session->id)->pluck('member_id');
+                    foreach ($targets->diff($present) as $memberId) {
                         Attendance::create([
-                            'event_id' => $event->id, 'session_id' => $session->id, 'member_id' => $member->id,
-                            'status' => $excuses[$member->id] ?? Attendance::ALPA, 'source' => 'manual',
+                            'event_id' => $event->id, 'session_id' => $session->id, 'member_id' => $memberId,
+                            'status' => $excuses[$memberId] ?? Attendance::ALPA, 'source' => 'manual',
                         ]);
                         $created++;
-                    });
+                    }
+                }
             }
 
             $event->update(['closed_at' => now()]);

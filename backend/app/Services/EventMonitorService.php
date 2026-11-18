@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Attendance;
 use App\Models\Event;
+use App\Models\EventSession;
 
 /** Potret kondisi kegiatan saat ini untuk layar monitor langsung. */
 class EventMonitorService
@@ -13,9 +14,16 @@ class EventMonitorService
 
     public function __construct(private ReportService $reports) {}
 
-    public function snapshot(Event $event): array
+    /** Sesi yang dipantau: pilihan, atau yang sedang membuka check-in, atau sesi utama. */
+    public function sessionFor(Event $event, ?int $sessionId = null): EventSession
     {
-        $report = $this->reports->event($event);
+        return $sessionId ? $event->sessions()->findOrFail($sessionId) : ($event->currentSession() ?? $event->defaultSession());
+    }
+
+    public function snapshot(Event $event, ?EventSession $session = null): array
+    {
+        $session ??= $this->sessionFor($event);
+        $report = $this->reports->event($event, $session);
         $by = $report['summary']['by_status'];
         $target = $report['summary']['total'];
         $present = $by['hadir'] + $by['telat'];
@@ -26,7 +34,7 @@ class EventMonitorService
 
         $latest = Attendance::query()
             ->with('member:id,member_no,name,photo_path')
-            ->where('event_id', $event->id)->whereNull('voided_at')->whereNotNull('scanned_at')
+            ->where('session_id', $session->id)->whereNull('voided_at')->whereNotNull('scanned_at')
             ->latest('scanned_at')->latest('id')->limit(self::LATEST_LIMIT)->get()
             ->map(fn (Attendance $a) => [
                 'id' => $a->id,
@@ -60,6 +68,8 @@ class EventMonitorService
                     'member_id' => $r['member_id'], 'member_no' => $r['member_no'], 'name' => $r['name'], 'division' => $r['division'],
                 ])->values(),
             ],
+            'session' => $session->only('id', 'title', 'checkin_opens_at', 'late_after', 'checkin_closes_at'),
+            'sessions' => count($report['sessions']) > 1 ? collect($report['sessions'])->map(fn ($x) => ['id' => $x['id'], 'title' => $x['title']])->all() : [],
             'serverTime' => now()->toIso8601String(),
         ];
     }

@@ -21,23 +21,28 @@ class MeController extends Controller
             return ['data' => []];
         }
 
-        $events = Event::where('term_id', $term->id)->where('ends_at', '>=', now()->subDays(30))
+        $events = Event::withCount('sessions')->where('term_id', $term->id)->where('ends_at', '>=', now()->subDays(30))
             ->orderBy('starts_at')->get()
             ->filter(fn (Event $e) => $e->targetMembers()->whereKey($memberId)->exists())->values();
 
+        // Kegiatan multi-sesi: beberapa baris per kegiatan (satu per sesi).
         $attendance = Attendance::whereIn('event_id', $events->pluck('id'))->where('member_id', $memberId)->whereNull('voided_at')
-            ->get()->keyBy('event_id');
+            ->orderBy('session_id')->get()->groupBy('event_id');
         $excuses = ExcuseRequest::whereIn('event_id', $events->pluck('id'))->where('member_id', $memberId)->get()->keyBy('event_id');
 
         return ['data' => $events->map(function (Event $e) use ($attendance, $excuses) {
-            $a = $attendance[$e->id] ?? null;
+            $rows = $attendance[$e->id] ?? collect();
             $x = $excuses[$e->id] ?? null;
-            $present = $a && in_array($a->status, ['hadir', 'telat'], true);
+            $presentSessions = $rows->whereIn('status', ['hadir', 'telat'])->count();
+            $sessions = max(1, $e->sessions_count);
 
             return $e->only('id', 'title', 'type', 'location', 'starts_at', 'ends_at', 'checkin_opens_at', 'late_after', 'checkin_closes_at', 'closed_at', 'is_mandatory') + [
-                'my_status' => $a?->status,
+                'my_status' => $rows->last()?->status, // sesi terakhir yang tercatat
+                'sessions' => $sessions,
+                'present_sessions' => $presentSessions,
                 'excuse' => $x?->only('id', 'type', 'reason', 'status', 'review_note'),
-                'can_request_excuse' => ! $e->closed_at && ! $present && (! $x || $x->status === 'pending'),
+                // Izin berlaku untuk sesi yang tidak dihadiri; tidak perlu bila semua sesi sudah dihadiri.
+                'can_request_excuse' => ! $e->closed_at && $presentSessions < $sessions && (! $x || $x->status === 'pending'),
             ];
         })];
     }

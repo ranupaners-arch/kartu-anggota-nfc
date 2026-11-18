@@ -13,7 +13,8 @@ class CloseEvents extends Command
 
     public function handle(CloseEvent $closer): int
     {
-        Event::whereNull('closed_at')->where('checkin_closes_at', '<', now()->subMinutes(config('attendance.auto_close_grace_minutes')))
+        // Ditutup setelah jendela sesi terakhir lewat (+ masa tenggang).
+        Event::whereNull('closed_at')->finished(now()->subMinutes(config('attendance.auto_close_grace_minutes')))
             ->each(fn (Event $e) => $this->info("Event {$e->id}: {$closer->handle($e)} baris otomatis"));
 
         return self::SUCCESS;

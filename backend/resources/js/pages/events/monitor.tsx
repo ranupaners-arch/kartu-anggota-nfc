@@ -62,10 +62,16 @@ function Stat({ label, value, sub, className }: { label: string; value: React.Re
     );
 }
 
-export default function EventMonitor({ event, stats, latest, missing, serverTime }: { event: Ev; stats: Stats; latest: Scan[]; missing: Missing; serverTime: string }) {
-    usePoll(POLL_MS, { only: ['stats', 'latest', 'missing', 'serverTime'] }, { keepAlive: true });
+type Session = { id: number; title: string; checkin_opens_at: string; late_after: string; checkin_closes_at: string };
+
+export default function EventMonitor({ event, stats, latest, missing, serverTime, session, sessions, pinnedSession }: {
+    event: Ev; stats: Stats; latest: Scan[]; missing: Missing; serverTime: string;
+    session: Session; sessions: { id: number; title: string }[]; pinnedSession: number | null;
+}) {
+    // Tanpa sesi dipilih, monitor mengikuti sesi yang sedang membuka check-in (bisa berganti saat polling).
+    usePoll(POLL_MS, { only: ['stats', 'latest', 'missing', 'serverTime', 'session', 'sessions'] }, { keepAlive: true });
     const now = useServerNow(serverTime);
-    const state = windowState(event, now);
+    const state = windowState({ ...event, ...session, closed_at: event.closed_at }, now);
     const [query, setQuery] = useState('');
     const [fullscreen, setFullscreen] = useState(false);
 
@@ -107,7 +113,15 @@ export default function EventMonitor({ event, stats, latest, missing, serverTime
                 <Button variant="ghost" size="icon" aria-label="Kembali ke kegiatan" render={<Link href={`/kegiatan/${event.id}`} />}><ArrowLeft /></Button>
                 <div className="min-w-0 flex-1">
                     <h1 className="truncate text-2xl font-semibold md:text-3xl">{event.title}</h1>
-                    <p className="text-sm text-muted-foreground">{event.location ?? 'Tanpa lokasi'}</p>
+                    <p className="text-sm text-muted-foreground">{sessions.length > 1 && <b className="font-medium text-foreground">{session.title} · </b>}{event.location ?? 'Tanpa lokasi'}</p>
+                    {sessions.length > 1 && (
+                        <div className="mt-2 flex flex-wrap gap-1.5">
+                            <Button size="xs" variant={pinnedSession ? 'outline' : 'default'} render={<Link href={`/kegiatan/${event.id}/monitor`} />}>Ikuti sesi berjalan</Button>
+                            {sessions.map((s) => (
+                                <Button key={s.id} size="xs" variant={pinnedSession === s.id ? 'default' : 'outline'} render={<Link href={`/kegiatan/${event.id}/monitor?sesi=${s.id}`} />}>{s.title}</Button>
+                            ))}
+                        </div>
+                    )}
                 </div>
                 <div className={cn('rounded-lg px-3 py-2 text-right', state.tone)}>
                     <div className="font-semibold">{state.label}</div>

@@ -22,11 +22,12 @@ type Ev = {
     late_after: string; checkin_closes_at: string; closed_at: string | null;
 };
 type Row = { member_id: number; attendance_id: number | null; member_no: string; name: string; division: string | null; status: string; scanned_at: string | null; source: string | null; needs_review: boolean };
-type Report = { summary: { total: number; by_status: Record<string, number>; present_rate: number | null }; rows: Row[] } | null;
+type Report = { session: { id: number; title: string }; summary: { total: number; by_status: Record<string, number>; present_rate: number | null }; rows: Row[] } | null;
+type Session = { id: number; title: string; starts_at: string | null; ends_at: string | null; checkin_opens_at: string; late_after: string; checkin_closes_at: string };
 
 interface Props {
     event: Ev; tab: string; report: Report; canDelete: boolean;
-    sessions: { id: number; title: string; starts_at: string | null; ends_at: string | null }[];
+    sessions: Session[];
     divisions: { id: number; name: string }[]; targetDivisionIds: number[]; targetMemberNos: string[];
 }
 
@@ -48,6 +49,20 @@ function CorrectionForm({ row }: { row: Row }) {
             <Input className="h-7 w-32" placeholder="Alasan" required value={reason} onChange={(e) => setReason(e.target.value)} />
             <Button size="sm" variant="outline" type="submit">Simpan</Button>
         </form>
+    );
+}
+
+/** Kegiatan multi-sesi: pilih sesi untuk ringkasan & daftar hadir (tiap sesi = satu kehadiran). */
+function SessionPicker({ event, tab, sessions, current }: { event: Ev; tab: string; sessions: Session[]; current: number }) {
+    if (sessions.length < 2) return null;
+    return (
+        <div className="flex flex-wrap items-center gap-2">
+            <span className="text-sm text-muted-foreground">Sesi:</span>
+            {sessions.map((s) => (
+                <Button key={s.id} size="sm" variant={s.id === current ? 'default' : 'outline'}
+                    render={<Link href={`/kegiatan/${event.id}?tab=${tab}&sesi=${s.id}`} preserveScroll />}>{s.title}</Button>
+            ))}
+        </div>
     );
 }
 
@@ -84,25 +99,34 @@ function Sessions({ event, sessions }: Pick<Props, 'event' | 'sessions'>) {
     const submit = (e: FormEvent) => { e.preventDefault(); form.post(`/kegiatan/${event.id}/sesi`, { preserveScroll: true, onSuccess: () => form.reset() }); };
     return (
         <>
-            <DataTable head={['Sesi', 'Mulai', 'Selesai']} count={sessions.length} empty="Belum ada sesi.">
+            <DataTable head={['Sesi', 'Mulai', 'Selesai', 'Check-in', 'Telat setelah']} count={sessions.length} empty="Belum ada sesi.">
                 {sessions.map((s, i) => (
                     <TableRow key={s.id}>
                         <TableCell>{s.title} {i === 0 && <StatusBadge status="open" label="Utama" />}</TableCell>
                         <TableCell>{fmtDateTime(s.starts_at)}</TableCell><TableCell>{fmtDateTime(s.ends_at)}</TableCell>
+                        <TableCell className="tabular-nums">{fmtDateTime(s.checkin_opens_at)}–{fmtTime(s.checkin_closes_at)}</TableCell>
+                        <TableCell className="tabular-nums">{fmtTime(s.late_after)}</TableCell>
                     </TableRow>
                 ))}
             </DataTable>
-            <Card>
-                <CardHeader><CardTitle>Tambah sesi</CardTitle><CardDescription>Absensi per sesi dari app petugas menyusul.</CardDescription></CardHeader>
+            {!event.closed_at && <Card>
+                <CardHeader>
+                    <CardTitle>Tambah sesi</CardTitle>
+                    <CardDescription>
+                        Tiap sesi dihitung sebagai satu kehadiran di rekap, dan Alpa ditandai per sesi saat kegiatan ditutup.
+                        Jendela check-in sesi mengikuti jam mulainya dengan selisih yang sama seperti kegiatan.
+                        Di app, petugas memilih sesi (otomatis sesi yang sedang buka).
+                    </CardDescription>
+                </CardHeader>
                 <CardContent>
                     <form onSubmit={submit} className="grid gap-4 sm:grid-cols-4 sm:items-end">
                         <FormField label="Judul sesi" error={form.errors.title}><Input required value={form.data.title} onChange={(e) => form.setData('title', e.target.value)} /></FormField>
-                        <FormField label="Mulai" error={form.errors.starts_at}><Input type="datetime-local" value={form.data.starts_at} onChange={(e) => form.setData('starts_at', e.target.value)} /></FormField>
+                        <FormField label="Mulai" error={form.errors.starts_at}><Input type="datetime-local" required value={form.data.starts_at} onChange={(e) => form.setData('starts_at', e.target.value)} /></FormField>
                         <FormField label="Selesai" error={form.errors.ends_at}><Input type="datetime-local" value={form.data.ends_at} onChange={(e) => form.setData('ends_at', e.target.value)} /></FormField>
                         <Button type="submit" disabled={form.processing}>Tambah Sesi</Button>
                     </form>
                 </CardContent>
-            </Card>
+            </Card>}
         </>
     );
 }
@@ -144,7 +168,9 @@ export default function EventShow(props: Props) {
                 <Button variant="outline" render={<a href={`/kegiatan/${event.id}/monitor`} target="_blank" rel="noreferrer" />}><MonitorPlay /> Monitor langsung</Button>
                 <Button variant="outline" render={<Link href={`/kegiatan/${event.id}/edit`} />}><Pencil /> Ubah</Button>
                 {!event.closed_at && (
-                    <ConfirmAction title="Tutup kegiatan?" description="Anggota wajib yang tidak scan akan ditandai Alpa, atau Izin/Sakit bila izinnya disetujui." href={`/kegiatan/${event.id}/tutup`} variant="default" confirmLabel="Tutup kegiatan">
+                    <ConfirmAction title="Tutup kegiatan?" description={props.sessions.length > 1
+                        ? 'Per sesi yang sudah dibuka, anggota wajib yang tidak scan ditandai Alpa, atau Izin/Sakit bila izinnya disetujui. Sesi yang belum dibuka tidak ditandai.'
+                        : 'Anggota wajib yang tidak scan akan ditandai Alpa, atau Izin/Sakit bila izinnya disetujui.'} href={`/kegiatan/${event.id}/tutup`} variant="default" confirmLabel="Tutup kegiatan">
                         Tutup Kegiatan
                     </ConfirmAction>
                 )}
@@ -156,6 +182,7 @@ export default function EventShow(props: Props) {
                 <StatusBadge status={event.closed_at ? 'closed' : 'open'} />
             </p>
             <PageTabs tabs={{ ringkasan: 'Ringkasan', hadir: 'Daftar Hadir', sesi: 'Sesi', target: 'Target Peserta' }} current={tab} />
+            {(tab === 'ringkasan' || tab === 'hadir') && report && <SessionPicker event={event} tab={tab} sessions={props.sessions} current={report.session.id} />}
             {tab === 'ringkasan' && <Summary {...props} />}
             {tab === 'hadir' && report && (
                 <DataTable head={['No. Anggota', 'Nama', 'Divisi', 'Status', 'Waktu', 'Koreksi']} count={report.rows.length} empty="Belum ada peserta.">
