@@ -66,10 +66,21 @@ jobs:
           test "$code" = 302
           curl -fsS -b "$jar" http://localhost/ | grep -q 'home'
 
-      - name: Queue worker memproses job
+      - name: Queue worker memproses ekspor Excel
         run: |
-          docker compose exec -T app php artisan tinker --execute="dispatch(function () { file_put_contents(storage_path('app/private/ci-queue-ok'), 'ok'); });"
-          for i in $(seq 1 30); do docker compose exec -T app test -f storage/app/private/ci-queue-ok && exit 0; sleep 2; done
+          docker compose exec -T app php artisan tinker --execute='
+            $u = App\Models\User::where("email", "admin@ci.test")->firstOrFail();
+            $t = App\Models\Term::withoutGlobalScopes()->where("organization_id", $u->organization_id)->firstOrFail();
+            $e = App\Models\Export::create(["organization_id" => $u->organization_id, "user_id" => $u->id, "report" => "term", "format" => "xlsx", "params" => ["term_id" => $t->id, "division_id" => null]]);
+            App\Jobs\GenerateExport::dispatch($e->id);
+            echo $e->id;' > export-id.txt
+          for i in $(seq 1 45); do
+            status=$(docker compose exec -T app php artisan tinker --execute='echo App\Models\Export::withoutGlobalScopes()->find('"$(tail -1 export-id.txt)"')->status;' | tail -1)
+            echo "status ekspor: $status"
+            [ "$status" = ready ] && exit 0
+            [ "$status" = failed ] && break
+            sleep 2
+          done
           docker compose logs worker; exit 1
 
       - name: Scheduler berjalan
@@ -84,7 +95,7 @@ jobs:
           q() { docker compose exec -T db psql -U kartu_anggota -d restore_test -tAc "$1"; }
           test "$(q "select count(*) from organizations where slug='ci'")" = 1
           test "$(q "select count(*) from users where email='admin@ci.test' and role='super_admin'")" = 1
-          tar -tzf "$files" | grep -q 'app/private/ci-queue-ok'
+          tar -tzf "$files" | grep -q 'app/private/exports/.*\.xlsx'   # berkas ekspor ikut ter-backup
           echo "backup & restore OK: $(basename "$dump"), $(basename "$files")"
 
       - name: Log bila gagal
