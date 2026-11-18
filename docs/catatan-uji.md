@@ -51,6 +51,8 @@ app lama di-uninstall sekali; APK berikutnya cukup "Perbarui".
   **Riwayat** (persentase + daftar). Lalu setujui/tolak izinnya di dashboard → Pengajuan Izin.
 - **2FA admin:** dashboard → Akun Saya → Aktifkan 2FA → scan QR dengan aplikasi authenticator → simpan
   kode cadangan. Keluar lalu masuk lagi → diminta kode. Di app: login akun itu → muncul kolom Kode 2FA.
+- **Pesan error berbahasa Indonesia:** mis. login dengan email salah format, atau matikan server
+  (`php artisan serve` dihentikan) saat di layar Kegiatan → pesan dalam Bahasa Indonesia.
 - **Bunyi saat scan:** hadir = dua nada naik, telat/sudah absen = dua ketukan, ditolak = nada rendah.
   Tombol speaker di kanan atas layar Scan untuk membisukan (diingat). Getar tetap jalan saat bisu.
 - **Monitor kegiatan langsung (web):** dashboard → Kegiatan → pilih kegiatan → "Monitor langsung" (tab baru).
@@ -68,6 +70,3 @@ app lama di-uninstall sekali; APK berikutnya cukup "Perbarui".
 
 - Baca/tulis kartu NTAG215 (kartu belum ada).
 
-## Ide perbaikan berikutnya (belum dikerjakan)
-
-- Pesan error jaringan dalam Bahasa Indonesia (mis. "Server tidak terjangkau").

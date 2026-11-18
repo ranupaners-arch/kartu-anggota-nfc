@@ -30,12 +30,25 @@ return Application::configure(basePath: dirname(__DIR__))
             if (! $request->header('X-Inertia') || $request->is('api/*') || $e->getStatusCode() === 419 || ! auth()->check()) {
                 return null;
             }
-            $message = $e->getMessage() ?: ($e->getStatusCode() === 404 ? 'Data tidak ditemukan.' : 'Permintaan tidak bisa diproses.');
+            $message = \App\Support\ErrorMessage::translate($e->getMessage(), $e->getStatusCode());
             if (! $request->isMethod('GET')) {
                 return back()->withErrors(['error' => $message]);
             }
 
             return \Inertia\Inertia::render('error', ['status' => $e->getStatusCode(), 'message' => $message])
                 ->toResponse($request)->setStatusCode($e->getStatusCode());
+        });
+
+        // Respons JSON (app & fetch): pesan bawaan berbahasa Inggris diganti Bahasa Indonesia.
+        $exceptions->respond(function (\Symfony\Component\HttpFoundation\Response $response) {
+            if ($response instanceof \Illuminate\Http\JsonResponse && $response->getStatusCode() >= 400) {
+                $data = $response->getData(true);
+                if (is_array($data) && array_key_exists('message', $data)) {
+                    $data['message'] = \App\Support\ErrorMessage::translate($data['message'], $response->getStatusCode());
+                    $response->setData($data);
+                }
+            }
+
+            return $response;
         });
     })->create();
