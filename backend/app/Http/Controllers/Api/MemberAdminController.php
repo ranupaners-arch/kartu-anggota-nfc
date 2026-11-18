@@ -57,12 +57,9 @@ class MemberAdminController extends Controller
 
     public function uploadPhoto(Request $r, Member $member)
     {
-        $r->validate(['photo' => 'required|image|mimes:jpg,jpeg,png,webp|max:2048']);
-        if ($member->photo_path) {
-            Storage::disk('local')->delete($member->photo_path);
-        }
-        // Disk privat: foto hanya bisa diambil lewat endpoint ber-auth.
-        $member->update(['photo_path' => $r->file('photo')->store("members/{$member->organization_id}", 'local')]);
+        $r->validate(['photo' => 'required|image|mimes:jpg,jpeg,png,webp|max:5120']);
+        // Disk privat & diperkecil: foto hanya bisa diambil lewat endpoint ber-auth.
+        $this->members->setPhoto($member, $r->file('photo'));
 
         return $this->show($member);
     }

@@ -188,4 +188,26 @@ class AdminApiTest extends TestCase
         $admin2 = User::factory()->create(['organization_id' => $org2->id, 'role' => 'super_admin']);
         $this->as($admin2)->get("/api/members/{$m->id}/photo")->assertNotFound();
     }
+
+    public function test_uploaded_photo_is_downscaled_jpeg(): void
+    {
+        $m = $this->member('foto');
+        foreach ([['besar.jpg', 2000, 1500, [480, 360]], ['tegak.png', 900, 1600, [270, 480]], ['kecil.jpg', 200, 100, [200, 100]]] as [$name, $w, $h, $expected]) {
+            $this->as($this->admin)->post("/api/members/{$m->id}/photo", ['photo' => UploadedFile::fake()->image($name, $w, $h)], ['Accept' => 'application/json'])->assertOk();
+            $path = $m->fresh()->photo_path;
+            $this->assertStringEndsWith('.jpg', $path);
+            $info = getimagesizefromstring(Storage::disk('local')->get($path));
+            $this->assertSame($expected, [$info[0], $info[1]], "ukuran hasil untuk $name");
+            $this->assertSame('image/jpeg', $info['mime']);
+        }
+        $this->assertCount(1, Storage::disk('local')->files("members/{$this->org->id}")); // foto lama dihapus
+    }
+
+    public function test_non_image_photo_is_rejected(): void
+    {
+        $m = $this->member('rusak');
+        $this->as($this->admin)->post("/api/members/{$m->id}/photo", ['photo' => UploadedFile::fake()->create('x.jpg', 10, 'image/jpeg')], ['Accept' => 'application/json'])
+            ->assertUnprocessable();
+        $this->assertNull($m->fresh()->photo_path);
+    }
 }

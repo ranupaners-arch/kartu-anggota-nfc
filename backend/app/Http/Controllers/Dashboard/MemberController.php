@@ -99,11 +99,8 @@ class MemberController extends Controller
 
     public function uploadPhoto(Request $r, Member $member)
     {
-        $r->validate(['photo' => 'required|image|mimes:jpg,jpeg,png,webp|max:2048']);
-        if ($member->photo_path) {
-            Storage::disk('local')->delete($member->photo_path);
-        }
-        $member->update(['photo_path' => $r->file('photo')->store("members/{$member->organization_id}", 'local')]);
+        $r->validate(['photo' => 'required|image|mimes:jpg,jpeg,png,webp|max:5120']);
+        $this->members->setPhoto($member, $r->file('photo'));
 
         return back()->with('status', 'Foto diperbarui.');
     }

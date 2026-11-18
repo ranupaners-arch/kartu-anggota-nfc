@@ -288,4 +288,17 @@ class ScanFlowTest extends TestCase
             'generated_at',
         ]);
     }
+
+    public function test_scan_result_has_photo_url_scanner_can_open(): void
+    {
+        \Illuminate\Support\Facades\Storage::fake('local');
+        $m = $this->member();
+        $payload = $this->issueCard($m);
+        $this->actingAs($this->admin, 'sanctum')->post("/api/members/{$m->id}/photo",
+            ['photo' => \Illuminate\Http\UploadedFile::fake()->image('wajah.jpg', 800, 800)], ['Accept' => 'application/json'])->assertOk();
+
+        $url = $this->scan($payload)->assertJson(['status' => 'ok'])->json('member.photo_url');
+        $this->assertStringContainsString("/api/members/{$m->id}/photo", $url);
+        $this->actingAs($this->scanner, 'sanctum')->get(parse_url($url, PHP_URL_PATH))->assertOk()->assertHeader('Content-Type', 'image/jpeg');
+    }
 }

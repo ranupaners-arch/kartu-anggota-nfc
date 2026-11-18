@@ -76,6 +76,19 @@ class MemberService
         AuditLogger::log('member.deleted', 'member', $member->id);
     }
 
+    /** Ganti foto anggota (diperkecil, disk privat); foto lama dihapus. */
+    public function setPhoto(Member $member, \Illuminate\Http\UploadedFile $file): Member
+    {
+        $old = $member->photo_path;
+        $member->update(['photo_path' => app(PhotoService::class)->store($file, "members/{$member->organization_id}")]);
+        if ($old) {
+            \Illuminate\Support\Facades\Storage::disk('local')->delete($old);
+        }
+        AuditLogger::log('member.photo_updated', 'member', $member->id);
+
+        return $member;
+    }
+
     private function memberFields(array $d): array
     {
         return array_intersect_key($d, array_flip(['member_no', 'name', 'email', 'phone', 'cohort']));
