@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:nfc_manager/nfc_manager.dart';
@@ -9,6 +8,7 @@ import 'package:shadcn_ui/shadcn_ui.dart';
 import '../api/api_client.dart';
 import '../api/ids.dart';
 import '../app/session.dart';
+import '../feedback/scan_feedback.dart';
 import '../nfc/nfc_service.dart';
 import '../offline/offline_store.dart';
 import '../offline/offline_verifier.dart';
@@ -21,7 +21,7 @@ enum ScanMode { nfc, qr }
 
 /// Layar scan petugas: kartu NFC dibaca terus selama layar terbuka; QR lewat kamera.
 class ScanScreen extends StatefulWidget {
-  const ScanScreen({super.key, required this.session, required this.event, this.nfc, this.api, this.store, this.clock});
+  const ScanScreen({super.key, required this.session, required this.event, this.nfc, this.api, this.store, this.clock, this.feedback});
 
   final Session session;
   final EventSummary event;
@@ -31,6 +31,7 @@ class ScanScreen extends StatefulWidget {
   final ApiClient? api;
   final OfflineStore? store;
   final DateTime Function()? clock;
+  final ScanFeedback? feedback;
 
   @override
   State<ScanScreen> createState() => _ScanScreenState();
@@ -39,6 +40,7 @@ class ScanScreen extends StatefulWidget {
 class _ScanScreenState extends State<ScanScreen> with WidgetsBindingObserver {
   late final ApiClient _api = widget.api ?? widget.session.client();
   late final NfcService _nfc = widget.nfc ?? NfcService();
+  late final ScanFeedback _feedback = widget.feedback ?? ScanFeedback();
   DateTime _now() => (widget.clock ?? DateTime.now)();
   OfflineStore? _store;
   Roster? _roster;
@@ -62,6 +64,9 @@ class _ScanScreenState extends State<ScanScreen> with WidgetsBindingObserver {
     WidgetsBinding.instance.addObserver(this);
     _startNfc();
     _initOffline();
+    _feedback.load().then((_) {
+      if (mounted) setState(() {});
+    });
   }
 
   /// Ambil roster terbaru bila online (simpan untuk offline), selain itu pakai yang tersimpan.
@@ -206,12 +211,8 @@ class _ScanScreenState extends State<ScanScreen> with WidgetsBindingObserver {
 
   void _show(ScanResult r) {
     if (!mounted) return;
-    if (r.ok) {
-      _okCount++;
-      HapticFeedback.heavyImpact();
-    } else {
-      HapticFeedback.vibrate();
-    }
+    if (r.ok) _okCount++;
+    _feedback.play(r);
     setState(() => _last = r);
   }
 
@@ -227,6 +228,15 @@ class _ScanScreenState extends State<ScanScreen> with WidgetsBindingObserver {
     return AppPage(
       title: widget.event.title,
       leading: const BackButton(),
+      actions: [
+        ShadIconButton.ghost(
+          icon: Icon(_feedback.muted ? LucideIcons.volumeX : LucideIcons.volume2, size: 18),
+          onPressed: () async {
+            await _feedback.setMuted(!_feedback.muted);
+            if (mounted) setState(() {});
+          },
+        ),
+      ],
       child: ListView(
         padding: const EdgeInsets.all(16),
         children: [

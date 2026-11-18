@@ -46,6 +46,8 @@ app lama di-uninstall sekali; APK berikutnya cukup "Perbarui".
   lalu scan QR/kartu anggota itu → foto tampil besar di kartu hasil; ketuk untuk memperbesar.
   Offline: ikon pengganti (foto butuh koneksi).
 - **Mode gelap (#10):** semua teks terbaca.
+- **Bunyi saat scan:** hadir = dua nada naik, telat/sudah absen = dua ketukan, ditolak = nada rendah.
+  Tombol speaker di kanan atas layar Scan untuk membisukan (diingat). Getar tetap jalan saat bisu.
 - **Monitor kegiatan langsung (web):** dashboard → Kegiatan → pilih kegiatan → "Monitor langsung" (tab baru).
   Buka di laptop/proyektor, lalu scan dari HP → angka & daftar scan bertambah ≤4 detik, baris baru disorot.
 
