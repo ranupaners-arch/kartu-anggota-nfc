@@ -11,7 +11,7 @@ import AppLayout from '@/layouts/app-layout';
 import { roleLabel } from '@/lib/format';
 import type { Paginated, SharedProps } from '@/types';
 
-type U = { id: number; name: string; email: string; role: string; disabled_at: string | null; division: { name: string } | null; member: { member_no: string } | null };
+type U = { id: number; name: string; email: string; role: string; disabled_at: string | null; two_factor_confirmed_at: string | null; division: { name: string } | null; member: { member_no: string } | null };
 
 export default function Users({ users, filters }: { users: Paginated<U>; filters: { role: string | null } }) {
     const me = usePage<SharedProps>().props.auth?.user.id;
@@ -22,17 +22,21 @@ export default function Users({ users, filters }: { users: Paginated<U>; filters
                 <NativeSelectOption value="">Semua peran</NativeSelectOption>
                 {Object.entries(roleLabel).map(([v, l]) => <NativeSelectOption key={v} value={v}>{l}</NativeSelectOption>)}
             </NativeSelect>
-            <DataTable head={['Nama', 'Email', 'Peran', 'Divisi', 'Anggota', 'Status', 'Tindakan']} count={users.data.length}>
+            <DataTable head={['Nama', 'Email', 'Peran', 'Divisi', 'Anggota', 'Status', '2FA', 'Tindakan']} count={users.data.length}>
                 {users.data.map((u) => (
                     <TableRow key={u.id}>
                         <TableCell><Link href={`/pengguna/${u.id}/edit`} className="font-medium hover:underline">{u.name}</Link></TableCell>
                         <TableCell>{u.email}</TableCell><TableCell>{roleLabel[u.role]}</TableCell>
                         <TableCell>{u.division?.name ?? '—'}</TableCell><TableCell className="tabular-nums">{u.member?.member_no ?? '—'}</TableCell>
                         <TableCell><StatusBadge status={u.disabled_at ? 'disabled' : 'active'} /></TableCell>
+                        <TableCell>{u.two_factor_confirmed_at ? <StatusBadge status="active" label="Aktif" /> : <span className="text-xs text-muted-foreground">—</span>}</TableCell>
                         <TableCell className="space-x-1.5">
                             {u.id !== me && (
                                 <>
                                     <ConfirmAction size="sm" title={`Reset password ${u.email}?`} description="Password sementara baru akan ditampilkan sekali, dan pengguna keluar dari semua perangkat." href={`/pengguna/${u.id}/reset-password`} confirmLabel="Reset">Reset password</ConfirmAction>
+                                    {u.two_factor_confirmed_at && (
+                                        <ConfirmAction size="sm" title={`Reset 2FA ${u.email}?`} description="Gunakan bila pengguna kehilangan HP & kode cadangan. Ia bisa login dengan password lalu mengaktifkan 2FA lagi." href={`/pengguna/${u.id}/reset-2fa`} confirmLabel="Reset 2FA">Reset 2FA</ConfirmAction>
+                                    )}
                                     <ConfirmAction size="sm" destructive={!u.disabled_at} title={u.disabled_at ? 'Aktifkan akun?' : 'Nonaktifkan akun?'}
                                         description={u.disabled_at ? 'Pengguna bisa login lagi.' : 'Pengguna tidak bisa login dan keluar dari semua perangkat.'}
                                         href={`/pengguna/${u.id}/status`} confirmLabel={u.disabled_at ? 'Aktifkan' : 'Nonaktifkan'}>

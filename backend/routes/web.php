@@ -6,6 +6,8 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('guest')->group(function () {
     Route::get('masuk', [Dashboard\AuthController::class, 'show'])->name('login');
     Route::post('masuk', [Dashboard\AuthController::class, 'login'])->middleware('throttle:10,1');
+    Route::get('masuk/2fa', [Dashboard\AuthController::class, 'showTwoFactor'])->name('login.2fa');
+    Route::post('masuk/2fa', [Dashboard\AuthController::class, 'twoFactor'])->middleware('throttle:6,1');
 });
 
 Route::middleware(['auth:web', 'dashboard'])->group(function () {
@@ -13,6 +15,9 @@ Route::middleware(['auth:web', 'dashboard'])->group(function () {
     Route::get('/', Dashboard\HomeController::class)->name('home');
     Route::get('akun', [Dashboard\AccountController::class, 'edit'])->name('account');
     Route::put('akun/password', [Dashboard\AccountController::class, 'password'])->name('account.password');
+    Route::post('akun/2fa', [Dashboard\AccountController::class, 'startTwoFactor'])->name('account.2fa.start');
+    Route::post('akun/2fa/konfirmasi', [Dashboard\AccountController::class, 'confirmTwoFactor'])->middleware('throttle:10,1')->name('account.2fa.confirm');
+    Route::delete('akun/2fa', [Dashboard\AccountController::class, 'disableTwoFactor'])->name('account.2fa.disable');
 
     // Operasional — Super Admin & Admin Divisi (akses divisi dicek di layanan)
     Route::resource('kegiatan', Dashboard\EventController::class)->parameters(['kegiatan' => 'event'])->names('events');
@@ -45,6 +50,7 @@ Route::middleware(['auth:web', 'dashboard'])->group(function () {
         Route::resource('pengguna', Dashboard\UserController::class)->parameters(['pengguna' => 'user'])->names('users')->except(['show', 'destroy']);
         Route::post('pengguna/{user}/reset-password', [Dashboard\UserController::class, 'resetPassword'])->name('users.reset-password');
         Route::post('pengguna/{user}/status', [Dashboard\UserController::class, 'toggle'])->name('users.toggle');
+        Route::post('pengguna/{user}/reset-2fa', [Dashboard\UserController::class, 'resetTwoFactor'])->name('users.reset-2fa');
         Route::get('perangkat', [Dashboard\DeviceController::class, 'index'])->name('devices.index');
         Route::post('perangkat/{device}/cabut', [Dashboard\DeviceController::class, 'revoke'])->name('devices.revoke');
         Route::get('log', [Dashboard\LogController::class, 'index'])->name('logs.index');

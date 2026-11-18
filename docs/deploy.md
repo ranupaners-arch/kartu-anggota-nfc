@@ -105,3 +105,13 @@ docker compose exec db dropdb -U kartu_anggota restore_test
 APK rilis hanya mau terhubung ke `https://`. Untuk satu server pusat, build dengan
 `--dart-define=SERVER_MODE=fixed --dart-define=API_URL=https://domain`; untuk server per organisasi
 (bawaan), petugas menghubungkan lewat QR di Pengaturan → Aplikasi.
+
+## 2FA darurat
+
+Bila Super Admin kehilangan HP **dan** kode cadangan, matikan 2FA akunnya dari server:
+
+```bash
+docker compose exec app php artisan app:2fa-reset admin@organisasi.id
+```
+
+Pengguna lain cukup direset Super Admin di dashboard: Pengguna & Peran → Reset 2FA.

@@ -17,6 +17,7 @@ class AuthController extends Controller
         $d = $r->validate([
             'email' => 'required|email', 'password' => 'required',
             'device_uuid' => 'required|string|max:100', 'device_name' => 'required|string|max:100',
+            'otp' => 'nullable|string|max:20',
         ]);
 
         $user = User::where('email', $d['email'])->first();
@@ -24,6 +25,17 @@ class AuthController extends Controller
             throw ValidationException::withMessages(['email' => 'Email atau password salah.']);
         }
         abort_if($user->disabled_at, 403, 'Akun dinonaktifkan. Hubungi pengurus.');
+
+        $twoFactor = app(\App\Services\TwoFactorService::class);
+        if ($twoFactor->enabled($user)) {
+            if (empty($d['otp'])) {
+                return response()->json(['message' => 'Masukkan kode 2FA dari aplikasi authenticator.', 'otp_required' => true,
+                    'errors' => ['otp' => ['Masukkan kode 2FA dari aplikasi authenticator.']]], 422);
+            }
+            if (! $twoFactor->verify($user, $d['otp'])) {
+                return response()->json(['message' => 'Kode 2FA tidak valid.', 'otp_required' => true, 'errors' => ['otp' => ['Kode 2FA tidak valid.']]], 422);
+            }
+        }
 
         $device = Device::firstOrNew(['uuid' => $d['device_uuid']]);
         if ($device->isRevoked()) {

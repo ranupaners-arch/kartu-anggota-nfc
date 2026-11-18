@@ -66,6 +66,15 @@ class UserController extends Controller
         return back()->with('status', "Password {$user->email} direset: $password — sampaikan ke pemiliknya; tidak akan ditampilkan lagi.");
     }
 
+    public function resetTwoFactor(Request $r, User $user, \App\Services\TwoFactorService $twoFactor)
+    {
+        $this->own($r, $user);
+        abort_if($user->is($r->user()), 422, 'Kelola 2FA akun sendiri di Akun Saya.');
+        $twoFactor->disable($user, $r->user());
+
+        return back()->with('status', "2FA {$user->email} direset. Ia bisa login dengan password lalu mengaktifkan 2FA lagi.");
+    }
+
     public function toggle(Request $r, User $user)
     {
         $this->own($r, $user);
