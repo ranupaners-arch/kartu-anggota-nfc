@@ -49,6 +49,8 @@ app lama di-uninstall sekali; APK berikutnya cukup "Perbarui".
 - **App anggota:** login `anggota@hmps.test` / `password` → tab **QR Saya** (QR berganti tiap menit;
   scan dari HP lain sebagai petugas), **Kegiatan** (status + Ajukan izin dengan lampiran gambar/PDF),
   **Riwayat** (persentase + daftar). Lalu setujui/tolak izinnya di dashboard → Pengajuan Izin.
+- **2FA admin:** dashboard → Akun Saya → Aktifkan 2FA → scan QR dengan aplikasi authenticator → simpan
+  kode cadangan. Keluar lalu masuk lagi → diminta kode. Di app: login akun itu → muncul kolom Kode 2FA.
 - **Bunyi saat scan:** hadir = dua nada naik, telat/sudah absen = dua ketukan, ditolak = nada rendah.
   Tombol speaker di kanan atas layar Scan untuk membisukan (diingat). Getar tetap jalan saat bisu.
 - **Monitor kegiatan langsung (web):** dashboard → Kegiatan → pilih kegiatan → "Monitor langsung" (tab baru).
