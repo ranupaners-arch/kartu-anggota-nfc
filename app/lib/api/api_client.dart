@@ -118,6 +118,38 @@ class ApiClient {
     return ScanResult.fromJson(j);
   }
 
+  // ── Anggota ────────────────────────────────────────────────────────────────
+
+  /// QR pribadi anggota (berganti tiap menit di server).
+  Future<({String payload, int expiresIn})> myQr() async {
+    final j = await _send('GET', '/api/me/qr');
+    return (payload: j['payload'] as String, expiresIn: j['expires_in'] as int? ?? 90);
+  }
+
+  Future<List<MemberEvent>> myEvents() async {
+    final j = await _send('GET', '/api/me/events');
+    return [for (final e in j['data'] as List) MemberEvent.fromJson(e as Map<String, dynamic>)];
+  }
+
+  Future<MemberHistory> myHistory() async => MemberHistory.fromJson(await _send('GET', '/api/me/history'));
+
+  /// Ajukan izin/sakit; lampiran opsional (gambar/PDF, maks. 5 MB).
+  Future<void> submitExcuse({required int eventId, required String type, required String reason, List<int>? fileBytes, String? fileName}) async {
+    final req = http.MultipartRequest('POST', Uri.parse('$baseUrl/api/excuses'))
+      ..headers.addAll({'Accept': 'application/json', if (token != null) 'Authorization': 'Bearer $token'})
+      ..fields.addAll({'event_id': '$eventId', 'type': type, 'reason': reason});
+    if (fileBytes != null && fileName != null) {
+      req.files.add(http.MultipartFile.fromBytes('attachment', fileBytes, filename: fileName));
+    }
+    final res = await http.Response.fromStream(await _http.send(req).timeout(const Duration(seconds: 30)));
+    if (res.statusCode >= 400) {
+      final decoded = res.body.isEmpty ? null : jsonDecode(res.body);
+      final errors = decoded is Map ? decoded['errors'] : null;
+      final msg = errors is Map && errors.isNotEmpty ? (errors.values.first as List).first : (decoded is Map ? decoded['message'] : null);
+      throw ApiException(res.statusCode, '${msg ?? res.reasonPhrase}');
+    }
+  }
+
   /// Cari anggota (Super Admin) untuk penerbitan kartu.
   Future<List<MemberHit>> searchMembers(String query) async {
     final j = await _send('GET', '/api/members?per_page=30&q=${Uri.encodeQueryComponent(query.trim())}');
@@ -189,4 +221,60 @@ class CardInit {
 
   final int id;
   final String payload, pwd, pack;
+}
+
+/// Kegiatan yang diikuti anggota (GET /api/me/events).
+class MemberEvent {
+  const MemberEvent({
+    required this.id, required this.title, required this.startsAt, required this.checkinClosesAt,
+    this.location, this.closed = false, this.mandatory = true, this.myStatus, this.excuseStatus, this.excuseType,
+    this.excuseNote, this.canRequestExcuse = false,
+  });
+
+  factory MemberEvent.fromJson(Map<String, dynamic> j) {
+    final x = j['excuse'] as Map<String, dynamic>?;
+    return MemberEvent(
+      id: j['id'] as int,
+      title: j['title'] as String,
+      location: j['location'] as String?,
+      startsAt: DateTime.parse(j['starts_at'] as String).toLocal(),
+      checkinClosesAt: DateTime.parse(j['checkin_closes_at'] as String).toLocal(),
+      closed: j['closed_at'] != null,
+      mandatory: j['is_mandatory'] as bool? ?? true,
+      myStatus: j['my_status'] as String?,
+      excuseStatus: x?['status'] as String?,
+      excuseType: x?['type'] as String?,
+      excuseNote: x?['review_note'] as String?,
+      canRequestExcuse: j['can_request_excuse'] as bool? ?? false,
+    );
+  }
+
+  final int id;
+  final String title;
+  final String? location;
+  final DateTime startsAt, checkinClosesAt;
+  final bool closed, mandatory, canRequestExcuse;
+  final String? myStatus, excuseStatus, excuseType, excuseNote;
+}
+
+/// Ringkasan kehadiran anggota (GET /api/me/history).
+class MemberHistory {
+  const MemberHistory({required this.byStatus, required this.total, this.term, this.rate, this.recent = const []});
+
+  factory MemberHistory.fromJson(Map<String, dynamic> j) => MemberHistory(
+        term: j['term'] as String?,
+        byStatus: {for (final e in (j['by_status'] as Map<String, dynamic>).entries) e.key: (e.value as num).toInt()},
+        total: (j['total'] as num).toInt(),
+        rate: (j['attendance_rate'] as num?)?.toDouble(),
+        recent: [
+          for (final r in j['recent'] as List)
+            (event: (r as Map<String, dynamic>)['event'] as String? ?? '-', date: DateTime.tryParse(r['date'] as String? ?? '')?.toLocal(), status: r['status'] as String),
+        ],
+      );
+
+  final String? term;
+  final Map<String, int> byStatus;
+  final int total;
+  final double? rate;
+  final List<({String event, DateTime? date, String status})> recent;
 }

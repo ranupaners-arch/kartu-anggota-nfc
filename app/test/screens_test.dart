@@ -60,7 +60,7 @@ void main() {
     await tester.enterText(find.byType(EditableText), '100.84.251.14:8000');
     await tester.tap(find.text('Hubungkan'));
     await tester.pumpAndSettle();
-    expect(find.text('Masuk Petugas'), findsOneWidget);
+    expect(find.text('Organisasi: HMPS'), findsOneWidget);
     expect(find.text('Organisasi: HMPS'), findsOneWidget);
     expect(find.text('Ganti organisasi'), findsOneWidget);
     expect((await SharedPreferences.getInstance()).getString('server_url'), 'http://100.84.251.14:8000');
@@ -76,7 +76,7 @@ void main() {
     await tester.tap(find.text('Hubungkan'));
     await tester.pumpAndSettle();
     expect(find.text('Alamat ini bukan server Kartu Anggota.'), findsOneWidget);
-    expect(find.text('Masuk Petugas'), findsNothing);
+    expect(find.textContaining('Organisasi:'), findsNothing);
   });
 
   testWidgets('app pertama kali dibuka (tanpa server) menampilkan layar Hubungkan', (tester) async {

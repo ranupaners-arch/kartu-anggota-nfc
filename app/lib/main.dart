@@ -1,10 +1,10 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
+import 'app/home.dart';
 import 'app/server_config.dart';
 import 'app/session.dart';
 import 'screens/connect_screen.dart';
-import 'screens/events_screen.dart';
 import 'screens/login_screen.dart';
 
 void main() => runApp(const KartuAnggotaApp());
@@ -69,7 +69,7 @@ class _StartGate extends StatelessWidget {
         builder: (context, snap) {
           if (snap.connectionState != ConnectionState.done) return const Scaffold(body: Center(child: CircularProgressIndicator()));
           final (session, server) = snap.data!;
-          if (session != null) return EventsScreen(session: session);
+          if (session != null) return homeFor(session);
           if (server != null) return LoginScreen(server: server);
           return const ConnectScreen();
         },

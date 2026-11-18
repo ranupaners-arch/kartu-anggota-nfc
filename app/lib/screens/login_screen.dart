@@ -6,7 +6,7 @@ import '../api/ids.dart';
 import '../app/server_config.dart';
 import '../app/session.dart';
 import 'connect_screen.dart';
-import 'events_screen.dart';
+import '../app/home.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key, required this.server});
@@ -41,7 +41,7 @@ class _LoginScreenState extends State<LoginScreen> {
       final session = Session(baseUrl: widget.server.url, token: api.token!, userName: user['name'] as String? ?? '', role: user['role'] as String? ?? '');
       await session.save();
       if (!mounted) return;
-      Navigator.of(context).pushReplacement(MaterialPageRoute<void>(builder: (_) => EventsScreen(session: session)));
+      Navigator.of(context).pushReplacement(MaterialPageRoute<void>(builder: (_) => homeFor(session)));
     } on ApiException catch (e) {
       setState(() => _error = e.message);
     } catch (_) {
@@ -70,8 +70,8 @@ class _LoginScreenState extends State<LoginScreen> {
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 420),
               child: ShadCard(
-                title: const Text('Masuk Petugas'),
-                description: Text(serverMode == ServerMode.selectable ? 'Organisasi: $serverLabel' : 'Gunakan akun petugas atau pengurus.'),
+                title: const Text('Masuk'),
+                description: Text(serverMode == ServerMode.selectable ? 'Organisasi: $serverLabel' : 'Gunakan akun anggota, petugas, atau pengurus.'),
                 child: Padding(
                   padding: const EdgeInsets.only(top: 16),
                   child: Column(
