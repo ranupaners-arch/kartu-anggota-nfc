@@ -38,7 +38,7 @@ class _NfcToolsScreenState extends State<NfcToolsScreen> with WidgetsBindingObse
       if (status != NfcAvailability.enabled) return _add(false, 'NFC ${status.name}. Aktifkan NFC di pengaturan HP.');
       await _nfc.start();
     } catch (e) {
-      _add(false, 'Gagal mengaktifkan NFC: $e');
+      _add(false, 'Gagal mengaktifkan NFC: ${e is NfcException ? e.message : e}');
     }
   }
 
@@ -71,7 +71,7 @@ class _NfcToolsScreenState extends State<NfcToolsScreen> with WidgetsBindingObse
     try {
       _add(true, await op());
     } catch (e) {
-      _add(false, '$e');
+      _add(false, e is NfcException ? e.message : 'Gagal: $e');
     } finally {
       if (mounted) setState(() => _busy = false);
     }

@@ -15,6 +15,22 @@ class ApiException implements Exception {
   String toString() => 'HTTP $status: $message';
 }
 
+/// Pesan untuk pengguna: pakai pesan server bila ada, selain itu berdasarkan kode HTTP.
+String errorMessage(int status, String? serverMessage) {
+  if (serverMessage != null && serverMessage.trim().isNotEmpty) return serverMessage;
+  return switch (status) {
+    401 => 'Sesi berakhir. Silakan masuk lagi.',
+    403 => 'Anda tidak punya akses untuk tindakan ini.',
+    404 => 'Data tidak ditemukan.',
+    413 => 'Berkas terlalu besar.',
+    419 || 422 => 'Data yang dikirim tidak valid.',
+    429 => 'Terlalu banyak percobaan. Coba lagi sebentar lagi.',
+    502 || 503 || 504 => 'Server sedang tidak tersedia. Coba lagi beberapa saat lagi.',
+    >= 500 => 'Terjadi kesalahan di server. Coba lagi nanti.',
+    _ => 'Permintaan gagal (kode $status).',
+  };
+}
+
 class EventSummary {
   const EventSummary(this.id, this.title, {this.location, this.checkinClosesAt});
 
@@ -147,10 +163,15 @@ class ApiClient {
     }
     final res = await http.Response.fromStream(await _http.send(req).timeout(const Duration(seconds: 30)));
     if (res.statusCode >= 400) {
-      final decoded = res.body.isEmpty ? null : jsonDecode(res.body);
+      Object? decoded;
+      try {
+        decoded = res.body.isEmpty ? null : jsonDecode(res.body);
+      } on FormatException {
+        decoded = null;
+      }
       final errors = decoded is Map ? decoded['errors'] : null;
-      final msg = errors is Map && errors.isNotEmpty ? (errors.values.first as List).first : (decoded is Map ? decoded['message'] : null);
-      throw ApiException(res.statusCode, '${msg ?? res.reasonPhrase}');
+      final msg = errors is Map && errors.isNotEmpty ? (errors.values.first as List).first as String? : (decoded is Map ? decoded['message'] as String? : null);
+      throw ApiException(res.statusCode, errorMessage(res.statusCode, msg));
     }
   }
 
@@ -187,10 +208,15 @@ class ApiClient {
     if (body != null) req.body = jsonEncode(body);
 
     final res = await http.Response.fromStream(await _http.send(req).timeout(const Duration(seconds: 10)));
-    final decoded = res.body.isEmpty ? <String, dynamic>{} : jsonDecode(res.body);
+    Object? decoded;
+    try {
+      decoded = res.body.isEmpty ? <String, dynamic>{} : jsonDecode(res.body);
+    } on FormatException {
+      decoded = null; // bukan JSON (mis. halaman error proxy)
+    }
     if (res.statusCode >= 400) {
-      final msg = decoded is Map ? (decoded['message'] ?? res.reasonPhrase) : res.reasonPhrase;
-      throw ApiException(res.statusCode, '$msg', otpRequired: decoded is Map && decoded['otp_required'] == true);
+      throw ApiException(res.statusCode, errorMessage(res.statusCode, decoded is Map ? decoded['message'] as String? : null),
+          otpRequired: decoded is Map && decoded['otp_required'] == true);
     }
     return decoded as Map<String, dynamic>;
   }
