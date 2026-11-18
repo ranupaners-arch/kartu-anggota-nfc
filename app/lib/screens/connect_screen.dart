@@ -7,10 +7,13 @@ import 'login_screen.dart';
 
 /// Hubungkan app ke server organisasi (model self-hosted): scan QR dari dashboard atau ketik alamat.
 class ConnectScreen extends StatefulWidget {
-  const ConnectScreen({super.key, this.verify = ServerAddress.verify});
+  const ConnectScreen({super.key, this.verify = ServerAddress.verify, this.initialUrl});
 
   /// Bisa diganti di tes.
   final Future<ServerConfig> Function(String url) verify;
+
+  /// Dari tautan QR penghubung: alamat langsung diisi & diperiksa.
+  final String? initialUrl;
 
   @override
   State<ConnectScreen> createState() => _ConnectScreenState();
@@ -21,6 +24,18 @@ class _ConnectScreenState extends State<ConnectScreen> {
   bool _scanning = false;
   bool _busy = false;
   String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    final url = widget.initialUrl;
+    if (url != null) {
+      _address.text = url;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _connect(url);
+      });
+    }
+  }
 
   @override
   void dispose() {

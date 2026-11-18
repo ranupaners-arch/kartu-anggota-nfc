@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
+import 'app/deep_links.dart';
 import 'app/home.dart';
 import 'app/server_config.dart';
 import 'app/session.dart';
@@ -9,11 +10,37 @@ import 'screens/login_screen.dart';
 
 void main() => runApp(const KartuAnggotaApp());
 
-class KartuAnggotaApp extends StatelessWidget {
-  const KartuAnggotaApp({super.key, this.home});
+class KartuAnggotaApp extends StatefulWidget {
+  const KartuAnggotaApp({super.key, this.home, this.links});
 
   /// Untuk tes: lewati pemeriksaan sesi.
   final Widget? home;
+
+  /// Untuk tes: sumber tautan (bawaan: tautan sistem Android). Tes tanpa [links] tidak memasang penangan.
+  final Stream<Uri>? links;
+
+  @override
+  State<KartuAnggotaApp> createState() => _KartuAnggotaAppState();
+}
+
+class _KartuAnggotaAppState extends State<KartuAnggotaApp> {
+  final _navigator = GlobalKey<NavigatorState>();
+  DeepLinkHandler? _links;
+
+  @override
+  void initState() {
+    super.initState();
+    // Di tes widget (home diberikan) plugin tidak tersedia; tautan hanya dipasang bila diminta.
+    if (widget.home == null || widget.links != null) {
+      _links = DeepLinkHandler(_navigator, links: widget.links)..start();
+    }
+  }
+
+  @override
+  void dispose() {
+    _links?.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -22,6 +49,7 @@ class KartuAnggotaApp extends StatelessWidget {
       theme: appTheme(Brightness.light, const ShadNeutralColorScheme.light()),
       darkTheme: appTheme(Brightness.dark, const ShadNeutralColorScheme.dark()),
       appBuilder: (context) => MaterialApp(
+        navigatorKey: _navigator,
         title: 'Kartu Anggota',
         debugShowCheckedModeBanner: false,
         // Warna teks dasar Material dari tema shadcn yang aktif; tanpa ini teks biasa di mode
@@ -31,7 +59,7 @@ class KartuAnggotaApp extends StatelessWidget {
           final fg = ShadTheme.of(context).colorScheme.foreground;
           return base.copyWith(textTheme: base.textTheme.apply(bodyColor: fg, displayColor: fg));
         }(),
-        home: home ?? const _StartGate(),
+        home: widget.home ?? const _StartGate(),
         builder: (context, child) => ShadAppBuilder(child: child!),
       ),
     );

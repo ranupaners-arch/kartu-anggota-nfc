@@ -64,6 +64,9 @@ app lama di-uninstall sekali; APK berikutnya cukup "Perbarui".
 - **Terbitkan kartu (F3):** login Super Admin → ikon kartu di kanan atas → cari anggota →
   "Terbitkan & tulis kartu" → tempel NTAG215 kosong. Lalu coba scan kartu itu di kegiatan. Butuh kartu NTAG.
 - **Hubungkan organisasi:** dashboard → Pengaturan → Aplikasi → scan QR dari app.
+  Juga coba pindai QR itu dengan **kamera bawaan HP** (app belum login) → app terbuka di layar Hubungkan
+  dan langsung memeriksa server. Bila sedang login ke organisasi lain: muncul penjelasan, sesi tidak diputus.
+  Catatan: sebagian aplikasi kamera hanya menampilkan teks untuk tautan selain http(s); Google Lens biasanya bisa.
 - **Kunci tanda tangan tetap:** uninstall app lama sekali; APK berikutnya cukup "Perbarui".
 
 ## Belum diuji
