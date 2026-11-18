@@ -31,20 +31,60 @@ String errorMessage(int status, String? serverMessage) {
   };
 }
 
+/// Satu sesi kegiatan dengan jendela check-in-nya sendiri. Tiap sesi = satu kehadiran.
+class SessionInfo {
+  const SessionInfo({required this.id, required this.title, required this.opensAt, required this.lateAfter, required this.closesAt});
+
+  factory SessionInfo.fromJson(Map<String, dynamic> j) => SessionInfo(
+        id: j['id'] as int,
+        title: j['title'] as String,
+        opensAt: DateTime.parse(j['checkin_opens_at'] as String),
+        lateAfter: DateTime.parse(j['late_after'] as String),
+        closesAt: DateTime.parse(j['checkin_closes_at'] as String),
+      );
+
+  final int id;
+  final String title;
+  final DateTime opensAt, lateAfter, closesAt;
+
+  bool isOpenAt(DateTime t) => !t.isBefore(opensAt) && !t.isAfter(closesAt);
+
+  Map<String, dynamic> toJson() => {
+        'id': id, 'title': title,
+        'checkin_opens_at': opensAt.toUtc().toIso8601String(),
+        'late_after': lateAfter.toUtc().toIso8601String(),
+        'checkin_closes_at': closesAt.toUtc().toIso8601String(),
+      };
+
+  /// Daftar sesi dari JSON; sesi tanpa jendela (server lama) dilewati.
+  static List<SessionInfo> listFrom(Object? raw) => [
+        for (final s in (raw as List?) ?? const [])
+          if ((s as Map<String, dynamic>)['checkin_opens_at'] != null) SessionInfo.fromJson(s),
+      ];
+}
+
 class EventSummary {
-  const EventSummary(this.id, this.title, {this.location, this.checkinClosesAt});
+  const EventSummary(this.id, this.title, {this.location, this.checkinClosesAt, this.sessions = const [], this.currentSessionId});
 
   factory EventSummary.fromJson(Map<String, dynamic> e) => EventSummary(
         e['id'] as int,
         e['title'] as String,
         location: e['location'] as String?,
         checkinClosesAt: DateTime.tryParse(e['checkin_closes_at'] as String? ?? '')?.toLocal(),
+        sessions: SessionInfo.listFrom(e['sessions']),
+        currentSessionId: e['current_session_id'] as int?,
       );
 
   final int id;
   final String title;
   final String? location;
   final DateTime? checkinClosesAt;
+
+  /// Urut sesi utama dulu. Lebih dari satu → petugas memilih sesi di layar Scan.
+  final List<SessionInfo> sessions;
+
+  /// Sesi yang sedang membuka check-in menurut server (saat daftar dimuat).
+  final int? currentSessionId;
 }
 
 /// Hasil scan dari server: status ok|duplicate|blocked|invalid|not_target|outside_window|clock_drift.
@@ -128,12 +168,13 @@ class ApiClient {
     return [for (final e in j['data'] as List) EventSummary.fromJson(e as Map<String, dynamic>)];
   }
 
-  Future<ScanResult> scan(int eventId, String payload, {String source = 'nfc', String? clientUuid, DateTime? scannedAt}) async {
+  Future<ScanResult> scan(int eventId, String payload, {String source = 'nfc', String? clientUuid, DateTime? scannedAt, int? sessionId}) async {
     final j = await _send('POST', '/api/events/$eventId/scan', {
       'payload': payload,
       'source': source,
       'client_uuid': clientUuid ?? uuidV4(),
       'scanned_at': (scannedAt ?? DateTime.now()).toUtc().toIso8601String(),
+      'session_id': ?sessionId,
     });
     return ScanResult.fromJson(j);
   }
@@ -265,7 +306,7 @@ class MemberEvent {
   const MemberEvent({
     required this.id, required this.title, required this.startsAt, required this.checkinClosesAt,
     this.location, this.closed = false, this.mandatory = true, this.myStatus, this.excuseStatus, this.excuseType,
-    this.excuseNote, this.canRequestExcuse = false,
+    this.excuseNote, this.canRequestExcuse = false, this.sessions = 1, this.presentSessions = 0,
   });
 
   factory MemberEvent.fromJson(Map<String, dynamic> j) {
@@ -283,6 +324,8 @@ class MemberEvent {
       excuseType: x?['type'] as String?,
       excuseNote: x?['review_note'] as String?,
       canRequestExcuse: j['can_request_excuse'] as bool? ?? false,
+      sessions: j['sessions'] as int? ?? 1,
+      presentSessions: j['present_sessions'] as int? ?? 0,
     );
   }
 
@@ -292,6 +335,9 @@ class MemberEvent {
   final DateTime startsAt, checkinClosesAt;
   final bool closed, mandatory, canRequestExcuse;
   final String? myStatus, excuseStatus, excuseType, excuseNote;
+
+  /// Kegiatan multi-sesi: jumlah sesi & sesi yang dihadiri (tiap sesi = satu kehadiran).
+  final int sessions, presentSessions;
 }
 
 /// Ringkasan kehadiran anggota (GET /api/me/history).

@@ -51,7 +51,14 @@ class _ScanScreenState extends State<ScanScreen> with WidgetsBindingObserver {
   bool _syncing = false;
   String? _syncNote;
   Timer? _syncTimer;
-  final Set<int> _present = {}; // anggota yang sudah tercatat di sesi ini (cek duplikat offline)
+  // Anggota yang sudah tercatat, per sesi kegiatan (cek duplikat offline). Kunci 0 = tanpa sesi.
+  final Map<int, Set<int>> _presentBySession = {};
+  Set<int> get _present => _presentBySession.putIfAbsent(_sessionId ?? 0, () => {});
+
+  /// Sesi kegiatan yang dicatat (kegiatan multi-sesi). Bawaan: sesi yang sedang membuka check-in.
+  int? _sessionId;
+  List<SessionInfo> get _sessions => widget.event.sessions.isNotEmpty ? widget.event.sessions : (_roster?.sessions ?? const []);
+  SessionInfo? get _session => _sessions.where((s) => s.id == _sessionId).firstOrNull;
   ScanMode _mode = ScanMode.nfc;
   ScanResult? _last;
   String? _nfcProblem;
@@ -65,12 +72,27 @@ class _ScanScreenState extends State<ScanScreen> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _sessionId = _defaultSession(widget.event.sessions)?.id;
     _startNfc();
     _initOffline();
     _feedback.load().then((_) {
       if (mounted) setState(() {});
     });
   }
+
+  /// Sesi yang sedang membuka check-in (menurut server, lalu jam HP), atau sesi utama.
+  SessionInfo? _defaultSession(List<SessionInfo> sessions) {
+    if (sessions.isEmpty) return null;
+    final now = _now();
+    return sessions.where((s) => s.id == widget.event.currentSessionId).firstOrNull
+        ?? sessions.where((s) => s.isOpenAt(now)).firstOrNull
+        ?? sessions.first;
+  }
+
+  void _selectSession(int id) => setState(() {
+        _sessionId = id;
+        _last = null;
+      });
 
   /// Ambil roster terbaru bila online (simpan untuk offline), selain itu pakai yang tersimpan.
   Future<void> _initOffline() async {
@@ -91,6 +113,7 @@ class _ScanScreenState extends State<ScanScreen> with WidgetsBindingObserver {
       _roster = store.loadRoster(widget.event.id);
     }
     if (!mounted) return;
+    _sessionId ??= _defaultSession(_roster?.sessions ?? const [])?.id; // offline: sesi dari roster tersimpan
     setState(() => _pending = store.pending(eventId: widget.event.id).length);
     _syncTimer = Timer.periodic(const Duration(seconds: 30), (_) => _sync(quiet: true));
     if (_pending > 0) _sync(quiet: true);
@@ -195,7 +218,7 @@ class _ScanScreenState extends State<ScanScreen> with WidgetsBindingObserver {
     final uuid = uuidV4();
     final scannedAt = _now();
     try {
-      final r = await _api.scan(widget.event.id, payload, source: source, clientUuid: uuid, scannedAt: scannedAt);
+      final r = await _api.scan(widget.event.id, payload, source: source, clientUuid: uuid, scannedAt: scannedAt, sessionId: _sessionId);
       if ((r.ok || r.status == 'duplicate') && r.memberId != null) _present.add(r.memberId!);
       _show(r);
       if (_pending > 0) unawaited(_sync(quiet: true)); // sedang online: kirim antrean
@@ -217,9 +240,9 @@ class _ScanScreenState extends State<ScanScreen> with WidgetsBindingObserver {
     if (roster == null || store == null) {
       return _show(const ScanResult(status: 'error', message: 'Offline dan belum ada data peserta. Buka layar ini sekali saat online.', offline: true));
     }
-    final r = OfflineVerifier.check(roster, payload, scannedAt, alreadyPresent: _present);
+    final r = OfflineVerifier.check(roster, payload, scannedAt, alreadyPresent: _present, session: _session);
     if (r.ok) {
-      await store.enqueue(PendingScan(clientUuid: uuid, eventId: widget.event.id, payload: payload, source: source, scannedAt: scannedAt));
+      await store.enqueue(PendingScan(clientUuid: uuid, eventId: widget.event.id, payload: payload, source: source, scannedAt: scannedAt, sessionId: _sessionId));
       _present.add(r.memberId!);
       if (mounted) setState(() => _pending = store.pending(eventId: widget.event.id).length);
     }
@@ -257,6 +280,22 @@ class _ScanScreenState extends State<ScanScreen> with WidgetsBindingObserver {
       child: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          if (_sessions.length > 1) ...[
+            Text('Sesi', style: theme.textTheme.small),
+            const SizedBox(height: 6),
+            Wrap(spacing: 8, runSpacing: 8, children: [
+              for (final s in _sessions)
+                s.id == _sessionId
+                    ? ShadButton(size: ShadButtonSize.sm, onPressed: () {}, child: Text(s.title))
+                    : ShadButton.outline(size: ShadButtonSize.sm, onPressed: () => _selectSession(s.id), child: Text(s.title)),
+            ]),
+            if (_session != null && !_session!.isOpenAt(_now())) ...[
+              const SizedBox(height: 8),
+              Text('Check-in sesi ini ${_now().isBefore(_session!.opensAt) ? 'belum dibuka' : 'sudah ditutup'}. Pastikan sesi yang dipilih benar.',
+                  style: theme.textTheme.muted),
+            ],
+            const SizedBox(height: 16),
+          ],
           Row(spacing: 8, children: [modeButton(ScanMode.nfc, LucideIcons.nfc, 'Kartu NFC'), modeButton(ScanMode.qr, LucideIcons.qrCode, 'QR')]),
           const SizedBox(height: 16),
           if (_mode == ScanMode.nfc)
@@ -296,7 +335,7 @@ class _ScanScreenState extends State<ScanScreen> with WidgetsBindingObserver {
             Center(child: Text('Data offline: ${_roster!.members.length} peserta', style: theme.textTheme.muted)),
           ],
           const SizedBox(height: 12),
-          Center(child: Text('$_okCount berhasil tercatat di sesi ini', style: theme.textTheme.muted)),
+          Center(child: Text(_sessions.length > 1 ? '$_okCount berhasil tercatat sejak layar dibuka' : '$_okCount berhasil tercatat di sesi ini', style: theme.textTheme.muted)),
         ],
       ),
     );

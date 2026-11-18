@@ -6,7 +6,7 @@ import 'roster.dart';
 
 /// Scan yang belum terkirim ke server. client_uuid membuat pengiriman ulang tidak menggandakan data.
 class PendingScan {
-  const PendingScan({required this.clientUuid, required this.eventId, required this.payload, required this.source, required this.scannedAt});
+  const PendingScan({required this.clientUuid, required this.eventId, required this.payload, required this.source, required this.scannedAt, this.sessionId});
 
   factory PendingScan.fromJson(Map<String, dynamic> j) => PendingScan(
         clientUuid: j['client_uuid'] as String,
@@ -14,17 +14,26 @@ class PendingScan {
         payload: j['payload'] as String,
         source: j['source'] as String,
         scannedAt: DateTime.parse(j['scanned_at'] as String),
+        sessionId: j['session_id'] as int?,
       );
 
   final String clientUuid, payload, source;
   final int eventId;
   final DateTime scannedAt;
 
-  Map<String, dynamic> toJson() =>
-      {'client_uuid': clientUuid, 'event_id': eventId, 'payload': payload, 'source': source, 'scanned_at': scannedAt.toUtc().toIso8601String()};
+  /// Sesi yang dipilih saat scan (null: server memilih menurut waktu scan).
+  final int? sessionId;
+
+  Map<String, dynamic> toJson() => {
+        'client_uuid': clientUuid, 'event_id': eventId, 'payload': payload, 'source': source,
+        'scanned_at': scannedAt.toUtc().toIso8601String(), 'session_id': ?sessionId,
+      };
 
   /// Bentuk satu item untuk POST /api/events/{id}/scan/batch.
-  Map<String, dynamic> toBatchItem() => {'payload': payload, 'source': source, 'client_uuid': clientUuid, 'scanned_at': scannedAt.toUtc().toIso8601String()};
+  Map<String, dynamic> toBatchItem() => {
+        'payload': payload, 'source': source, 'client_uuid': clientUuid,
+        'scanned_at': scannedAt.toUtc().toIso8601String(), 'session_id': ?sessionId,
+      };
 }
 
 /// Penyimpanan lokal: roster per kegiatan dan antrean scan offline.

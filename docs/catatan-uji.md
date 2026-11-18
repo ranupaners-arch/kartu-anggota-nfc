@@ -52,6 +52,10 @@ app lama di-uninstall sekali; APK berikutnya cukup "Perbarui".
   **Riwayat** (persentase + daftar). Lalu setujui/tolak izinnya di dashboard → Pengajuan Izin.
 - **2FA admin:** dashboard → Akun Saya → Aktifkan 2FA → scan QR dengan aplikasi authenticator → simpan
   kode cadangan. Keluar lalu masuk lagi → diminta kode. Di app: login akun itu → muncul kolom Kode 2FA.
+- **Absensi per sesi:** dashboard → kegiatan → tab Sesi → Tambah sesi (mis. "Hari 2", jam mulai besok).
+  Di app, buka kegiatan itu → muncul pilihan sesi (otomatis sesi yang sedang buka). Scan di tiap sesi
+  tercatat terpisah; Daftar Hadir & Monitor bisa dipilih per sesi; rekap menghitung tiap sesi.
+  Anggota: tab Kegiatan menampilkan "Hadir 1/2 sesi".
 - **Pesan error berbahasa Indonesia:** mis. login dengan email salah format, atau matikan server
   (`php artisan serve` dihentikan) saat di layar Kegiatan → pesan dalam Bahasa Indonesia.
 - **Bunyi saat scan:** hadir = dua nada naik, telat/sudah absen = dua ketukan, ditolak = nada rendah.

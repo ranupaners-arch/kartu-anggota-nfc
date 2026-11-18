@@ -67,6 +67,7 @@ void main() {
     expect(MyEventsTabStatus.of(e({'excuse': {'type': 'sakit', 'status': 'pending'}})), 'Sakit menunggu');
     expect(MyEventsTabStatus.of(e({'excuse': {'type': 'izin', 'status': 'rejected'}})), 'Izin ditolak');
     expect(MyEventsTabStatus.of(e({})), 'Akan datang');
+    expect(MyEventsTabStatus.of(e({'my_status': 'alpa', 'sessions': 2, 'present_sessions': 1})), 'Hadir 1/2 sesi');
   });
 
   testWidgets('daftar kegiatan menampilkan tombol izin bila boleh', (tester) async {

@@ -50,6 +50,17 @@ class _EventsScreenState extends State<EventsScreen> {
     );
   }
 
+  /// Lokasi + sesi berjalan (multi-sesi) + jam tutup check-in sesi itu.
+  String _describe(EventSummary e) {
+    final current = e.sessions.where((s) => s.id == e.currentSessionId).firstOrNull;
+    final closes = current?.closesAt.toLocal() ?? e.checkinClosesAt;
+    return [
+      if (e.location != null) e.location!,
+      if (e.sessions.length > 1 && current != null) 'Sesi ${current.title}',
+      if (closes != null) 'check-in ditutup ${_hhmm(closes)}',
+    ].join(' · ');
+  }
+
   String _hhmm(DateTime t) => '${t.hour.toString().padLeft(2, '0')}.${t.minute.toString().padLeft(2, '0')}';
 
   @override
@@ -92,10 +103,7 @@ class _EventsScreenState extends State<EventsScreen> {
                     child: ShadCard(
                       leading: Padding(padding: const EdgeInsets.only(right: 12), child: Icon(LucideIcons.calendarDays, color: theme.colorScheme.mutedForeground)),
                       title: Text(e.title),
-                      description: Text([
-                        if (e.location != null) e.location!,
-                        if (e.checkinClosesAt != null) 'check-in ditutup ${_hhmm(e.checkinClosesAt!)}',
-                      ].join(' · ')),
+                      description: Text(_describe(e)),
                       trailing: Icon(LucideIcons.chevronRight, color: theme.colorScheme.mutedForeground),
                     ),
                   ),

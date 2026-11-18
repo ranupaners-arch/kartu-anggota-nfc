@@ -77,6 +77,7 @@ class _MyEventsTabState extends State<MyEventsTab> {
 /// Label status kegiatan untuk anggota: hasil absensi, status izin, atau belum.
 abstract final class MyEventsTabStatus {
   static String of(MemberEvent e) {
+    if (e.sessions > 1 && (e.myStatus != null || e.presentSessions > 0)) return 'Hadir ${e.presentSessions}/${e.sessions} sesi';
     if (e.myStatus != null) return statusLabel[e.myStatus] ?? e.myStatus!;
     if (e.excuseStatus != null) return '${e.excuseType == 'sakit' ? 'Sakit' : 'Izin'} ${statusLabel[e.excuseStatus]!.toLowerCase()}';
     if (e.closed) return 'Ditutup';

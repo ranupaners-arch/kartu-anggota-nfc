@@ -1,3 +1,5 @@
+import '../api/api_client.dart';
+
 /// Data offline satu kegiatan (dari GET /api/events/{id}/roster): jendela waktu + peserta dan
 /// sidik jari (sha256) payload kartu mereka. Secret HMAC tidak pernah ada di perangkat.
 class Roster {
@@ -10,6 +12,7 @@ class Roster {
     required this.closed,
     required this.members,
     required this.generatedAt,
+    this.sessions = const [],
   }) : _byFingerprint = {
           for (final m in members)
             for (final c in m.cards) c.fingerprint: (member: m, card: c),
@@ -21,6 +24,9 @@ class Roster {
   final bool closed;
   final List<RosterMember> members;
   final DateTime generatedAt;
+
+  /// Sesi & jendelanya (kosong untuk roster dari server lama: pakai jendela kegiatan).
+  final List<SessionInfo> sessions;
   final Map<String, ({RosterMember member, RosterCard card})> _byFingerprint;
 
   ({RosterMember member, RosterCard card})? byFingerprint(String sha256) => _byFingerprint[sha256];
@@ -37,6 +43,7 @@ class Roster {
       closed: e['closed_at'] != null,
       members: [for (final m in j['members'] as List) RosterMember.fromJson(m as Map<String, dynamic>)],
       generatedAt: DateTime.parse(j['generated_at'] as String),
+      sessions: SessionInfo.listFrom(e['sessions']),
     );
   }
 
@@ -48,6 +55,7 @@ class Roster {
           'late_after': lateAfter.toUtc().toIso8601String(),
           'checkin_closes_at': closesAt.toUtc().toIso8601String(),
           'closed_at': closed ? generatedAt.toUtc().toIso8601String() : null,
+          'sessions': [for (final s in sessions) s.toJson()],
         },
         'members': [for (final m in members) m.toJson()],
         'generated_at': generatedAt.toUtc().toIso8601String(),
