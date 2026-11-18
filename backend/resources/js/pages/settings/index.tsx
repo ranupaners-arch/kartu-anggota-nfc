@@ -33,7 +33,7 @@ function AppConnect({ connect }: { connect: Connect }) {
             <Card>
                 <CardHeader>
                     <CardTitle>Hubungkan app petugas</CardTitle>
-                    <CardDescription>Di app, pilih “Scan QR dari dashboard” lalu arahkan kamera ke kode ini. App akan terhubung ke server {connect.name}.</CardDescription>
+                    <CardDescription>Pindai kode ini dengan kamera HP yang sudah terpasang app, atau di app pilih “Scan QR dari dashboard”. App akan terhubung ke server {connect.name}.</CardDescription>
                 </CardHeader>
                 <CardContent className="flex flex-col gap-6 sm:flex-row sm:items-center">
                     <div className="rounded-xl border bg-white p-4"><QRCodeSVG value={connect.payload} size={200} marginSize={0} /></div>
