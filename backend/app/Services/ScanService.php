@@ -166,7 +166,7 @@ class ScanService
             'member' => $member ? [
                 'id' => $member->id, 'member_no' => $member->member_no, 'name' => $member->name,
                 'division' => $membership?->division?->name,
-                'photo_url' => $member->photo_path ? route('api.members.photo', $member) : null,
+                'photo_url' => $member->photoUrl('api.members.photo'),
             ] : null,
         ];
     }

@@ -38,7 +38,7 @@ class EventMonitorService
                     'name' => $a->member?->name,
                     'member_no' => $a->member?->member_no,
                     'division' => $divisionOf[$a->member_id] ?? null,
-                    'photo_url' => $a->member?->photo_path ? route('events.monitor.photo', [$event, $a->member_id]) : null,
+                    'photo_url' => $a->member?->photoUrl('events.monitor.photo', [$event, $a->member_id]),
                 ],
             ]);
 

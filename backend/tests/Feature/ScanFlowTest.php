@@ -300,5 +300,14 @@ class ScanFlowTest extends TestCase
         $url = $this->scan($payload)->assertJson(['status' => 'ok'])->json('member.photo_url');
         $this->assertStringContainsString("/api/members/{$m->id}/photo", $url);
         $this->actingAs($this->scanner, 'sanctum')->get(parse_url($url, PHP_URL_PATH))->assertOk()->assertHeader('Content-Type', 'image/jpeg');
+
+        // Roster (dipakai app untuk foto offline) memakai URL yang sama; versi berubah saat foto diganti.
+        $event = \App\Models\Event::findOrFail($this->event->id);
+        $roster = collect($this->actingAs($this->scanner, 'sanctum')->getJson("/api/events/{$event->id}/roster")->json('members'))->firstWhere('id', $m->id);
+        $this->assertSame($url, $roster['photo_url']);
+        $this->assertMatchesRegularExpression('/\?v=[0-9a-f]{8}$/', $url);
+        $this->actingAs($this->admin, 'sanctum')->post("/api/members/{$m->id}/photo",
+            ['photo' => \Illuminate\Http\UploadedFile::fake()->image('baru.jpg', 300, 300)], ['Accept' => 'application/json'])->assertOk();
+        $this->assertNotSame($url, $this->scan($payload)->json('member.photo_url'));
     }
 }

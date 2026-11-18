@@ -60,7 +60,7 @@ class MemberController extends Controller
 
         return Inertia::render('members/show', [
             'member' => $member->only('id', 'member_no', 'name', 'email', 'phone', 'cohort')
-                + ['photo_url' => $member->photo_path ? route('members.photo', $member).'?v='.substr(md5($member->photo_path), 0, 8) : null],
+                + ['photo_url' => $member->photoUrl('members.photo')],
             'tab' => $tab,
             'memberships' => $member->memberships->sortByDesc('term_id')->values()->map(fn ($ms) => [
                 'id' => $ms->id, 'term' => $ms->term?->name, 'division' => $ms->division?->name, 'role' => $ms->role, 'status' => $ms->status,
