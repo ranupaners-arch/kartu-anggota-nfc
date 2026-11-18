@@ -242,7 +242,7 @@ Navigasi dua tingkat: **menu** (grup) → **submenu** (halaman). Pilihan di dala
 | Menu | Submenu | Isi halaman (tab / tombol) | Akses |
 |---|---|---|---|
 | Beranda | — | Ringkasan: anggota aktif, kegiatan berlangsung, izin menunggu, perlu ditinjau | Semua pengurus |
-| Operasional | Kegiatan | Tab Berlangsung · Akan Datang · Selesai; + Buat. Detail: Ringkasan · Daftar Hadir (koreksi) · Sesi · Target; Tutup, Ekspor | Super Admin, Admin Divisi (divisinya + umum) |
+| Operasional | Kegiatan | Tab Berlangsung · Akan Datang · Selesai; + Buat. Detail: Ringkasan · Daftar Hadir (koreksi) · Sesi · Target; Tutup, Ekspor; **Monitor langsung** (layar penuh untuk proyektor: angka kehadiran, scan terbaru + foto, belum datang; diperbarui tiap 4 detik) | Super Admin, Admin Divisi (divisinya + umum) |
 | | Pengajuan Izin | Tab Menunggu (badge) · Riwayat; setujui/tolak, lihat bukti | Super Admin, Admin Divisi |
 | | Perlu Ditinjau | Tab Konflik Offline (badge) · Override · Anomali; terima/batalkan | Super Admin, Admin Divisi |
 | Data | Anggota | Tab Aktif · Alumni · Semua; cari, filter divisi; + Tambah, Impor CSV. Detail: Profil · Riwayat Hadir · Kartu | Super Admin |

@@ -17,6 +17,8 @@ Route::middleware(['auth:web', 'dashboard'])->group(function () {
     // Operasional — Super Admin & Admin Divisi (akses divisi dicek di layanan)
     Route::resource('kegiatan', Dashboard\EventController::class)->parameters(['kegiatan' => 'event'])->names('events');
     Route::post('kegiatan/{event}/tutup', [Dashboard\EventController::class, 'close'])->name('events.close');
+    Route::get('kegiatan/{event}/monitor', [Dashboard\EventMonitorController::class, 'show'])->name('events.monitor');
+    Route::get('kegiatan/{event}/monitor/foto/{member}', [Dashboard\EventMonitorController::class, 'photo'])->name('events.monitor.photo');
     Route::put('kegiatan/{event}/target', [Dashboard\EventController::class, 'targets'])->name('events.targets');
     Route::post('kegiatan/{event}/sesi', [Dashboard\EventController::class, 'storeSession'])->name('events.sessions.store');
     Route::patch('absensi/{attendance}', [Dashboard\EventController::class, 'correct'])->name('attendances.correct');

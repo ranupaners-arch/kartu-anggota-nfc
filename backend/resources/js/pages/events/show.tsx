@@ -1,5 +1,5 @@
 import { Head, Link, router, useForm } from '@inertiajs/react';
-import { FileSpreadsheet, FileText, Pencil } from 'lucide-react';
+import { FileSpreadsheet, FileText, MonitorPlay, Pencil } from 'lucide-react';
 import { type FormEvent, useState } from 'react';
 import { ConfirmAction } from '@/components/confirm-action';
 import { DataTable } from '@/components/data-table';
@@ -141,6 +141,7 @@ export default function EventShow(props: Props) {
     return (
         <AppLayout title={event.title} actions={
             <>
+                <Button variant="outline" render={<a href={`/kegiatan/${event.id}/monitor`} target="_blank" rel="noreferrer" />}><MonitorPlay /> Monitor langsung</Button>
                 <Button variant="outline" render={<Link href={`/kegiatan/${event.id}/edit`} />}><Pencil /> Ubah</Button>
                 {!event.closed_at && (
                     <ConfirmAction title="Tutup kegiatan?" description="Anggota wajib yang tidak scan akan ditandai Alpa, atau Izin/Sakit bila izinnya disetujui." href={`/kegiatan/${event.id}/tutup`} variant="default" confirmLabel="Tutup kegiatan">
