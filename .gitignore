@@ -7,3 +7,7 @@ Thumbs.db
 
 # Laporan & artefak lokal
 *.log
+
+# Deploy (rahasia & cadangan lokal)
+deploy/.env
+deploy/backups/

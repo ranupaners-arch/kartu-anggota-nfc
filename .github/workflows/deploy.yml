@@ -1,0 +1,96 @@
+name: Deploy (uji stack Docker)
+
+# Menjalankan stack produksi (deploy/compose.yaml) seperti di VPS, tanpa domain (HTTP :80),
+# lalu menguji setup, halaman, login, queue, scheduler, serta backup + restore.
+on:
+  push:
+    branches: [main]
+    paths: ['backend/**', 'deploy/**', '.dockerignore', '.github/workflows/deploy.yml']
+  workflow_dispatch:
+
+defaults:
+  run:
+    working-directory: deploy
+
+jobs:
+  stack:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Siapkan .env uji (HTTP tanpa domain)
+        run: |
+          cp .env.example .env
+          sed -i \
+            -e "s|^SITE_ADDRESS=.*|SITE_ADDRESS=:80|" \
+            -e "s|^APP_URL=.*|APP_URL=http://localhost|" \
+            -e "s|^INSTANCE_NAME=.*|INSTANCE_NAME=\"Uji CI\"|" \
+            -e "s|^APP_KEY=.*|APP_KEY=base64:$(openssl rand -base64 32)|" \
+            -e "s|^CARD_KEY_k1=.*|CARD_KEY_k1=$(openssl rand -hex 32)|" \
+            -e "s|^DB_PASSWORD=.*|DB_PASSWORD=$(openssl rand -hex 16)|" \
+            -e "s|^SESSION_SECURE_COOKIE=.*|SESSION_SECURE_COOKIE=false|" .env
+
+      - name: Bangun & jalankan stack
+        run: docker compose up -d --build --wait --wait-timeout 600
+
+      - name: Tunggu aplikasi siap (migrasi selesai, PHP-FPM jalan)
+        run: |
+          for i in $(seq 1 90); do curl -fsS http://localhost/up >/dev/null && exit 0; sleep 2; done
+          docker compose logs app; exit 1
+
+      - name: Setup organisasi pertama
+        run: |
+          docker compose exec -T app php artisan app:setup --no-interaction \
+            --org-name="Organisasi CI" --org-slug=ci --term-name=2026 --term-start=2026-01-01 --term-end=2026-12-31 \
+            --admin-name=Admin --admin-email=admin@ci.test | tee setup.txt
+          grep -o '| admin@ci.test *| *[A-Za-z0-9]* *|' setup.txt | awk -F'|' '{gsub(/ /,"",$3); print $3}' > admin-pass.txt
+          test -s admin-pass.txt
+
+      - name: Cek halaman, aset, header, dan API
+        run: |
+          curl -fsS http://localhost/api/instance | tee /dev/stderr | grep -q '"name":"Uji CI"'
+          page=$(curl -fsS http://localhost/masuk)
+          asset=$(printf '%s' "$page" | grep -o '/build/assets/app-[^"]*\.js' | head -1)
+          test -n "$asset" && curl -fsS -o /dev/null "http://localhost$asset"
+          curl -fsSI http://localhost/masuk | grep -qi 'x-content-type-options: nosniff'
+          ! curl -fsSI http://localhost/masuk | grep -qi '^server:'   # header Server disembunyikan
+
+      - name: Login dashboard sebagai Super Admin
+        run: |
+          jar=$(mktemp)
+          curl -fsS -c "$jar" -b "$jar" http://localhost/masuk >/dev/null
+          xsrf=$(awk '/XSRF-TOKEN/ {print $7}' "$jar" | python3 -c "import sys,urllib.parse;print(urllib.parse.unquote(sys.stdin.read().strip()))")
+          code=$(curl -s -o /dev/null -w '%{http_code}' -c "$jar" -b "$jar" -H "X-XSRF-TOKEN: $xsrf" -H 'X-Inertia: true' \
+            -H 'Content-Type: application/json' -d "{\"email\":\"admin@ci.test\",\"password\":\"$(cat admin-pass.txt)\"}" http://localhost/masuk)
+          test "$code" = 302
+          curl -fsS -b "$jar" http://localhost/ | grep -q 'home'
+
+      - name: Queue worker memproses job
+        run: |
+          docker compose exec -T app php artisan tinker --execute="dispatch(function () { file_put_contents(storage_path('app/private/ci-queue-ok'), 'ok'); });"
+          for i in $(seq 1 30); do docker compose exec -T app test -f storage/app/private/ci-queue-ok && exit 0; sleep 2; done
+          docker compose logs worker; exit 1
+
+      - name: Scheduler berjalan
+        run: test -n "$(docker compose ps -q --status running scheduler)"
+
+      - name: Backup lalu restore ke database kosong
+        run: |
+          docker compose exec -T backup /bin/sh /backup.sh now
+          dump=$(ls -t backups/db-*.dump | head -1); files=$(ls -t backups/files-*.tar.gz | head -1)
+          docker compose exec -T db createdb -U kartu_anggota restore_test
+          docker compose exec -T backup /bin/sh /backup.sh restore "/backups/$(basename "$dump")" "" restore_test
+          q() { docker compose exec -T db psql -U kartu_anggota -d restore_test -tAc "$1"; }
+          test "$(q "select count(*) from organizations where slug='ci'")" = 1
+          test "$(q "select count(*) from users where email='admin@ci.test' and role='super_admin'")" = 1
+          tar -tzf "$files" | grep -q 'app/private/ci-queue-ok'
+          echo "backup & restore OK: $(basename "$dump"), $(basename "$files")"
+
+      - name: Log bila gagal
+        if: failure()
+        run: docker compose logs --tail=200
+
+      - name: Bersihkan
+        if: always()
+        run: docker compose down -v

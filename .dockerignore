@@ -1,0 +1,21 @@
+# Konteks build Docker = root repo; hanya backend/ & deploy/ yang dipakai.
+.git
+.github
+app
+docs
+**/node_modules
+backend/vendor
+backend/public/build
+backend/public/hot
+backend/.env
+backend/.env.*
+!backend/.env.example
+backend/storage/app/*
+backend/storage/framework/cache/*
+backend/storage/framework/sessions/*
+backend/storage/framework/views/*
+backend/storage/logs/*
+backend/bootstrap/cache/*.php
+backend/tests
+deploy/.env
+deploy/backups
