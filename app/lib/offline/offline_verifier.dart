@@ -9,7 +9,7 @@ abstract final class OfflineVerifier {
   static ScanResult check(Roster roster, String payload, DateTime now, {Set<int> alreadyPresent = const {}}) {
     ScanResult reject(String status, String message, [RosterMember? m]) => ScanResult(
           status: status, message: message, offline: true,
-          memberId: m?.id, memberName: m?.name, memberNo: m?.memberNo, division: m?.division,
+          memberId: m?.id, memberName: m?.name, memberNo: m?.memberNo, division: m?.division, photoUrl: m?.photoUrl,
         );
 
     if (CardPayload.parse(payload) == null) return reject('invalid', 'Bukan kartu anggota.');
@@ -25,7 +25,7 @@ abstract final class OfflineVerifier {
       attendanceStatus: now.isAfter(roster.lateAfter) ? 'telat' : 'hadir',
       message: 'Tersimpan offline, akan disinkron.',
       offline: true,
-      memberId: m.id, memberName: m.name, memberNo: m.memberNo, division: m.division,
+      memberId: m.id, memberName: m.name, memberNo: m.memberNo, division: m.division, photoUrl: m.photoUrl,
     );
   }
 }

@@ -55,23 +55,24 @@ class Roster {
 }
 
 class RosterMember {
-  const RosterMember({required this.id, required this.memberNo, required this.name, this.division, this.cards = const []});
+  const RosterMember({required this.id, required this.memberNo, required this.name, this.division, this.photoUrl, this.cards = const []});
 
   factory RosterMember.fromJson(Map<String, dynamic> j) => RosterMember(
         id: j['id'] as int,
         memberNo: j['member_no'] as String,
         name: j['name'] as String,
         division: j['division'] as String?,
+        photoUrl: j['photo_url'] as String?,
         cards: [for (final c in (j['cards'] as List? ?? const [])) RosterCard.fromJson(c as Map<String, dynamic>)],
       );
 
   final int id;
   final String memberNo, name;
-  final String? division;
+  final String? division, photoUrl;
   final List<RosterCard> cards;
 
   Map<String, dynamic> toJson() => {
-        'id': id, 'member_no': memberNo, 'name': name, 'division': division,
+        'id': id, 'member_no': memberNo, 'name': name, 'division': division, 'photo_url': photoUrl,
         'cards': [for (final c in cards) c.toJson()],
       };
 }

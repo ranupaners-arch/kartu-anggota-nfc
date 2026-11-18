@@ -42,6 +42,11 @@ app lama di-uninstall sekali; APK berikutnya cukup "Perbarui".
 
 ## Siap diuji (belum terpasang di HP)
 
+- **Foto anggota di hasil scan:** unggah foto anggota di dashboard (Anggota → detail → Unggah foto),
+  lalu scan QR/kartu anggota itu → foto tampil besar di kartu hasil; ketuk untuk memperbesar.
+  Offline: ikon pengganti (foto butuh koneksi).
+- **Mode gelap (#10):** semua teks terbaca.
+
 - **Mode offline (F9):** matikan data/Wi-Fi di HP saat layar Scan terbuka → tap kartu NTAG
   → hasil berlabel "Offline" + "N scan belum tersinkron"; nyalakan lagi → tersinkron otomatis
   (≤30 detik) atau tombol "Sinkron". Butuh kartu NTAG; QR memang butuh internet.

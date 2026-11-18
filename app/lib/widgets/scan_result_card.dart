@@ -2,12 +2,16 @@ import 'package:material_ui/material_ui.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
 import '../api/api_client.dart';
+import 'member_photo.dart';
 
 /// Hasil scan terakhir: hijau (hadir), kuning (telat), biru (sudah absen), merah (ditolak).
 class ScanResultCard extends StatelessWidget {
-  const ScanResultCard({super.key, required this.result});
+  const ScanResultCard({super.key, required this.result, this.token});
 
   final ScanResult result;
+
+  /// Token sesi untuk memuat foto anggota.
+  final String? token;
 
   static const _labels = {
     'duplicate': 'Sudah absen', 'blocked': 'Kartu diblokir', 'invalid': 'Tidak dikenali', 'not_target': 'Bukan peserta',
@@ -33,13 +37,17 @@ class ScanResultCard extends StatelessWidget {
       child: Row(
         spacing: 12,
         children: [
-          Icon(s.icon, color: s.color, size: 36),
+          if (result.memberName != null)
+            MemberPhoto(url: result.photoUrl, token: token, name: result.memberName)
+          else
+            Icon(s.icon, color: s.color, size: 36),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               spacing: 2,
               children: [
                 Row(spacing: 6, children: [
+                  if (result.memberName != null) Icon(s.icon, color: s.color, size: 16),
                   Text(s.label, style: theme.textTheme.small.copyWith(color: s.color, fontWeight: FontWeight.w600)),
                   if (result.offline) ShadBadge.outline(child: const Text('Offline')),
                 ]),

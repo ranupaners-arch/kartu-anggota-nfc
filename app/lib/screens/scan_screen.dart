@@ -263,7 +263,7 @@ class _ScanScreenState extends State<ScanScreen> with WidgetsBindingObserver {
             ),
             const SizedBox(height: 12),
           ],
-          if (_last != null) ScanResultCard(result: _last!),
+          if (_last != null) ScanResultCard(result: _last!, token: widget.session.token),
           if (_roster != null) ...[
             const SizedBox(height: 8),
             Center(child: Text('Data offline: ${_roster!.members.length} peserta', style: theme.textTheme.muted)),

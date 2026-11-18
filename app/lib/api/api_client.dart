@@ -38,6 +38,7 @@ class ScanResult {
     this.memberName,
     this.memberNo,
     this.division,
+    this.photoUrl,
     this.offline = false,
   });
 
@@ -51,6 +52,7 @@ class ScanResult {
       memberName: m?['name'] as String?,
       memberNo: m?['member_no'] as String?,
       division: m?['division'] as String?,
+      photoUrl: m?['photo_url'] as String?,
     );
   }
 
@@ -61,6 +63,9 @@ class ScanResult {
   final String? memberName;
   final String? memberNo;
   final String? division;
+
+  /// Foto anggota (butuh header Authorization) untuk verifikasi wajah oleh petugas.
+  final String? photoUrl;
 
   /// Hasil diperiksa di perangkat (tanpa internet); keputusan akhir saat sinkron.
   final bool offline;
