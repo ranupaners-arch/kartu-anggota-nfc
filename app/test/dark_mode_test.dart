@@ -1,0 +1,56 @@
+import 'package:flutter/rendering.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:kartuanggota/main.dart';
+import 'package:kartuanggota/widgets/ui.dart';
+import 'package:material_ui/material_ui.dart';
+import 'package:shadcn_ui/shadcn_ui.dart';
+
+/// Rasio kontras WCAG antara dua warna.
+double contrast(Color a, Color b) {
+  final la = a.computeLuminance(), lb = b.computeLuminance();
+  final hi = la > lb ? la : lb, lo = la > lb ? lb : la;
+  return (hi + 0.05) / (lo + 0.05);
+}
+
+Color textColor(WidgetTester tester, String text) {
+  final p = tester.renderObject<RenderParagraph>(find.text(text));
+  return p.text.style!.color!;
+}
+
+void main() {
+  for (final brightness in [Brightness.light, Brightness.dark]) {
+    testWidgets('teks halaman terbaca di mode ${brightness.name}', (tester) async {
+      tester.platformDispatcher.platformBrightnessTestValue = brightness;
+      addTearDown(tester.platformDispatcher.clearPlatformBrightnessTestValue);
+
+      late Color background;
+      await tester.pumpWidget(KartuAnggotaApp(
+        home: Builder(builder: (context) {
+          final theme = ShadTheme.of(context);
+          background = theme.colorScheme.background;
+          return AppPage(
+            title: 'Kegiatan Berlangsung',
+            child: Column(children: [
+              Text('Masuk sebagai Petugas Scan', style: theme.textTheme.muted),
+              Text('Teks besar', style: theme.textTheme.large),
+              Text('Teks kecil', style: theme.textTheme.small),
+              const Text('Teks tanpa gaya'),
+            ]),
+          );
+        }),
+      ));
+      await tester.pumpAndSettle();
+
+      expect(background.computeLuminance() < 0.2, brightness == Brightness.dark, reason: 'latar mengikuti mode');
+      for (final t in ['Kegiatan Berlangsung', 'Masuk sebagai Petugas Scan', 'Teks besar', 'Teks kecil', 'Teks tanpa gaya']) {
+        final ratio = contrast(textColor(tester, t), background);
+        expect(ratio, greaterThanOrEqualTo(4.5), reason: '"$t" kontras ${ratio.toStringAsFixed(2)}:1 di mode ${brightness.name}');
+      }
+      // Gaya bawaan shadcn tetap utuh (hanya warnanya yang ditambahkan).
+      final large = tester.renderObject<RenderParagraph>(find.text('Teks besar')).text.style!;
+      expect((large.fontSize, large.fontWeight), (18, FontWeight.w600));
+      // Teks muted tetap lebih redup dari teks utama.
+      expect(textColor(tester, 'Masuk sebagai Petugas Scan'), isNot(textColor(tester, 'Teks besar')));
+    });
+  }
+}

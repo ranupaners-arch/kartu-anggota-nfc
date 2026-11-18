@@ -17,6 +17,7 @@ class AppPage extends StatelessWidget {
       backgroundColor: theme.colorScheme.background,
       appBar: AppBar(
         backgroundColor: theme.colorScheme.background,
+        foregroundColor: theme.colorScheme.foreground, // ikon kembali & aksi ikut mode gelap
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         leading: leading,

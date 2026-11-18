@@ -19,17 +19,42 @@ class KartuAnggotaApp extends StatelessWidget {
   Widget build(BuildContext context) {
     // Skema warna neutral = sama dengan dashboard (shadcn preset b0).
     return ShadApp.custom(
-      theme: ShadThemeData(brightness: Brightness.light, colorScheme: const ShadNeutralColorScheme.light()),
-      darkTheme: ShadThemeData(brightness: Brightness.dark, colorScheme: const ShadNeutralColorScheme.dark()),
+      theme: appTheme(Brightness.light, const ShadNeutralColorScheme.light()),
+      darkTheme: appTheme(Brightness.dark, const ShadNeutralColorScheme.dark()),
       appBuilder: (context) => MaterialApp(
         title: 'Kartu Anggota',
         debugShowCheckedModeBanner: false,
-        theme: Theme.of(context),
+        // Warna teks dasar Material dari tema shadcn yang aktif; tanpa ini teks biasa di mode
+        // gelap ikut berwarna gelap (lihat test/dark_mode_test.dart).
+        theme: () {
+          final base = Theme.of(context);
+          final fg = ShadTheme.of(context).colorScheme.foreground;
+          return base.copyWith(textTheme: base.textTheme.apply(bodyColor: fg, displayColor: fg));
+        }(),
         home: home ?? const _StartGate(),
         builder: (context, child) => ShadAppBuilder(child: child!),
       ),
     );
   }
+}
+
+/// Tema shadcn dengan warna teks mengikuti skema aktif.
+///
+/// Gaya teks bawaan shadcn (large, muted, small, h4, …) tidak membawa warna; komponen shadcn
+/// mewarnainya sendiri, tetapi teks biasa yang memakai gaya itu mewarisi warna dari Material
+/// sehingga di mode gelap menjadi gelap di atas gelap. Di sini tiap gaya diberi warna: muted/lead
+/// memakai mutedForeground, sisanya foreground. Ukuran & font bawaan tetap (digabung oleh shadcn).
+ShadThemeData appTheme(Brightness brightness, ShadColorScheme c) {
+  final fg = TextStyle(color: c.foreground);
+  final muted = TextStyle(color: c.mutedForeground);
+  return ShadThemeData(
+    brightness: brightness,
+    colorScheme: c,
+    textTheme: ShadTextTheme(
+      h1Large: fg, h1: fg, h2: fg, h3: fg, h4: fg, p: fg, blockquote: fg, table: fg, list: fg,
+      large: fg, small: fg, lead: muted, muted: muted,
+    ),
+  );
 }
 
 /// Urutan awal: sudah login → kegiatan; server diketahui → login; selain itu → hubungkan organisasi.
