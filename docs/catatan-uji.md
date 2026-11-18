@@ -36,6 +36,9 @@ app lama di-uninstall sekali; APK berikutnya cukup "Perbarui".
 
 | # | Yang diuji | Hasil | Status |
 |---|---|---|---|
+| 8 | Sambung ke server | Awalnya gagal: Tailscale di HP mati ("offline, last seen 22h ago"). Setelah Tailscale aktif: tersambung | OK (bukan bug app). Saran: aktifkan "Always-on VPN" untuk Tailscale |
+| 9 | Layar Hubungkan | Pengguna bertanya "nama organisasi apa?": contoh `absen.organisasi.id` di kolom alamat disangka tempat isi nama organisasi | Perlu diperbaiki: label/contoh lebih jelas |
+| 10 | Daftar kegiatan (mode gelap HP) | Kegiatan RAKERNAS (dibuat dari dashboard) tampil rapi. Judul "Kegiatan Berlangsung" dan teks "Masuk sebagai Petugas Scan" hampir tak terbaca (gelap di atas gelap) | Perlu diperbaiki: warna teks tidak ikut tema gelap; periksa semua layar |
 
 ## Siap diuji (belum terpasang di HP)
 
