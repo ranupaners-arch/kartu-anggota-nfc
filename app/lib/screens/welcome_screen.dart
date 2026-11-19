@@ -39,20 +39,23 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
     super.dispose();
   }
 
-  /// Memudar + bergeser naik [dy] px pada rentang [start]–[end] (0..1) animasi; [scale]: mengecil ke ukuran akhir.
-  Widget _enter(double start, double end, Widget child, {double dy = 16, bool scale = false}) {
+  /// Masuk: memudar + bergeser naik [dy] px pada rentang [start]–[end] (0..1) animasi intro.
+  /// Keluar (saat pindah ke layar Masuk): memudar lebih dulu, sebelum logo naik, agar tidak bertumpuk.
+  Widget _enter(double start, double end, Widget child, {double dy = 16}) {
     final t = CurvedAnimation(
       parent: _intro,
       curve: Interval(start, end, curve: Curves.easeOutCubic),
     );
+    final leaving = ModalRoute.of(context)?.secondaryAnimation ?? kAlwaysDismissedAnimation;
+    final out = CurvedAnimation(
+      parent: leaving,
+      curve: const Interval(0, 0.35, curve: Curves.easeOut),
+    );
     return AnimatedBuilder(
-      animation: t,
+      animation: Listenable.merge([t, out]),
       builder: (context, child) => Opacity(
-        opacity: t.value,
-        child: Transform.translate(
-          offset: Offset(0, (1 - t.value) * dy),
-          child: scale ? Transform.scale(scale: 1.08 - 0.08 * t.value, child: child) : child,
-        ),
+        opacity: t.value * (1 - out.value),
+        child: Transform.translate(offset: Offset(0, (1 - t.value) * dy), child: child),
       ),
       child: child,
     );

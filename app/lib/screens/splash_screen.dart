@@ -99,6 +99,8 @@ class BrandLogo extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Hero(
     tag: heroTag,
+    // Lintasan lurus (bawaan Material melengkung, terlihat berbelok/patah).
+    createRectTween: (begin, end) => RectTween(begin: begin, end: end),
     child: Image(image: const AssetImage('assets/brand/logo-3d.png'), width: size, height: size, semanticLabel: 'Logo Kartu Anggota'),
   );
 }
@@ -120,7 +122,7 @@ class AuthLayout extends StatelessWidget {
       TweenAnimationBuilder<double>(
         tween: Tween(begin: 0, end: 1),
         duration: const Duration(milliseconds: 900),
-        curve: const Interval(0.35, 1, curve: Curves.easeOutCubic), // setelah logo hampir tiba
+        curve: const Interval(0.45, 1, curve: Curves.easeOutCubic), // setelah logo hampir tiba
         builder: (context, t, child) => Opacity(
           opacity: t,
           child: Transform.translate(offset: Offset(0, (1 - t) * 24), child: child),
@@ -136,8 +138,12 @@ PageRouteBuilder<void> fadeRoute(Widget page) => PageRouteBuilder<void>(
   pageBuilder: (_, _, _) => page,
   transitionDuration: const Duration(milliseconds: 700),
   reverseTransitionDuration: const Duration(milliseconds: 500),
+  // Layar baru memudar masuk setelah isi layar lama mulai memudar keluar (lihat WelcomeScreen).
   transitionsBuilder: (_, a, _, child) => FadeTransition(
-    opacity: CurvedAnimation(parent: a, curve: Curves.easeInOut),
+    opacity: CurvedAnimation(
+      parent: a,
+      curve: const Interval(0.15, 1, curve: Curves.easeOut),
+    ),
     child: child,
   ),
 );
