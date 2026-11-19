@@ -1,5 +1,6 @@
 import { Head, Link } from '@inertiajs/react';
 import { CalendarDays, ClipboardCheck, ScanLine, ShieldAlert, Users } from 'lucide-react';
+import { type AtRisk, type DivisionRate, StatsSection, type TrendPoint } from '@/components/attendance-charts';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -16,6 +17,7 @@ interface Props {
     pendingExcuses: number;
     needsReview: number;
     scans7d: number;
+    stats: { trend: TrendPoint[]; divisions: DivisionRate[]; atRisk: AtRisk[]; rules: { streak: number; minRate: number; minRecords: number } } | null;
 }
 
 function Stat({ label, value, icon: Icon, href }: { label: string; value: number; icon: typeof Users; href?: string }) {
@@ -31,7 +33,7 @@ function Stat({ label, value, icon: Icon, href }: { label: string; value: number
     return href ? <Link href={href}>{body}</Link> : body;
 }
 
-export default function Home({ term, activeMembers, ongoing, upcoming, pendingExcuses, needsReview, scans7d }: Props) {
+export default function Home({ term, activeMembers, ongoing, upcoming, pendingExcuses, needsReview, scans7d, stats }: Props) {
     return (
         <AppLayout title="Beranda">
             <Head title="Beranda" />
@@ -81,6 +83,7 @@ export default function Home({ term, activeMembers, ongoing, upcoming, pendingEx
                     </CardContent>
                 </Card>
             </div>
+            {stats && <StatsSection {...stats} />}
         </AppLayout>
     );
 }

@@ -203,3 +203,11 @@
         display: none;
     }
 }
+
+/* Warna batang grafik kehadiran (satu seri). Divalidasi: terang #4F46E5, gelap #6366F1. */
+:root {
+    --chart-bar: #4f46e5;
+}
+.dark {
+    --chart-bar: #6366f1;
+}
