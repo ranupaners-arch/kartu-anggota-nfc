@@ -1,4 +1,4 @@
-import { Children, cloneElement, isValidElement, type ReactElement, type ReactNode } from 'react';
+import { Children, cloneElement, isValidElement, useEffect, useRef, type ReactElement, type ReactNode } from 'react';
 import { Card } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
@@ -26,10 +26,42 @@ function withLabels(children: ReactNode, labels: string[]): ReactNode {
     });
 }
 
+/**
+ * Tabel yang lebih lebar dari kartunya bisa digeser; agar pengguna keyboard juga bisa menggesernya,
+ * wadah gulirnya dijadikan region bernama yang bisa difokus (Tab lalu panah kiri/kanan) — hanya
+ * selama memang meluap, supaya tidak menambah perhentian Tab yang tidak berguna.
+ */
+function useScrollableRegion(label: string) {
+    const ref = useRef<HTMLDivElement>(null);
+    useEffect(() => {
+        const box = ref.current?.querySelector<HTMLElement>('[data-slot=table-container]');
+        if (!box) return;
+        const update = () => {
+            if (box.scrollWidth > box.clientWidth + 1) {
+                box.tabIndex = 0;
+                box.setAttribute('role', 'region');
+                box.setAttribute('aria-label', label);
+            } else {
+                box.removeAttribute('tabindex');
+                box.removeAttribute('role');
+                box.removeAttribute('aria-label');
+            }
+        };
+        const ro = new ResizeObserver(update);
+        ro.observe(box);
+        const table = box.querySelector('table');
+        if (table) ro.observe(table);
+        return () => ro.disconnect();
+    }, [label]);
+    return ref;
+}
+
 /** Tabel dalam kartu dengan baris kosong bawaan; di HP tampil sebagai daftar kartu. */
-export function DataTable({ head, empty = 'Tidak ada data.', count, children }: { head: ReactNode[]; empty?: string; count: number; children: ReactNode }) {
+export function DataTable({ head, empty = 'Tidak ada data.', count, label, children }: { head: ReactNode[]; empty?: string; count: number; label?: string; children: ReactNode }) {
+    // Nama bawaan dari dua judul kolom pertama, mis. "Tabel No. Anggota, Nama".
+    const ref = useScrollableRegion(label ?? `Tabel ${head.map(labelOf).filter(Boolean).slice(0, 2).join(', ')}`);
     return (
-        <Card className="py-0" data-slot="data-table">
+        <Card ref={ref} className="py-0" data-slot="data-table">
             <Table>
                 <TableHeader><TableRow>{head.map((h, i) => <TableHead key={i}>{h}</TableHead>)}</TableRow></TableHeader>
                 <TableBody>
