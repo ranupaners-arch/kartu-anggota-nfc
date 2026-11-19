@@ -1,4 +1,4 @@
-import { Head, router, useForm } from '@inertiajs/react';
+import { Head, Link, router, useForm } from '@inertiajs/react';
 import { Copy, ShieldAlert } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { type FormEvent, useState } from 'react';
@@ -13,7 +13,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { TableCell, TableRow } from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
-import { fmtDate } from '@/lib/format';
+import { fmtDate, fmtDateTime } from '@/lib/format';
 
 type Term = { id: number; name: string; starts_on: string; ends_on: string; is_current: boolean };
 type Div = { id: number; name: string; memberships_count: number };
@@ -180,16 +180,59 @@ function PrivacySettings({ privacy }: { privacy: Privacy }) {
     );
 }
 
-export default function Settings({ tab, org, terms, divisions, connect, privacy }: { tab: string; org: { name: string; slug: string }; terms: Term[]; divisions: Div[]; connect: Connect; privacy: Privacy | null }) {
+type Check = { status: 'ok' | 'warn' | 'fail'; message: string; ms?: number };
+type Health = { status: Check['status']; checks: Record<string, Check>; checked_at: string; sentry: boolean; healthTokenSet: boolean; healthUrl: string };
+const checkLabels: Record<string, string> = { database: 'Database', cache: 'Cache (Redis)', storage: 'Penyimpanan berkas', queue: 'Queue worker', scheduler: 'Scheduler' };
+const statusTone: Record<Check['status'], string> = {
+    ok: 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400', warn: 'bg-amber-500/10 text-amber-700 dark:text-amber-400', fail: 'bg-destructive/10 text-destructive',
+};
+const statusText: Record<Check['status'], string> = { ok: 'Normal', warn: 'Perlu dicek', fail: 'Gagal' };
+
+/** Status sistem (sama dengan GET /api/health dan `php artisan app:health`). */
+function SystemHealth({ health }: { health: Health }) {
+    return (
+        <>
+            <Card className="max-w-3xl">
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                        Status sistem <span className={`rounded-md px-2 py-0.5 text-sm font-medium ${statusTone[health.status]}`}>{statusText[health.status]}</span>
+                    </CardTitle>
+                    <CardDescription>Diperiksa {fmtDateTime(health.checked_at)}. Queue worker & scheduler dinilai dari detak tiap menit.</CardDescription>
+                </CardHeader>
+                <CardContent className="grid gap-2">
+                    {Object.entries(health.checks).map(([name, c]) => (
+                        <div key={name} className="flex flex-wrap items-center gap-3 rounded-lg border p-3 text-sm">
+                            <span className={`w-24 rounded-md px-2 py-0.5 text-center text-xs font-medium ${statusTone[c.status]}`}>{statusText[c.status]}</span>
+                            <span className="w-40 font-medium">{checkLabels[name] ?? name}</span>
+                            <span className="flex-1 text-muted-foreground">{c.message}</span>
+                            {c.ms !== undefined && <span className="tabular-nums text-xs text-muted-foreground">{c.ms} ms</span>}
+                        </div>
+                    ))}
+                    <div><Button variant="outline" size="sm" render={<Link href="/pengaturan?tab=sistem" preserveScroll />}>Periksa ulang</Button></div>
+                </CardContent>
+            </Card>
+            <Card className="max-w-3xl" size="sm">
+                <CardHeader><CardTitle>Pemantauan</CardTitle></CardHeader>
+                <CardContent className="grid gap-1 text-sm">
+                    <p>Pelacakan error (Sentry): <b>{health.sentry ? 'aktif' : 'tidak aktif'}</b>{!health.sentry && ' — isi SENTRY_LARAVEL_DSN di .env server untuk mengaktifkan.'}</p>
+                    <p>Pemantau uptime: <code className="break-all">{health.healthUrl}</code> (HTTP 503 bila ada yang gagal){health.healthTokenSet ? '; detail dengan header X-Health-Token.' : '.'}</p>
+                </CardContent>
+            </Card>
+        </>
+    );
+}
+
+export default function Settings({ tab, org, terms, divisions, connect, privacy, health }: { tab: string; org: { name: string; slug: string }; terms: Term[]; divisions: Div[]; connect: Connect; privacy: Privacy | null; health: Health | null }) {
     return (
         <AppLayout title="Pengaturan">
             <Head title="Pengaturan" />
-            <PageTabs tabs={{ organisasi: 'Organisasi', periode: 'Periode', divisi: 'Divisi', aplikasi: 'Aplikasi', privasi: 'Privasi' }} current={tab} />
+            <PageTabs tabs={{ organisasi: 'Organisasi', periode: 'Periode', divisi: 'Divisi', aplikasi: 'Aplikasi', privasi: 'Privasi', sistem: 'Sistem' }} current={tab} />
             {tab === 'organisasi' && <Organization org={org} />}
             {tab === 'periode' && <Terms terms={terms} />}
             {tab === 'divisi' && <Divisions divisions={divisions} />}
             {tab === 'aplikasi' && <AppConnect connect={connect} />}
             {tab === 'privasi' && privacy && <PrivacySettings privacy={privacy} />}
+            {tab === 'sistem' && health && <SystemHealth health={health} />}
         </AppLayout>
     );
 }
