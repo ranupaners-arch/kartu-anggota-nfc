@@ -18,6 +18,8 @@ class AccountController extends Controller
 
         return \Inertia\Inertia::render('account/edit', [
             'user' => $user->only('name', 'email', 'role') + ['member' => $user->member?->only('member_no', 'name')],
+            // Tautan langganan jadwal (.ics); null = belum dibuat.
+            'calendarUrl' => $user->calendar_token ? route('calendar.feed', ['token' => $user->calendar_token]) : null,
             'twoFactor' => [
                 'enabled' => $twoFactor->enabled($user),
                 'confirmedAt' => $user->two_factor_confirmed_at,
