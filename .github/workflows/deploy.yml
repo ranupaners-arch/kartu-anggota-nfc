@@ -83,8 +83,23 @@ jobs:
           done
           docker compose logs worker; exit 1
 
-      - name: Scheduler berjalan
-        run: test -n "$(docker compose ps -q --status running scheduler)"
+      - name: Health check — worker & scheduler mengirim detak
+        run: |
+          for i in $(seq 1 60); do
+            body=$(curl -s http://localhost/api/health); echo "$body"
+            printf '%s' "$body" | grep -q '"status":"ok"' && break
+            sleep 5
+          done
+          printf '%s' "$body" | grep -q '"status":"ok"'
+          docker compose exec -T app php artisan app:health
+          test "$(docker inspect -f '{{.State.Health.Status}}' "$(docker compose ps -q app)")" = healthy
+
+      - name: Log JSON dengan request_id dari Caddy
+        run: |
+          id=$(curl -fsSI http://localhost/api/instance | awk -F': ' 'tolower($1)=="x-request-id" {print $2}' | tr -d '\r')
+          echo "request id: $id"; test -n "$id"
+          docker compose exec -T app php artisan tinker --execute='Illuminate\Support\Facades\Log::warning("uji log ci");' 2>&1 \
+            | tee /dev/stderr | grep 'uji log ci' | grep -q '"level_name":"WARNING"'
 
       - name: Backup lalu restore ke database kosong
         run: |
