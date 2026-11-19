@@ -1,6 +1,7 @@
 import { Head, Link, router } from '@inertiajs/react';
 import { Plus, Search, Upload } from 'lucide-react';
 import { type FormEvent, useState } from 'react';
+import { BulkBar, SelectAll, SelectRow, useSelection, type Selection } from '@/components/bulk-select';
 import { ConfirmAction } from '@/components/confirm-action';
 import { DataTable } from '@/components/data-table';
 import { PageTabs } from '@/components/page-tabs';
@@ -21,9 +22,42 @@ interface Props {
     filters: { q: string | null; division_id: string | null }; canManage: boolean;
 }
 
+const statusLabels: Record<string, string> = { active: 'Aktif', inactive: 'Tidak aktif', alumni: 'Alumni', applicant: 'Pendaftar' };
+
+/** Pindah divisi / ubah status / arsipkan anggota terpilih (Super Admin). */
+function MemberBulkActions({ sel, divisions }: { sel: Selection; divisions: { id: number; name: string }[] }) {
+    const [division, setDivision] = useState('');
+    const [status, setStatus] = useState('alumni');
+    const n = sel.count;
+    const divisionName = division ? divisions.find((d) => String(d.id) === division)?.name : 'Tanpa divisi';
+    return (
+        <>
+            <div className="flex items-center gap-1.5">
+                <NativeSelect size="sm" value={division} onChange={(e) => setDivision(e.target.value)} aria-label="Divisi tujuan">
+                    <NativeSelectOption value="">Tanpa divisi</NativeSelectOption>
+                    {divisions.map((d) => <NativeSelectOption key={d.id} value={d.id}>{d.name}</NativeSelectOption>)}
+                </NativeSelect>
+                <ConfirmAction size="sm" title={`Pindahkan ${n} anggota ke ${divisionName}?`} description="Berlaku untuk keanggotaan periode berjalan." href="/anggota/massal"
+                    data={{ ids: sel.ids, action: 'division', value: division || null }} onSuccess={sel.clear} confirmLabel="Pindahkan">Pindahkan</ConfirmAction>
+            </div>
+            <div className="flex items-center gap-1.5">
+                <NativeSelect size="sm" value={status} onChange={(e) => setStatus(e.target.value)} aria-label="Status baru">
+                    {Object.entries(statusLabels).map(([v, l]) => <NativeSelectOption key={v} value={v}>{l}</NativeSelectOption>)}
+                </NativeSelect>
+                <ConfirmAction size="sm" title={`Ubah status ${n} anggota menjadi ${statusLabels[status]}?`} description="Berlaku untuk keanggotaan periode berjalan." href="/anggota/massal"
+                    data={{ ids: sel.ids, action: 'status', value: status }} onSuccess={sel.clear} confirmLabel="Ubah status">Ubah status</ConfirmAction>
+            </div>
+            <ConfirmAction size="sm" destructive title={`Arsipkan ${n} anggota?`} description="Anggota pindah ke tab Arsip dan kartu aktifnya diblokir. Bisa dipulihkan satu per satu dari Arsip."
+                href="/anggota/massal" data={{ ids: sel.ids, action: 'archive' }} onSuccess={sel.clear} confirmLabel="Arsipkan">Arsipkan</ConfirmAction>
+        </>
+    );
+}
+
 export default function Members({ tab, members, divisions, term, filters, canManage }: Props) {
     const [q, setQ] = useState(filters.q ?? '');
     const [division, setDivision] = useState(filters.division_id ?? '');
+    const bulk = canManage && tab !== 'arsip';
+    const sel = useSelection(bulk ? members.data.map((m) => m.id) : []);
     const apply = (e: FormEvent) => {
         e.preventDefault();
         router.get('/anggota', { tab, q: q || undefined, division_id: division || undefined }, { preserveState: true });
@@ -65,9 +99,11 @@ export default function Members({ tab, members, divisions, term, filters, canMan
                     ))}
                 </DataTable>
             ) : (
-            <DataTable head={['No. Anggota', 'Nama', 'Divisi', 'Angkatan', 'Status', 'Kartu']} count={members.data.length} empty="Tidak ada anggota.">
+            <>
+            <DataTable head={[...(bulk ? [<SelectAll key="all" sel={sel} />] : []), 'No. Anggota', 'Nama', 'Divisi', 'Angkatan', 'Status', 'Kartu']} count={members.data.length} empty="Tidak ada anggota.">
                 {members.data.map((m) => (
-                    <TableRow key={m.id}>
+                    <TableRow key={m.id} data-state={sel.has(m.id) ? 'selected' : undefined}>
+                        {bulk && <TableCell className="w-8"><SelectRow sel={sel} id={m.id} label={m.name} /></TableCell>}
                         <TableCell className="tabular-nums">{m.member_no}</TableCell>
                         <TableCell><Link href={`/anggota/${m.id}`} className="font-medium hover:underline">{m.name}</Link></TableCell>
                         <TableCell>{m.division ?? '—'}</TableCell>
@@ -77,6 +113,8 @@ export default function Members({ tab, members, divisions, term, filters, canMan
                     </TableRow>
                 ))}
             </DataTable>
+            {bulk && <BulkBar sel={sel}><MemberBulkActions sel={sel} divisions={divisions} /></BulkBar>}
+            </>
             )}
             <Pager page={members} />
         </AppLayout>

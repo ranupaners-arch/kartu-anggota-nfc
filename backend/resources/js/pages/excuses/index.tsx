@@ -1,6 +1,8 @@
 import { Head, router, useForm } from '@inertiajs/react';
 import { Paperclip, Plus } from 'lucide-react';
 import { type FormEvent, useState } from 'react';
+import { BulkBar, SelectAll, SelectRow, useSelection, type Selection } from '@/components/bulk-select';
+import { ConfirmAction } from '@/components/confirm-action';
 import { DataTable } from '@/components/data-table';
 import { FilterBar } from '@/components/filter-bar';
 import { FormField } from '@/components/form-field';
@@ -80,6 +82,20 @@ function RecordExcuse({ events }: { events: Ev[] }) {
     );
 }
 
+function ExcuseBulkActions({ sel }: { sel: Selection }) {
+    const [note, setNote] = useState('');
+    const n = sel.count;
+    return (
+        <>
+            <Input className="h-7 w-40" placeholder="Catatan (opsional)" aria-label="Catatan untuk semua yang dipilih" value={note} onChange={(e) => setNote(e.target.value)} />
+            <ConfirmAction size="sm" variant="default" title={`Setujui ${n} pengajuan?`} description="Bila kegiatannya sudah ditutup, Alpa anggota tersebut otomatis diganti Izin/Sakit."
+                href="/izin/massal" data={{ ids: sel.ids, status: 'approved', note }} onSuccess={() => { sel.clear(); setNote(''); }} confirmLabel="Setujui">Setujui</ConfirmAction>
+            <ConfirmAction size="sm" destructive title={`Tolak ${n} pengajuan?`} description="Anggota akan melihat pengajuannya ditolak beserta catatan Anda."
+                href="/izin/massal" data={{ ids: sel.ids, status: 'rejected', note }} onSuccess={() => { sel.clear(); setNote(''); }} confirmLabel="Tolak">Tolak</ConfirmAction>
+        </>
+    );
+}
+
 function Review({ excuse }: { excuse: Excuse }) {
     const [note, setNote] = useState('');
     const send = (status: 'approved' | 'rejected') => router.patch(`/izin/${excuse.id}`, { status, note }, { preserveScroll: true });
@@ -94,6 +110,8 @@ function Review({ excuse }: { excuse: Excuse }) {
 
 export default function Excuses({ tab, excuses, events, filters }: { tab: string; excuses: Paginated<Excuse>; events: Ev[]; filters: { q: string | null; type: string | null } }) {
     const [f, setF] = useState({ q: filters.q ?? '', type: filters.type ?? '' });
+    const bulk = tab === 'menunggu';
+    const sel = useSelection(bulk ? excuses.data.map((x) => x.id) : []);
     return (
         <AppLayout title="Pengajuan Izin" actions={<RecordExcuse events={events} />}>
             <Head title="Pengajuan Izin" />
@@ -105,9 +123,10 @@ export default function Excuses({ tab, excuses, events, filters }: { tab: string
                     <NativeSelectOption value="sakit">Sakit</NativeSelectOption>
                 </NativeSelect>
             </FilterBar>
-            <DataTable head={['Anggota', 'Kegiatan', 'Jenis', 'Alasan', 'Bukti', tab === 'menunggu' ? 'Tindakan' : 'Keputusan']} count={excuses.data.length} empty="Tidak ada pengajuan.">
+            <DataTable head={[...(bulk ? [<SelectAll key="all" sel={sel} />] : []), 'Anggota', 'Kegiatan', 'Jenis', 'Alasan', 'Bukti', tab === 'menunggu' ? 'Tindakan' : 'Keputusan']} count={excuses.data.length} empty="Tidak ada pengajuan.">
                 {excuses.data.map((x) => (
-                    <TableRow key={x.id}>
+                    <TableRow key={x.id} data-state={sel.has(x.id) ? 'selected' : undefined}>
+                        {bulk && <TableCell className="w-8"><SelectRow sel={sel} id={x.id} label={`${x.member?.name ?? 'pengajuan'} — ${x.event?.title ?? ''}`} /></TableCell>}
                         <TableCell>{x.member?.name}<div className="text-xs text-muted-foreground">{x.member?.member_no}</div></TableCell>
                         <TableCell>{x.event?.title}<div className="text-xs text-muted-foreground">{fmtDate(x.event?.starts_at)}</div></TableCell>
                         <TableCell><StatusBadge status={x.type} /></TableCell>
@@ -121,6 +140,7 @@ export default function Excuses({ tab, excuses, events, filters }: { tab: string
                     </TableRow>
                 ))}
             </DataTable>
+            {bulk && <BulkBar sel={sel}><ExcuseBulkActions sel={sel} /></BulkBar>}
             <Pager page={excuses} />
         </AppLayout>
     );
