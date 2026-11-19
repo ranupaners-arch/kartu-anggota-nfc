@@ -7,6 +7,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import type { SharedProps } from '@/types';
+import { Copyright } from '@/components/copyright';
 
 export default function Login({ canResetPassword = false }: { canResetPassword?: boolean }) {
     const status = usePage<SharedProps>().props.flash?.status;
@@ -56,6 +57,7 @@ export default function Login({ canResetPassword = false }: { canResetPassword?:
                     </form>
                 </CardContent>
                 </Card>
+                <Copyright className="text-center" />
             </div>
         </div>
     );
