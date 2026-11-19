@@ -1,0 +1,64 @@
+# Panduan Petugas Scan
+
+Tugas Anda: mencatat kehadiran anggota dengan menempelkan kartu ke HP (atau memindai QR anggota).
+
+## Sebelum acara (cukup sekali)
+
+1. Pasang app **Kartu Anggota** di HP Android yang punya **NFC**.
+2. **Hubungkan ke organisasi**: minta pengurus membuka dashboard → **Pengaturan** → **Aplikasi**,
+   lalu di app ketuk **Scan QR dari dashboard** dan arahkan kamera ke QR tersebut.
+   (Bisa juga memindai QR itu langsung dengan kamera HP, atau mengetik alamat server.)
+3. **Masuk** dengan email & password dari pengurus.
+4. Aktifkan **NFC** di pengaturan HP.
+
+## Saat acara
+
+1. Di layar **Kegiatan Berlangsung**, ketuk kegiatan yang sedang berjalan.
+   Kegiatan baru muncul saat jam check-in dibuka — tarik layar ke bawah untuk memuat ulang.
+2. Bila kegiatan punya beberapa **Sesi** (mis. Hari 1, Hari 2), pastikan sesi yang terpilih benar.
+   App otomatis memilih sesi yang sedang buka.
+3. Pilih **Kartu NFC**, lalu minta anggota **menempelkan kartu ke bagian belakang HP** sampai
+   terdengar bunyi. HP langsung siap untuk kartu berikutnya.
+4. **Cocokkan foto** yang muncul dengan wajah orangnya. Ketuk foto untuk memperbesar.
+
+### Arti hasil scan
+
+| Tampilan | Arti | Yang dilakukan |
+|---|---|---|
+| Hijau **Hadir** | Tercatat tepat waktu | Lanjut |
+| Kuning **Telat** | Tercatat, lewat batas telat | Lanjut |
+| Biru **Sudah absen** | Kartu ini sudah tercatat di sesi ini | Lanjut; tidak tercatat dua kali |
+| Merah **Kartu diblokir** | Kartu dilaporkan hilang/diganti | Arahkan ke pengurus |
+| Merah **Tidak dikenali** | Bukan kartu anggota organisasi ini | Minta kartu yang benar atau pakai QR |
+| Merah **Bukan peserta** | Anggota bukan target kegiatan ini | Arahkan ke pengurus |
+| Merah **Di luar jam check-in** | Check-in belum dibuka / sudah ditutup | Arahkan ke pengurus |
+| Merah **Jam HP tidak sesuai** | Jam HP berbeda jauh dari server | Aktifkan jam otomatis di HP |
+
+Bunyi: dua nada naik = hadir, dua ketukan = telat/sudah absen, nada rendah = ditolak.
+Tombol speaker di kanan atas membisukan bunyi; getar tetap jalan.
+
+### Kartu tertinggal
+
+Minta anggota membuka app di HP-nya → tab **QR Saya**. Di app Anda pilih **QR**, lalu arahkan kamera
+ke QR itu. QR berganti tiap menit, jadi tangkapan layar tidak bisa dipakai. **QR butuh internet.**
+
+### Internet putus (mode offline)
+
+- Buka layar Scan kegiatan **sekali saat masih online** sebelum acara/di awal acara — app menyimpan
+  daftar peserta dan foto mereka di HP.
+- Saat offline, scan kartu tetap jalan. Hasil berlabel **Offline** dan muncul
+  "**N scan belum tersinkron**".
+- Saat internet kembali, data terkirim otomatis (≤ 30 detik) atau ketuk **Sinkron**.
+  Jangan keluar akun sebelum semua scan tersinkron.
+- Scan yang sama tidak akan tercatat ganda walau terkirim dua kali.
+
+## Kendala umum
+
+| Masalah | Solusi |
+|---|---|
+| "NFC tidak siap" | Aktifkan NFC di pengaturan HP, lalu kembali ke app |
+| Kartu tidak terbaca | Tempel tepat di tengah belakang HP, tahan 1–2 detik; lepas casing tebal/logam |
+| Muncul menu aplikasi lain saat kartu ditempel | Buka layar Scan app ini dulu, baru tempel kartu |
+| "Server tidak terjangkau" | Periksa internet. Lanjutkan scan kartu (offline), sinkron nanti |
+| "Sesi berakhir. Silakan masuk lagi." | Keluar lalu masuk lagi (sinkronkan dulu bila ada scan tertunda) |
+| Kegiatan tidak muncul | Jam check-in belum dibuka, atau Anda bukan petugas organisasi itu |
