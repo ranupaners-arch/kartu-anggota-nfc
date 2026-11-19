@@ -130,3 +130,76 @@
     @apply font-sans;
     }
 }
+/*
+ * DataTable di ruang sempit: tiap baris jadi kartu, tiap sel "Label ........ isi".
+ * Memakai container query (lebar kartu tabel, bukan layar) karena sidebar ikut memakan ruang.
+ * Label dari judul kolom (data-label, diisi komponen DataTable). Kolom tanpa judul (tombol aksi)
+ * tampil penuh tanpa label.
+ */
+[data-slot='data-table'] {
+    container-type: inline-size;
+}
+
+@container (max-width: 640px) {
+    [data-slot='data-table'] thead {
+        display: none;
+    }
+    [data-slot='data-table'] table,
+    [data-slot='data-table'] tbody,
+    [data-slot='data-table'] tr {
+        display: block;
+        width: 100%;
+    }
+    [data-slot='data-table'] tbody tr {
+        padding: 0.75rem 1rem;
+    }
+    [data-slot='data-table'] tbody td {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.25rem 0.75rem;
+        padding: 0.25rem 0;
+        white-space: normal;
+        text-align: right;
+        max-width: none;
+    }
+    [data-slot='data-table'] tbody td > [data-slot='cell-value'] {
+        min-width: 0;
+        max-width: 100%;
+        overflow-wrap: anywhere;
+    }
+    [data-slot='data-table'] tbody td::before {
+        content: attr(data-label);
+        flex-shrink: 0;
+        text-align: left;
+        font-size: 0.75rem;
+        color: var(--muted-foreground);
+        font-family: var(--font-sans);
+        font-weight: 400;
+    }
+    /* Sel kosong tidak perlu satu baris sendiri di kartu. */
+    [data-slot='data-table'] tbody td:has(> [data-slot='cell-value']:empty) {
+        display: none;
+    }
+    [data-slot='data-table'] tbody td[data-label='']::before,
+    [data-slot='data-table'] tbody td[data-empty]::before {
+        display: none;
+    }
+    [data-slot='data-table'] tbody td[data-label=''] {
+        justify-content: flex-end;
+    }
+    [data-slot='data-table'] tbody td[data-empty] {
+        justify-content: center;
+        text-align: center;
+    }
+    /* Kolom pertama = identitas baris: rata kiri, tanpa label. */
+    [data-slot='data-table'] tbody td:first-child:not([data-empty]) {
+        justify-content: flex-start;
+        text-align: left;
+        font-weight: 500;
+    }
+    [data-slot='data-table'] tbody td:first-child::before {
+        display: none;
+    }
+}

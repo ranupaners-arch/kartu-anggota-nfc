@@ -72,14 +72,15 @@ export default function AppLayout({ title, actions, children }: { title: string;
         <TooltipProvider>
             <SidebarProvider>
                 <AppSidebar />
-                <SidebarInset>
+                {/* min-w-0: konten lebar (tabel) menggulir di tempatnya, tidak melebarkan halaman. */}
+                <SidebarInset className="min-w-0">
                     <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
                         <SidebarTrigger className="-ml-1" />
                         <Separator orientation="vertical" className="mr-2 h-4" />
                         <h1 className="flex-1 truncate text-sm font-medium">{title}</h1>
                         <UserMenu />
                     </header>
-                    <main className="flex flex-1 flex-col gap-4 p-4 md:p-6">
+                    <main className="flex min-w-0 flex-1 flex-col gap-4 p-4 md:p-6">
                         {actions && <div className="flex flex-wrap items-center justify-end gap-2">{actions}</div>}
                         {children}
                     </main>
