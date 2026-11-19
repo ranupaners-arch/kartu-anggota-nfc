@@ -76,6 +76,26 @@ class EventMonitorTest extends TestCase
             ->has('serverTime'));
     }
 
+    public function test_monitor_charts_arrivals_per_time_bin_and_rate_per_division(): void
+    {
+        $a = $this->member('A', $this->humas);
+        $b = $this->member('B');
+        $c = $this->member('C');
+        $this->member('D');
+        $this->attend($a, 'hadir', 10);
+        $this->attend($b, 'telat', 2);
+        $this->attend($c, 'alpa', 1); // bukan kedatangan
+
+        // Check-in dibuka 30 menit lalu → per 2 menit: 15 batang penuh + 1 batang berjalan (≤ 24).
+        $this->actingAs($this->admin)->get(route('events.monitor', $this->event))->assertOk()->assertInertia(fn (Assert $p) => $p
+            ->where('arrivals.bin_minutes', 2)
+            ->has('arrivals.counts', 16)
+            ->where('arrivals.counts.10', 1)->where('arrivals.counts.14', 1)
+            ->where('arrivals.counts', fn ($c) => collect($c)->sum() === 2)
+            ->where('divisions.0.division', 'Tanpa divisi')->where('divisions.0.present', 1)->where('divisions.0.total', 3)
+            ->where('divisions.1.division', 'Humas')->where('divisions.1.rate', fn ($r) => (float) $r === 100.0));
+    }
+
     public function test_polling_partial_reload_returns_only_requested_props(): void
     {
         $this->member('A');
