@@ -131,3 +131,17 @@ Pengguna lain cukup direset Super Admin di dashboard: Pengguna & Peran → Reset
 ```bash
 docker compose exec app php artisan app:retention --dry-run   # lihat apa yang akan dihapus
 ```
+
+## Pemantauan (observabilitas)
+
+- **Status sistem:** dashboard → Pengaturan → Sistem, atau `docker compose exec app php artisan app:health`.
+  Diperiksa: database, cache (Redis/Valkey), penyimpanan berkas, serta *detak* queue worker & scheduler
+  (dikirim tiap menit; lebih dari 5 menit tanpa detak = gagal). Container `app` memakai pemeriksaan
+  ini sebagai healthcheck Docker (`docker compose ps` menampilkan `healthy`/`unhealthy`).
+- **Pemantau uptime** (mis. UptimeRobot, Uptime Kuma): pantau `https://<domain>/api/health`;
+  HTTP 503 bila ada yang gagal. Isi `HEALTH_TOKEN` lalu kirim header `X-Health-Token` untuk melihat detail.
+- **Log:** `docker compose logs -f app worker scheduler`. Format JSON satu baris; tiap baris membawa
+  `request_id` (juga di header respons `X-Request-Id`, dibuat Caddy), `user_id`, dan `organization_id`
+  — tanpa nama/email. Cari semua log satu request: `docker compose logs app | grep <request_id>`.
+- **Pelacakan error (opsional):** isi `SENTRY_LARAVEL_DSN` (sentry.io atau GlitchTip self-hosted), lalu
+  `docker compose up -d`. Data pribadi tidak dikirim; error dikelompokkan dengan request_id-nya.
