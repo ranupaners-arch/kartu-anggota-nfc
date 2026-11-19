@@ -137,8 +137,8 @@ export default function EventMonitor({ event, stats, latest, missing, serverTime
                 <Button variant="outline" size="icon" aria-label={fullscreen ? 'Keluar layar penuh' : 'Layar penuh'} onClick={toggleFullscreen}>{fullscreen ? <Minimize /> : <Maximize />}</Button>
             </header>
 
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                <Card className="sm:col-span-2 lg:col-span-1">
+            <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+                <Card className="col-span-2 lg:col-span-1">
                     <CardHeader>
                         <CardDescription className="text-base">Hadir</CardDescription>
                         <CardTitle className="text-5xl font-semibold tabular-nums">{stats.present}<span className="text-2xl text-muted-foreground"> / {stats.target}</span></CardTitle>

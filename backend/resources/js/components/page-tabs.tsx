@@ -11,8 +11,9 @@ export function PageTabs({ tabs, current, param = 'tab' }: { tabs: Record<string
     };
 
     return (
-        <Tabs value={current} onValueChange={(v) => go(String(v))}>
-            <TabsList variant="line">
+        // Di layar sempit tab bisa digeser ke samping, bukan meluberkan halaman.
+        <Tabs value={current} onValueChange={(v) => go(String(v))} className="max-w-full overflow-x-auto [scrollbar-width:none]">
+            <TabsList variant="line" className="w-max">
                 {Object.entries(tabs).map(([key, label]) => <TabsTrigger key={key} value={key}>{label}</TabsTrigger>)}
             </TabsList>
         </Tabs>
