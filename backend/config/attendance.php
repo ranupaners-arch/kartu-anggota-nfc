@@ -22,4 +22,6 @@ return [
     'qr_rotate_seconds' => 60,     // QR dirotasi bila lebih tua dari ini
     'anomaly_seconds' => 60,       // kartu sama di event/perangkat berbeda
     'auto_close_grace_minutes' => 5,
+    // Berkas ekspor (berisi nama anggota) dihapus setelah sekian hari.
+    'export_retention_days' => (int) env('EXPORT_RETENTION_DAYS', 7),
 ];

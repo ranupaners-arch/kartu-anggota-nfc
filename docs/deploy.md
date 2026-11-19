@@ -115,3 +115,19 @@ docker compose exec app php artisan app:2fa-reset admin@organisasi.id
 ```
 
 Pengguna lain cukup direset Super Admin di dashboard: Pengguna & Peran → Reset 2FA.
+
+## Privasi & retensi data
+
+- **Persetujuan:** anggota baru (form maupun impor CSV) hanya bisa disimpan bila admin mencentang
+  bahwa anggota sudah menyetujui datanya diproses. Waktu & pencatatnya terlihat di detail anggota.
+- **Hapus data pribadi:** detail anggota → Privasi → *Hapus data pribadi* (hanya untuk anggota yang
+  tidak aktif di periode berjalan). Nama, nomor, kontak, foto, alasan & lampiran izin, dan akun login
+  dihapus permanen; catatan kehadiran tetap dihitung di rekap sebagai "Anggota terhapus".
+- **Retensi otomatis** (Pengaturan → Privasi), dijalankan scheduler tiap hari pukul 02.30:
+  alasan & lampiran izin dihapus N hari setelah periode berakhir (bawaan 180), data anggota dihapus
+  N bulan setelah periode terakhirnya (bawaan mati), berkas ekspor dihapus setelah
+  `EXPORT_RETENTION_DAYS` hari (bawaan 7).
+
+```bash
+docker compose exec app php artisan app:retention --dry-run   # lihat apa yang akan dihapus
+```

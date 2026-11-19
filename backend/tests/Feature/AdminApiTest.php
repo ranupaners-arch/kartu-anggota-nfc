@@ -56,7 +56,11 @@ class AdminApiTest extends TestCase
     {
         $res = $this->as($this->admin)->postJson('/api/members', [
             'member_no' => 'A-01', 'name' => 'Budi', 'email' => 'budi@x.test', 'cohort' => '2024', 'division_id' => $this->humas->id,
+        ])->assertUnprocessable()->assertJsonValidationErrors('consent'); // tanpa persetujuan ditolak
+        $res = $this->as($this->admin)->postJson('/api/members', [
+            'member_no' => 'A-01', 'name' => 'Budi', 'email' => 'budi@x.test', 'cohort' => '2024', 'division_id' => $this->humas->id, 'consent' => true,
         ])->assertCreated();
+        $this->assertDatabaseHas('members', ['id' => $res['id'], 'consented_by' => $this->admin->id]);
         $id = $res['id'];
         $this->assertDatabaseHas('memberships', ['member_id' => $id, 'term_id' => $this->term->id, 'division_id' => $this->humas->id, 'status' => 'active']);
 
@@ -87,13 +91,14 @@ class AdminApiTest extends TestCase
         $this->assertSame([4, 5], array_column($prev['errors'], 'line'));
 
         $this->as($this->admin)->postJson('/api/members/import/commit', ['token' => $prev['token']])->assertUnprocessable();
-        $this->as($this->admin)->postJson('/api/members/import/commit', ['token' => $prev['token'], 'skip_errors' => true])
+        $this->as($this->admin)->postJson('/api/members/import/commit', ['token' => $prev['token'], 'skip_errors' => true])->assertJsonValidationErrors('consent');
+        $this->as($this->admin)->postJson('/api/members/import/commit', ['token' => $prev['token'], 'skip_errors' => true, 'consent' => true])
             ->assertOk()->assertJson(['created' => 1, 'updated' => 1]);
 
         $this->assertDatabaseHas('members', ['member_no' => '001', 'name' => 'Nama Baru', 'cohort' => '2023']);
         $updated = Member::where('member_no', '001')->first();
         $this->assertDatabaseHas('memberships', ['member_id' => $updated->id, 'division_id' => $this->humas->id]);
-        $this->as($this->admin)->postJson('/api/members/import/commit', ['token' => $prev['token'], 'skip_errors' => true])->assertUnprocessable(); // token sekali pakai
+        $this->as($this->admin)->postJson('/api/members/import/commit', ['token' => $prev['token'], 'skip_errors' => true, 'consent' => true])->assertUnprocessable(); // token sekali pakai
     }
 
     public function test_import_requires_header(): void

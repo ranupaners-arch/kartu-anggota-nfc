@@ -7,8 +7,10 @@ use App\Models\Attendance;
 use App\Models\Division;
 use App\Models\Member;
 use App\Models\Membership;
+use App\Models\User;
 use App\Services\MemberImportService;
 use App\Services\MemberService;
+use App\Services\PrivacyService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Storage;
@@ -61,6 +63,12 @@ class MemberController extends Controller
         return Inertia::render('members/show', [
             'member' => $member->only('id', 'member_no', 'name', 'email', 'phone', 'cohort')
                 + ['photo_url' => $member->photoUrl('members.photo')],
+            'privacy' => [
+                'consentedAt' => $member->consented_at,
+                'consentedBy' => $member->consented_by ? User::find($member->consented_by)?->name : null,
+                'anonymizedAt' => $member->anonymized_at,
+                'blocker' => app(PrivacyService::class)->blocker($member),
+            ],
             'tab' => $tab,
             'memberships' => $member->memberships->sortByDesc('term_id')->values()->map(fn ($ms) => [
                 'id' => $ms->id, 'term' => $ms->term?->name, 'division' => $ms->division?->name, 'role' => $ms->role, 'status' => $ms->status,
@@ -88,6 +96,25 @@ class MemberController extends Controller
         $this->members->update($member, $this->input($r, $member));
 
         return redirect()->route('members.show', $member)->with('status', 'Data anggota diperbarui.');
+    }
+
+    public function consent(Member $member)
+    {
+        $this->members->recordConsent($member);
+
+        return back()->with('status', 'Persetujuan anggota dicatat.');
+    }
+
+    /** Hapus data pribadi (permanen). Nomor anggota diketik ulang sebagai konfirmasi. */
+    public function anonymize(Request $r, Member $member, PrivacyService $privacy)
+    {
+        $r->validate([
+            'confirm' => ['required', 'string', fn ($a, $v, $fail) => $v === $member->member_no ? null : $fail('Ketik nomor anggota persis untuk konfirmasi.')],
+            'reason' => 'required|string|min:5|max:300',
+        ]);
+        $privacy->anonymize($member, $r->user(), $r->input('reason'));
+
+        return redirect()->route('members.show', $member)->with('status', 'Data pribadi anggota dihapus. Catatan kehadirannya tetap ada di rekap.');
     }
 
     public function destroy(Member $member)
@@ -126,7 +153,8 @@ class MemberController extends Controller
 
     public function importCommit(Request $r, MemberImportService $import)
     {
-        $d = $r->validate(['token' => 'required|uuid']);
+        $d = $r->validate(['token' => 'required|uuid', 'consent' => 'accepted'],
+            ['consent.accepted' => 'Centang pernyataan bahwa anggota di berkas sudah menyetujui datanya diproses.']);
         $n = $import->commit($r->user(), $d['token'], $r->boolean('skip_errors'));
 
         return redirect()->route('members.index')->with('status', "Impor selesai: {$n['created']} ditambahkan, {$n['updated']} diperbarui.");

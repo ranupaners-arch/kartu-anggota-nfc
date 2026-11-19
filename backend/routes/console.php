@@ -8,3 +8,4 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 Illuminate\Support\Facades\Schedule::command('events:close')->everyMinute();
+Illuminate\Support\Facades\Schedule::command('app:retention')->dailyAt('02:30')->withoutOverlapping();

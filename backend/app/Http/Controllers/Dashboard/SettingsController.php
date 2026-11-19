@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Division;
 use App\Models\Term;
 use App\Services\AuditLogger;
+use App\Services\PrivacyService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\DB;
@@ -21,6 +22,12 @@ class SettingsController extends Controller
             'terms' => Term::orderByDesc('starts_on')->get(),
             'divisions' => Division::withCount('memberships')->orderBy('name')->get(),
             'connect' => self::connectInfo(),
+            'privacy' => fn () => $r->query('tab') === 'privasi' ? [
+                'excuseDays' => $r->user()->organization->retention_excuse_days,
+                'memberMonths' => $r->user()->organization->retention_member_months,
+                'exportDays' => (int) config('attendance.export_retention_days'),
+                'pending' => app(PrivacyService::class)->retention($r->user()->organization, dryRun: true),
+            ] : null,
         ]);
     }
 
@@ -48,6 +55,18 @@ class SettingsController extends Controller
         AuditLogger::log('organization.updated', 'organization', $r->user()->organization_id);
 
         return back()->with('status', 'Profil organisasi disimpan.');
+    }
+
+    public function updatePrivacy(Request $r)
+    {
+        $d = $r->validate([
+            'retention_excuse_days' => 'required|integer|min:30|max:3650',
+            'retention_member_months' => 'nullable|integer|min:6|max:120',
+        ]);
+        $r->user()->organization->update($d);
+        AuditLogger::log('organization.retention_updated', 'organization', $r->user()->organization_id, $d);
+
+        return back()->with('status', 'Pengaturan retensi disimpan.');
     }
 
     public function storeTerm(Request $r)

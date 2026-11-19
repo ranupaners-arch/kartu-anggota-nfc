@@ -134,15 +134,62 @@ function Divisions({ divisions }: { divisions: Div[] }) {
     );
 }
 
-export default function Settings({ tab, org, terms, divisions, connect }: { tab: string; org: { name: string; slug: string }; terms: Term[]; divisions: Div[]; connect: Connect }) {
+type Privacy = { excuseDays: number; memberMonths: number | null; exportDays: number; pending: { excuses: number; members: number; exports: number } };
+
+/** Retensi data (PRD §13): dijalankan otomatis tiap hari pukul 02.30. */
+function PrivacySettings({ privacy }: { privacy: Privacy }) {
+    const form = useForm({ retention_excuse_days: String(privacy.excuseDays), retention_member_months: privacy.memberMonths ? String(privacy.memberMonths) : '' });
+    const submit = (e: FormEvent) => {
+        e.preventDefault();
+        form.transform((d) => ({ ...d, retention_member_months: d.retention_member_months || null }));
+        form.put('/pengaturan/privasi', { preserveScroll: true });
+    };
+    const p = privacy.pending;
+    return (
+        <>
+            <Card className="max-w-2xl">
+                <CardHeader>
+                    <CardTitle>Retensi data</CardTitle>
+                    <CardDescription>Data pribadi yang sudah tidak diperlukan dihapus otomatis tiap hari pukul 02.30. Catatan kehadiran (rekap) tidak ikut terhapus.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <form onSubmit={submit} className="grid gap-4">
+                        <FormField label="Alasan & lampiran izin dihapus setelah periode berakhir (hari)" hint="Minimal 30 hari." error={form.errors.retention_excuse_days}>
+                            <Input type="number" min={30} max={3650} required className="w-32" value={form.data.retention_excuse_days} onChange={(e) => form.setData('retention_excuse_days', e.target.value)} />
+                        </FormField>
+                        <FormField label="Data pribadi anggota dihapus setelah periode terakhirnya berakhir (bulan)" hint="Kosongkan untuk mematikan. Berlaku untuk anggota yang tidak terdaftar di periode berjalan." error={form.errors.retention_member_months}>
+                            <Input type="number" min={6} max={120} className="w-32" placeholder="mati" value={form.data.retention_member_months} onChange={(e) => form.setData('retention_member_months', e.target.value)} />
+                        </FormField>
+                        <p className="text-sm text-muted-foreground">Berkas ekspor (berisi nama anggota) dihapus setelah {privacy.exportDays} hari.</p>
+                        <div><Button type="submit" disabled={form.processing}>Simpan</Button></div>
+                    </form>
+                </CardContent>
+            </Card>
+            <Card className="max-w-2xl" size="sm">
+                <CardHeader>
+                    <CardTitle>Akan dihapus pada jalan berikutnya</CardTitle>
+                    <CardDescription>Menurut pengaturan yang tersimpan saat ini.</CardDescription>
+                </CardHeader>
+                <CardContent className="grid grid-cols-3 gap-4 text-sm">
+                    <div><div className="text-2xl font-semibold tabular-nums">{p.excuses}</div><div className="text-muted-foreground">pengajuan izin</div></div>
+                    <div><div className="text-2xl font-semibold tabular-nums">{p.members}</div><div className="text-muted-foreground">anggota</div></div>
+                    <div><div className="text-2xl font-semibold tabular-nums">{p.exports}</div><div className="text-muted-foreground">berkas ekspor</div></div>
+                </CardContent>
+            </Card>
+        </>
+    );
+}
+
+export default function Settings({ tab, org, terms, divisions, connect, privacy }: { tab: string; org: { name: string; slug: string }; terms: Term[]; divisions: Div[]; connect: Connect; privacy: Privacy | null }) {
     return (
         <AppLayout title="Pengaturan">
             <Head title="Pengaturan" />
-            <PageTabs tabs={{ organisasi: 'Organisasi', periode: 'Periode', divisi: 'Divisi', aplikasi: 'Aplikasi' }} current={tab} />
+            <PageTabs tabs={{ organisasi: 'Organisasi', periode: 'Periode', divisi: 'Divisi', aplikasi: 'Aplikasi', privasi: 'Privasi' }} current={tab} />
             {tab === 'organisasi' && <Organization org={org} />}
             {tab === 'periode' && <Terms terms={terms} />}
             {tab === 'divisi' && <Divisions divisions={divisions} />}
             {tab === 'aplikasi' && <AppConnect connect={connect} />}
+            {tab === 'privasi' && privacy && <PrivacySettings privacy={privacy} />}
         </AppLayout>
     );
 }

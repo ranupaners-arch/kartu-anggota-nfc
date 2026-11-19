@@ -20,7 +20,7 @@ class MemberImportController extends Controller
 
     public function commit(Request $r)
     {
-        $d = $r->validate(['token' => 'required|uuid', 'skip_errors' => 'sometimes|boolean']);
+        $d = $r->validate(['token' => 'required|uuid', 'skip_errors' => 'sometimes|boolean', 'consent' => 'accepted']);
 
         return $this->import->commit($r->user(), $d['token'], (bool) ($d['skip_errors'] ?? false));
     }
