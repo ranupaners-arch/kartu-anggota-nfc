@@ -1,6 +1,7 @@
 import { Head, Link, usePoll } from '@inertiajs/react';
 import { ArrowLeft, Maximize, Minimize, Search, UserRound } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { ArrivalChart, DivisionBars, type Arrivals, type DivisionRate } from '@/components/attendance-charts';
 import { StatusBadge } from '@/components/status-badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -64,12 +65,12 @@ function Stat({ label, value, sub, className }: { label: string; value: React.Re
 
 type Session = { id: number; title: string; checkin_opens_at: string; late_after: string; checkin_closes_at: string };
 
-export default function EventMonitor({ event, stats, latest, missing, serverTime, session, sessions, pinnedSession }: {
-    event: Ev; stats: Stats; latest: Scan[]; missing: Missing; serverTime: string;
+export default function EventMonitor({ event, stats, latest, missing, serverTime, session, sessions, pinnedSession, arrivals, divisions }: {
+    event: Ev; stats: Stats; latest: Scan[]; missing: Missing; serverTime: string; arrivals: Arrivals; divisions: DivisionRate[];
     session: Session; sessions: { id: number; title: string }[]; pinnedSession: number | null;
 }) {
     // Tanpa sesi dipilih, monitor mengikuti sesi yang sedang membuka check-in (bisa berganti saat polling).
-    usePoll(POLL_MS, { only: ['stats', 'latest', 'missing', 'serverTime', 'session', 'sessions'] }, { keepAlive: true });
+    usePoll(POLL_MS, { only: ['stats', 'latest', 'missing', 'serverTime', 'session', 'sessions', 'arrivals', 'divisions'] }, { keepAlive: true });
     const now = useServerNow(serverTime);
     const state = windowState({ ...event, ...session, closed_at: event.closed_at }, now);
     const [query, setQuery] = useState('');
@@ -153,6 +154,19 @@ export default function EventMonitor({ event, stats, latest, missing, serverTime
                 <Stat label="Telat" value={stats.telat} />
                 <Stat label="Izin / Sakit" value={stats.excused} />
                 <Stat label="Belum datang" value={stats.missing} sub={stats.alpa ? `${stats.alpa} sudah ditandai alpa` : undefined} />
+            </div>
+
+            <div className={cn('grid gap-4', divisions.length > 1 && 'lg:grid-cols-3')}>
+                <Card className={cn(divisions.length > 1 && 'lg:col-span-2')}>
+                    <CardHeader><CardTitle>Kedatangan</CardTitle><CardDescription>Jumlah scan hadir/telat per {arrivals.bin_minutes} menit sejak check-in dibuka.</CardDescription></CardHeader>
+                    <CardContent><ArrivalChart data={arrivals} /></CardContent>
+                </Card>
+                {divisions.length > 1 && (
+                    <Card>
+                        <CardHeader><CardTitle>Per divisi</CardTitle><CardDescription>Sudah hadir dari target, terendah di atas.</CardDescription></CardHeader>
+                        <CardContent><DivisionBars rows={divisions} /></CardContent>
+                    </Card>
+                )}
             </div>
 
             <div className="grid min-h-0 flex-1 gap-4 lg:grid-cols-3">
