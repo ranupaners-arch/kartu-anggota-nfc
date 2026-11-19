@@ -2,14 +2,17 @@ name: Deploy (uji stack Docker)
 
 # Menjalankan stack produksi (deploy/compose.yaml) seperti di VPS, tanpa domain (HTTP :80),
 # lalu menguji setup, halaman, login, queue, scheduler, uji beban scan, serta backup + restore.
-# Berat (build image + uji beban + backup/restore): seminggu sekali (Minggu 02.00 WIB) atau manual
-# (Actions → Deploy → Run workflow), tidak di setiap merge, agar kuota menit Actions awet.
+# Jalan di setiap merge ke main (satu-satunya pemeriksaan main setelah gabungan beberapa PR), plus
+# cadangan mingguan (Minggu 02.00 WIB) dan manual (Actions → Deploy → Run workflow).
 on:
+  push:
+    branches: [main]
+    paths: ['backend/**', 'deploy/**', '.dockerignore', '.github/workflows/deploy.yml', '.github/scripts/**']
   schedule:
     - cron: '0 19 * * 6'
   workflow_dispatch:
 
-# Hemat menit Actions: push baru di PR yang sama membatalkan run yang masih berjalan.
+# Merge beruntun: run yang lebih lama dibatalkan, cukup menguji isi main terbaru.
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
