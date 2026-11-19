@@ -101,7 +101,7 @@ class BrandLogo extends StatelessWidget {
     tag: heroTag,
     // Lintasan lurus (bawaan Material melengkung, terlihat berbelok/patah).
     createRectTween: (begin, end) => RectTween(begin: begin, end: end),
-    child: Image(image: const AssetImage('assets/brand/logo-3d.png'), width: size, height: size, semanticLabel: 'Logo Kartu Anggota'),
+    child: Image(image: const AssetImage('assets/brand/logo-3d.webp'), width: size, height: size, semanticLabel: 'Logo Kartu Anggota'),
   );
 }
 
