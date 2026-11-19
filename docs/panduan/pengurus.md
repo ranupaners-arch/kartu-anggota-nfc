@@ -108,6 +108,10 @@ untuk divisinya.
 **Beranda** menampilkan tren % hadir per kegiatan, % hadir per divisi, dan **Perlu perhatian**:
 anggota aktif yang Alpa 3× berturut-turut atau kehadirannya di bawah 60%. Klik nama untuk detail.
 
+- **Dibanding periode lalu** (Beranda, muncul bila sudah ada periode sebelumnya): % hadir
+  keseluruhan dan per divisi periode ini dibanding periode lalu. Batang = periode ini, garis tegak
+  = periode lalu; selisihnya ditulis dalam *poin* (▲ naik, ▼ turun).
+
 ## Rapor kehadiran
 
 Detail anggota → **Rapor PDF** (periode berjalan) atau tautan **rapor** di tiap periode pada tabel
