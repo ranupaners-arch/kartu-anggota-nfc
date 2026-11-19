@@ -17,7 +17,12 @@ export default function Login() {
     return (
         <div className="flex min-h-screen items-center justify-center bg-muted/40 p-4">
             <Head title="Masuk" />
-            <Card className="w-full max-w-sm">
+            <div className="flex w-full max-w-sm flex-col items-center gap-6">
+                <div className="flex flex-col items-center gap-3">
+                    <img src="/brand/logo-2d.svg" alt="Logo Kartu Anggota" className="size-20 drop-shadow-md" />
+                    <span className="text-lg font-semibold tracking-tight">Kartu Anggota</span>
+                </div>
+                <Card className="w-full">
                 <CardHeader>
                     <CardTitle className="text-xl">Masuk Dashboard</CardTitle>
                     <CardDescription>Khusus pengurus organisasi.</CardDescription>
@@ -44,7 +49,8 @@ export default function Login() {
                         <Button type="submit" disabled={form.processing}>{form.processing ? 'Memproses…' : 'Masuk'}</Button>
                     </form>
                 </CardContent>
-            </Card>
+                </Card>
+            </div>
         </div>
     );
 }

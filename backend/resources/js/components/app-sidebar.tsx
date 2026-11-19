@@ -1,6 +1,6 @@
 import { Link, usePage } from '@inertiajs/react';
 import {
-    BarChart3, CalendarDays, ClipboardCheck, CreditCard, FileClock, House, ScrollText, Settings, ShieldAlert, Smartphone, UserCog, Users,
+    BarChart3, CalendarDays, ClipboardCheck, CreditCard, House, ScrollText, Settings, ShieldAlert, Smartphone, UserCog, Users,
     type LucideIcon,
 } from 'lucide-react';
 import {
@@ -63,9 +63,7 @@ export function AppSidebar() {
                 <SidebarMenu>
                     <SidebarMenuItem>
                         <SidebarMenuButton size="lg" render={<Link href="/" />}>
-                            <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-                                <FileClock className="size-4" />
-                            </div>
+                            <img src="/brand/logo-2d.svg" alt="" className="size-8 shrink-0 rounded-lg" />
                             <div className="grid flex-1 text-left text-sm leading-tight">
                                 <span className="truncate font-semibold">{props.auth?.organization?.name ?? props.appName}</span>
                                 <span className="truncate text-xs text-muted-foreground">Kartu Anggota</span>

@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="t">
+  <title id="t">Kartu Anggota (3D)</title>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#818CF8"/><stop offset=".55" stop-color="#4F46E5"/><stop offset="1" stop-color="#3730A3"/>
+    </linearGradient>
+    <radialGradient id="shine" cx=".3" cy=".18" r=".75">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity=".45"/><stop offset=".6" stop-color="#FFFFFF" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="card" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#E0E7FF"/>
+    </linearGradient>
+    <linearGradient id="chip" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FDE68A"/><stop offset=".5" stop-color="#F59E0B"/><stop offset="1" stop-color="#B45309"/>
+    </linearGradient>
+    <radialGradient id="ok" cx=".35" cy=".3" r=".8">
+      <stop offset="0" stop-color="#86EFAC"/><stop offset=".5" stop-color="#22C55E"/><stop offset="1" stop-color="#15803D"/>
+    </radialGradient>
+    <filter id="drop" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="14" stdDeviation="14" flood-color="#1E1B4B" flood-opacity=".45"/>
+    </filter>
+  </defs>
+  <!-- Latar membulat dengan kilau -->
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+  <rect width="512" height="512" rx="112" fill="url(#shine)"/>
+  <!-- Kartu: tepi tebal (ekstrusi) + muka kartu -->
+  <g transform="rotate(-8 256 270)" filter="url(#drop)">
+    <rect x="92" y="162" width="300" height="200" rx="28" fill="#A5B4FC"/>
+    <rect x="92" y="150" width="300" height="200" rx="28" fill="url(#card)"/>
+    <rect x="120" y="186" width="64" height="76" rx="12" fill="#C7D2FE"/>
+    <circle cx="152" cy="212" r="15" fill="#818CF8"/>
+    <path d="M128 256 q24 -30 48 0 z" fill="#818CF8"/>
+    <rect x="200" y="194" width="120" height="16" rx="8" fill="#C7D2FE"/>
+    <rect x="200" y="224" width="84" height="14" rx="7" fill="#E0E7FF"/>
+    <rect x="120" y="288" width="52" height="38" rx="8" fill="url(#chip)"/>
+    <path d="M120 307 h52 M146 288 v38" stroke="#B45309" stroke-width="3" opacity=".6"/>
+  </g>
+  <!-- Gelombang NFC bercahaya -->
+  <g fill="none" stroke-linecap="round" stroke-width="22" filter="url(#drop)">
+    <path d="M398 112 a62 62 0 0 1 0 88" stroke="#FFFFFF"/>
+    <path d="M432 80 a104 104 0 0 1 0 150" stroke="#E0E7FF" opacity=".8"/>
+  </g>
+  <!-- Lencana centang 3D -->
+  <g filter="url(#drop)">
+    <circle cx="356" cy="366" r="72" fill="#312E81"/>
+    <circle cx="356" cy="362" r="66" fill="url(#ok)"/>
+    <ellipse cx="338" cy="334" rx="34" ry="16" fill="#FFFFFF" opacity=".35"/>
+    <path d="M322 364 l24 24 l46 -50" fill="none" stroke="#FFFFFF" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+</svg>
