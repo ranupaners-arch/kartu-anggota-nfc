@@ -4,6 +4,10 @@ namespace App\Http\Controllers\Dashboard;
 
 use App\Http\Controllers\Controller;
 use App\Models\Division;
+use App\Models\Event;
+use App\Models\EventTarget;
+use App\Models\Membership;
+use App\Models\User;
 use App\Models\Term;
 use App\Services\AuditLogger;
 use App\Services\PrivacyService;
@@ -83,6 +87,26 @@ class SettingsController extends Controller
         return back()->with('status', 'Periode ditambahkan.');
     }
 
+    public function updateTerm(Request $r, Term $term)
+    {
+        $term->update($r->validate(['name' => 'required|string|max:100', 'starts_on' => 'required|date', 'ends_on' => 'required|date|after:starts_on']));
+        AuditLogger::log('term.updated', 'term', $term->id);
+
+        return back()->with('status', 'Periode diperbarui.');
+    }
+
+    /** Hapus periode yang belum dipakai (keanggotaan & kegiatan ikut terhapus bila dipaksa, jadi ditolak). */
+    public function destroyTerm(Term $term)
+    {
+        abort_if($term->is_current, 422, 'Periode berjalan tidak bisa dihapus.');
+        $used = ['keanggotaan' => Membership::where('term_id', $term->id)->count(), 'kegiatan' => Event::where('term_id', $term->id)->count()];
+        abort_if(array_sum($used) > 0, 422, 'Periode masih dipakai ('.self::usage($used).'); tidak bisa dihapus.');
+        $term->delete();
+        AuditLogger::log('term.deleted', 'term', $term->id, ['name' => $term->name]);
+
+        return back()->with('status', "Periode {$term->name} dihapus.");
+    }
+
     /** Jadikan periode berjalan. Data periode lama tidak diubah. */
     public function setCurrentTerm(Term $term)
     {
@@ -109,6 +133,30 @@ class SettingsController extends Controller
         AuditLogger::log('division.updated', 'division', $division->id);
 
         return back()->with('status', 'Divisi diganti nama.');
+    }
+
+    /**
+     * Hapus divisi yang belum dipakai. Ditolak bila masih dipakai: menghapusnya akan membuang target
+     * kegiatan (kegiatan berubah jadi untuk semua anggota) dan melepas admin divisi.
+     */
+    public function destroyDivision(Division $division)
+    {
+        $used = [
+            'keanggotaan' => Membership::where('division_id', $division->id)->count(),
+            'kegiatan' => Event::where('division_id', $division->id)->count(),
+            'target kegiatan' => EventTarget::where('division_id', $division->id)->count(),
+            'akun admin' => User::where('division_id', $division->id)->count(),
+        ];
+        abort_if(array_sum($used) > 0, 422, "Divisi {$division->name} masih dipakai (".self::usage($used).'); pindahkan dulu, lalu hapus.');
+        $division->delete();
+        AuditLogger::log('division.deleted', 'division', $division->id, ['name' => $division->name]);
+
+        return back()->with('status', "Divisi {$division->name} dihapus.");
+    }
+
+    private static function usage(array $used): string
+    {
+        return collect($used)->filter()->map(fn ($n, $what) => "$n $what")->implode(', ');
     }
 
     private function divisionInput(Request $r, ?Division $division = null): array

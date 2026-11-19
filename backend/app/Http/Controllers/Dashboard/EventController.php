@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Attendance;
 use App\Models\Division;
 use App\Models\Event;
+use App\Models\EventSession;
 use App\Models\Member;
 use App\Services\AttendanceService;
 use App\Services\AuditLogger;
@@ -127,6 +128,27 @@ class EventController extends Controller
         AuditLogger::log('event.session_added', 'event', $event->id, ['session_id' => $session->id, 'title' => $session->title]);
 
         return back()->with('status', 'Sesi ditambahkan. Check-in dibuka '.$session->checkin_opens_at->timezone(config('app.timezone'))->format('d/m H:i').'.');
+    }
+
+    public function updateSession(Request $r, Event $event, EventSession $session)
+    {
+        $this->events->authorize($r->user(), $event);
+        $d = $r->validate(['title' => 'required|string|max:200', 'starts_at' => 'nullable|date', 'ends_at' => 'nullable|date|after_or_equal:starts_at', 'reason' => 'nullable|string|max:300']);
+        $isDefault = $event->defaultSession()->is($session);
+        if (! $isDefault && empty($d['starts_at'])) {
+            throw \Illuminate\Validation\ValidationException::withMessages(['starts_at' => 'Jam mulai sesi wajib diisi.']);
+        }
+        $this->events->updateSession($event, $session, collect($d)->except('reason')->all(), $d['reason'] ?? null);
+
+        return back()->with('status', 'Sesi diperbarui.');
+    }
+
+    public function destroySession(Request $r, Event $event, EventSession $session)
+    {
+        $this->events->authorize($r->user(), $event);
+        $this->events->deleteSession($event, $session);
+
+        return back()->with('status', 'Sesi dihapus.');
     }
 
     public function correct(Request $r, Attendance $attendance, AttendanceService $service)
