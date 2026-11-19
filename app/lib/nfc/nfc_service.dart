@@ -89,23 +89,22 @@ class NfcService {
 
   /// Baca kartu NTAG: teks NDEF dan payload kartu.
   Future<ReadResult> read({String prefix = CardPayload.defaultPrefix}) => _once((tag) async {
-        final info = _info(tag);
-        final ndef = NdefAndroid.from(tag);
-        if (ndef == null) {
-          throw NfcException('Kartu tidak berisi NDEF (${info.techs.join(', ')}). Bukan kartu anggota.');
-        }
-        final text = firstText(ndef.cachedNdefMessage ?? await ndef.getNdefMessage());
-        return ReadResult(info: info, text: text, payload: text == null ? null : CardPayload.parse(text, prefix: prefix));
-      });
+    final info = _info(tag);
+    final ndef = NdefAndroid.from(tag);
+    if (ndef == null) {
+      throw NfcException('Kartu tidak berisi NDEF (${info.techs.join(', ')}). Bukan kartu anggota.');
+    }
+    final text = firstText(ndef.cachedNdefMessage ?? await ndef.getNdefMessage());
+    return ReadResult(
+      info: info,
+      text: text,
+      payload: text == null ? null : CardPayload.parse(text, prefix: prefix),
+    );
+  });
 
   /// Tulis [payload] ke NTAG21x. Bila [protect], pasang password tulis (baca tetap bebas).
   /// Kartu yang sudah diproteksi akan diautentikasi dengan [pwdHex]/[packHex] lebih dulu.
-  Future<WriteResult> write({
-    required String payload,
-    required String pwdHex,
-    required String packHex,
-    bool protect = true,
-  }) {
+  Future<WriteResult> write({required String payload, required String pwdHex, required String packHex, bool protect = true}) {
     final pwd = hexToBytes(pwdHex, length: 4);
     final pack = hexToBytes(packHex, length: 2);
 

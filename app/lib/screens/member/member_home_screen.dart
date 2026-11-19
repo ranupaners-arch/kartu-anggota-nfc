@@ -35,10 +35,7 @@ class _MemberHomeScreenState extends State<MemberHomeScreen> {
     await Session.clear();
     final server = await ServerConfig.load();
     if (!mounted) return;
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute<void>(builder: (_) => server == null ? const ConnectScreen() : LoginScreen(server: server)),
-      (_) => false,
-    );
+    Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute<void>(builder: (_) => server == null ? const ConnectScreen() : LoginScreen(server: server)), (_) => false);
   }
 
   @override
@@ -49,11 +46,14 @@ class _MemberHomeScreenState extends State<MemberHomeScreen> {
       body: AppPage(
         title: _titles[_tab],
         actions: [ShadIconButton.ghost(icon: const Icon(LucideIcons.logOut, size: 18), onPressed: _logout)],
-        child: IndexedStack(index: _tab, children: [
-          MyQrTab(api: _api, name: widget.session.userName),
-          MyEventsTab(api: _api),
-          MyHistoryTab(api: _api),
-        ]),
+        child: IndexedStack(
+          index: _tab,
+          children: [
+            MyQrTab(api: _api, name: widget.session.userName),
+            MyEventsTab(api: _api),
+            MyHistoryTab(api: _api),
+          ],
+        ),
       ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _tab,

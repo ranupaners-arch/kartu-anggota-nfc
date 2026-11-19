@@ -19,8 +19,13 @@ class ScanResultCard extends StatelessWidget {
   final String? token;
 
   static const _labels = {
-    'duplicate': 'Sudah absen', 'blocked': 'Kartu diblokir', 'invalid': 'Tidak dikenali', 'not_target': 'Bukan peserta',
-    'outside_window': 'Di luar jam check-in', 'clock_drift': 'Jam HP tidak sesuai', 'error': 'Gagal',
+    'duplicate': 'Sudah absen',
+    'blocked': 'Kartu diblokir',
+    'invalid': 'Tidak dikenali',
+    'not_target': 'Bukan peserta',
+    'outside_window': 'Di luar jam check-in',
+    'clock_drift': 'Jam HP tidak sesuai',
+    'error': 'Gagal',
   };
 
   ({Color color, IconData icon, String label}) _style() {
@@ -42,23 +47,27 @@ class ScanResultCard extends StatelessWidget {
       child: Row(
         spacing: 12,
         children: [
-          if (result.memberName != null)
-            MemberPhoto(url: result.photoUrl, token: token, name: result.memberName, file: photoFile)
-          else
-            Icon(s.icon, color: s.color, size: 36),
+          if (result.memberName != null) MemberPhoto(url: result.photoUrl, token: token, name: result.memberName, file: photoFile) else Icon(s.icon, color: s.color, size: 36),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               spacing: 2,
               children: [
-                Row(spacing: 6, children: [
-                  if (result.memberName != null) Icon(s.icon, color: s.color, size: 16),
-                  Text(s.label, style: theme.textTheme.small.copyWith(color: s.color, fontWeight: FontWeight.w600)),
-                  if (result.offline) ShadBadge.outline(child: const Text('Offline')),
-                ]),
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 4,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    if (result.memberName != null) Icon(s.icon, color: s.color, size: 16),
+                    Text(
+                      s.label,
+                      style: theme.textTheme.small.copyWith(color: s.color, fontWeight: FontWeight.w600),
+                    ),
+                    if (result.offline) ShadBadge.outline(child: const Text('Offline')),
+                  ],
+                ),
                 Text(result.memberName ?? result.message, style: theme.textTheme.h4),
-                if (result.memberName != null)
-                  Text([result.memberNo, result.division, result.message].whereType<String>().join(' · '), style: theme.textTheme.muted),
+                if (result.memberName != null) Text([result.memberNo, result.division, result.message].whereType<String>().join(' · '), style: theme.textTheme.muted),
               ],
             ),
           ),

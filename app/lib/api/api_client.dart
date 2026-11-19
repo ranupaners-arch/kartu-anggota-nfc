@@ -36,12 +36,12 @@ class SessionInfo {
   const SessionInfo({required this.id, required this.title, required this.opensAt, required this.lateAfter, required this.closesAt});
 
   factory SessionInfo.fromJson(Map<String, dynamic> j) => SessionInfo(
-        id: j['id'] as int,
-        title: j['title'] as String,
-        opensAt: DateTime.parse(j['checkin_opens_at'] as String),
-        lateAfter: DateTime.parse(j['late_after'] as String),
-        closesAt: DateTime.parse(j['checkin_closes_at'] as String),
-      );
+    id: j['id'] as int,
+    title: j['title'] as String,
+    opensAt: DateTime.parse(j['checkin_opens_at'] as String),
+    lateAfter: DateTime.parse(j['late_after'] as String),
+    closesAt: DateTime.parse(j['checkin_closes_at'] as String),
+  );
 
   final int id;
   final String title;
@@ -50,30 +50,31 @@ class SessionInfo {
   bool isOpenAt(DateTime t) => !t.isBefore(opensAt) && !t.isAfter(closesAt);
 
   Map<String, dynamic> toJson() => {
-        'id': id, 'title': title,
-        'checkin_opens_at': opensAt.toUtc().toIso8601String(),
-        'late_after': lateAfter.toUtc().toIso8601String(),
-        'checkin_closes_at': closesAt.toUtc().toIso8601String(),
-      };
+    'id': id,
+    'title': title,
+    'checkin_opens_at': opensAt.toUtc().toIso8601String(),
+    'late_after': lateAfter.toUtc().toIso8601String(),
+    'checkin_closes_at': closesAt.toUtc().toIso8601String(),
+  };
 
   /// Daftar sesi dari JSON; sesi tanpa jendela (server lama) dilewati.
   static List<SessionInfo> listFrom(Object? raw) => [
-        for (final s in (raw as List?) ?? const [])
-          if ((s as Map<String, dynamic>)['checkin_opens_at'] != null) SessionInfo.fromJson(s),
-      ];
+    for (final s in (raw as List?) ?? const [])
+      if ((s as Map<String, dynamic>)['checkin_opens_at'] != null) SessionInfo.fromJson(s),
+  ];
 }
 
 class EventSummary {
   const EventSummary(this.id, this.title, {this.location, this.checkinClosesAt, this.sessions = const [], this.currentSessionId});
 
   factory EventSummary.fromJson(Map<String, dynamic> e) => EventSummary(
-        e['id'] as int,
-        e['title'] as String,
-        location: e['location'] as String?,
-        checkinClosesAt: DateTime.tryParse(e['checkin_closes_at'] as String? ?? '')?.toLocal(),
-        sessions: SessionInfo.listFrom(e['sessions']),
-        currentSessionId: e['current_session_id'] as int?,
-      );
+    e['id'] as int,
+    e['title'] as String,
+    location: e['location'] as String?,
+    checkinClosesAt: DateTime.tryParse(e['checkin_closes_at'] as String? ?? '')?.toLocal(),
+    sessions: SessionInfo.listFrom(e['sessions']),
+    currentSessionId: e['current_session_id'] as int?,
+  );
 
   final int id;
   final String title;
@@ -89,17 +90,7 @@ class EventSummary {
 
 /// Hasil scan dari server: status ok|duplicate|blocked|invalid|not_target|outside_window|clock_drift.
 class ScanResult {
-  const ScanResult({
-    required this.status,
-    required this.message,
-    this.attendanceStatus,
-    this.memberId,
-    this.memberName,
-    this.memberNo,
-    this.division,
-    this.photoUrl,
-    this.offline = false,
-  });
+  const ScanResult({required this.status, required this.message, this.attendanceStatus, this.memberId, this.memberName, this.memberNo, this.division, this.photoUrl, this.offline = false});
 
   factory ScanResult.fromJson(Map<String, dynamic> j) {
     final m = j['member'] as Map<String, dynamic>?;
@@ -134,22 +125,14 @@ class ScanResult {
 
 /// Klien API minimal untuk prototipe.
 class ApiClient {
-  ApiClient({required String baseUrl, http.Client? client})
-      : baseUrl = baseUrl.replaceAll(RegExp(r'/+$'), ''),
-        _http = client ?? http.Client();
+  ApiClient({required String baseUrl, http.Client? client}) : baseUrl = baseUrl.replaceAll(RegExp(r'/+$'), ''), _http = client ?? http.Client();
 
   final String baseUrl;
   final http.Client _http;
   String? token;
 
   Future<Map<String, dynamic>> login(String email, String password, {required String deviceUuid, String deviceName = 'HP Petugas', String? otp}) async {
-    final j = await _send('POST', '/api/auth/login', {
-      'email': email,
-      'password': password,
-      'device_uuid': deviceUuid,
-      'device_name': deviceName,
-      if (otp != null && otp.isNotEmpty) 'otp': otp,
-    });
+    final j = await _send('POST', '/api/auth/login', {'email': email, 'password': password, 'device_uuid': deviceUuid, 'device_name': deviceName, if (otp != null && otp.isNotEmpty) 'otp': otp});
     token = j['token'] as String;
     return j['user'] as Map<String, dynamic>;
   }
@@ -248,11 +231,7 @@ class ApiClient {
 
   Future<Map<String, dynamic>> _send(String method, String path, [Map<String, dynamic>? body]) async {
     final req = http.Request(method, Uri.parse('$baseUrl$path'))
-      ..headers.addAll({
-        'Accept': 'application/json',
-        if (body != null) 'Content-Type': 'application/json',
-        if (token != null) 'Authorization': 'Bearer $token',
-      });
+      ..headers.addAll({'Accept': 'application/json', if (body != null) 'Content-Type': 'application/json', if (token != null) 'Authorization': 'Bearer $token'});
     if (body != null) req.body = jsonEncode(body);
 
     final res = await http.Response.fromStream(await _http.send(req).timeout(const Duration(seconds: 10)));
@@ -263,8 +242,7 @@ class ApiClient {
       decoded = null; // bukan JSON (mis. halaman error proxy)
     }
     if (res.statusCode >= 400) {
-      throw ApiException(res.statusCode, errorMessage(res.statusCode, decoded is Map ? decoded['message'] as String? : null),
-          otpRequired: decoded is Map && decoded['otp_required'] == true);
+      throw ApiException(res.statusCode, errorMessage(res.statusCode, decoded is Map ? decoded['message'] as String? : null), otpRequired: decoded is Map && decoded['otp_required'] == true);
     }
     return decoded as Map<String, dynamic>;
   }
@@ -276,10 +254,7 @@ class MemberHit {
   factory MemberHit.fromJson(Map<String, dynamic> j) {
     final ms = (j['memberships'] as List?)?.cast<Map<String, dynamic>>() ?? const [];
     final division = ms.isEmpty ? null : (ms.first['division'] as Map<String, dynamic>?)?['name'] as String?;
-    return MemberHit(
-      id: j['id'] as int, memberNo: j['member_no'] as String, name: j['name'] as String,
-      division: division, hasActiveCard: j['active_card'] != null,
-    );
+    return MemberHit(id: j['id'] as int, memberNo: j['member_no'] as String, name: j['name'] as String, division: division, hasActiveCard: j['active_card'] != null);
   }
 
   final int id;
@@ -304,9 +279,20 @@ class CardInit {
 /// Kegiatan yang diikuti anggota (GET /api/me/events).
 class MemberEvent {
   const MemberEvent({
-    required this.id, required this.title, required this.startsAt, required this.checkinClosesAt,
-    this.location, this.closed = false, this.mandatory = true, this.myStatus, this.excuseStatus, this.excuseType,
-    this.excuseNote, this.canRequestExcuse = false, this.sessions = 1, this.presentSessions = 0,
+    required this.id,
+    required this.title,
+    required this.startsAt,
+    required this.checkinClosesAt,
+    this.location,
+    this.closed = false,
+    this.mandatory = true,
+    this.myStatus,
+    this.excuseStatus,
+    this.excuseType,
+    this.excuseNote,
+    this.canRequestExcuse = false,
+    this.sessions = 1,
+    this.presentSessions = 0,
   });
 
   factory MemberEvent.fromJson(Map<String, dynamic> j) {
@@ -345,15 +331,15 @@ class MemberHistory {
   const MemberHistory({required this.byStatus, required this.total, this.term, this.rate, this.recent = const []});
 
   factory MemberHistory.fromJson(Map<String, dynamic> j) => MemberHistory(
-        term: j['term'] as String?,
-        byStatus: {for (final e in (j['by_status'] as Map<String, dynamic>).entries) e.key: (e.value as num).toInt()},
-        total: (j['total'] as num).toInt(),
-        rate: (j['attendance_rate'] as num?)?.toDouble(),
-        recent: [
-          for (final r in j['recent'] as List)
-            (event: (r as Map<String, dynamic>)['event'] as String? ?? '-', date: DateTime.tryParse(r['date'] as String? ?? '')?.toLocal(), status: r['status'] as String),
-        ],
-      );
+    term: j['term'] as String?,
+    byStatus: {for (final e in (j['by_status'] as Map<String, dynamic>).entries) e.key: (e.value as num).toInt()},
+    total: (j['total'] as num).toInt(),
+    rate: (j['attendance_rate'] as num?)?.toDouble(),
+    recent: [
+      for (final r in j['recent'] as List)
+        (event: (r as Map<String, dynamic>)['event'] as String? ?? '-', date: DateTime.tryParse(r['date'] as String? ?? '')?.toLocal(), status: r['status'] as String),
+    ],
+  );
 
   final String? term;
   final Map<String, int> byStatus;

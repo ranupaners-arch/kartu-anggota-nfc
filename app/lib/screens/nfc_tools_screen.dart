@@ -91,19 +91,31 @@ class _NfcToolsScreenState extends State<NfcToolsScreen> with WidgetsBindingObse
             description: const Text('Deteksi aman untuk kartu apa pun (termasuk e-KTP): hanya jenis chip & UID tersamar.'),
             child: Padding(
               padding: const EdgeInsets.only(top: 12),
-              child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, spacing: 8, children: [
-                ShadButton.outline(enabled: !_busy, leading: const Icon(LucideIcons.scanLine, size: 16), child: const Text('Deteksi tag'),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                spacing: 8,
+                children: [
+                  ShadButton.outline(
+                    enabled: !_busy,
+                    leading: const Icon(LucideIcons.scanLine, size: 16),
+                    child: const Text('Deteksi tag'),
                     onPressed: () => _run('Deteksi', () async {
-                          final i = await _nfc.detect();
-                          return 'Terdeteksi: ${i.techs.join(', ')} · UID ${i.uidMasked}';
-                        })),
-                ShadButton.outline(enabled: !_busy, leading: const Icon(LucideIcons.creditCard, size: 16), child: const Text('Baca kartu anggota (NTAG)'),
+                      final i = await _nfc.detect();
+                      return 'Terdeteksi: ${i.techs.join(', ')} · UID ${i.uidMasked}';
+                    }),
+                  ),
+                  ShadButton.outline(
+                    enabled: !_busy,
+                    leading: const Icon(LucideIcons.creditCard, size: 16),
+                    child: const Text('Baca kartu anggota (NTAG)'),
                     onPressed: () => _run('Baca kartu', () async {
-                          final r = await _nfc.read();
-                          final p = r.payload;
-                          return p == null ? 'Isi: ${r.text ?? '(kosong)'} — bukan format kartu anggota' : 'Kartu valid (format). key=${p.keyId} id=${p.publicId}';
-                        })),
-              ]),
+                      final r = await _nfc.read();
+                      final p = r.payload;
+                      return p == null ? 'Isi: ${r.text ?? '(kosong)'} — bukan format kartu anggota' : 'Kartu valid (format). key=${p.keyId} id=${p.publicId}';
+                    }),
+                  ),
+                ],
+              ),
             ),
           ),
           const SizedBox(height: 12),
@@ -112,24 +124,38 @@ class _NfcToolsScreenState extends State<NfcToolsScreen> with WidgetsBindingObse
             description: const Text('Isi dari respons POST /api/cards/init.'),
             child: Padding(
               padding: const EdgeInsets.only(top: 12),
-              child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, spacing: 8, children: [
-                ShadInput(controller: _payload, placeholder: const Text('payload')),
-                Row(spacing: 8, children: [
-                  Expanded(child: ShadInput(controller: _pwd, placeholder: const Text('ntag.pwd (8 hex)'))),
-                  Expanded(child: ShadInput(controller: _pack, placeholder: const Text('ntag.pack (4 hex)'))),
-                ]),
-                ShadCheckbox(
-                  value: _protect,
-                  onChanged: (v) => setState(() => _protect = v),
-                  label: const Text('Proteksi tulis dengan password'),
-                  sublabel: const Text('Baca tetap bebas. Tidak permanen.'),
-                ),
-                ShadButton(enabled: !_busy, child: const Text('Tulis kartu'),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                spacing: 8,
+                children: [
+                  ShadInput(controller: _payload, placeholder: const Text('payload')),
+                  Row(
+                    spacing: 8,
+                    children: [
+                      Expanded(
+                        child: ShadInput(controller: _pwd, placeholder: const Text('ntag.pwd (8 hex)')),
+                      ),
+                      Expanded(
+                        child: ShadInput(controller: _pack, placeholder: const Text('ntag.pack (4 hex)')),
+                      ),
+                    ],
+                  ),
+                  ShadCheckbox(
+                    value: _protect,
+                    onChanged: (v) => setState(() => _protect = v),
+                    label: const Text('Proteksi tulis dengan password'),
+                    sublabel: const Text('Baca tetap bebas. Tidak permanen.'),
+                  ),
+                  ShadButton(
+                    enabled: !_busy,
+                    child: const Text('Tulis kartu'),
                     onPressed: () => _run('Tulis kartu', () async {
-                          final w = await _nfc.write(payload: _payload.text, pwdHex: _pwd.text, packHex: _pack.text, protect: _protect);
-                          return 'Tertulis ke ${w.model.name}, proteksi=${w.protectedNow}. hw_uid: ${w.uidHex}';
-                        })),
-              ]),
+                      final w = await _nfc.write(payload: _payload.text, pwdHex: _pwd.text, packHex: _pack.text, protect: _protect);
+                      return 'Tertulis ke ${w.model.name}, proteksi=${w.protectedNow}. hw_uid: ${w.uidHex}';
+                    }),
+                  ),
+                ],
+              ),
             ),
           ),
           const SizedBox(height: 16),
@@ -137,10 +163,14 @@ class _NfcToolsScreenState extends State<NfcToolsScreen> with WidgetsBindingObse
           for (final l in _log)
             Padding(
               padding: const EdgeInsets.only(top: 6),
-              child: Row(crossAxisAlignment: CrossAxisAlignment.start, spacing: 8, children: [
-                Icon(l.ok ? LucideIcons.circleCheck : LucideIcons.circleAlert, size: 16, color: l.ok ? theme.colorScheme.mutedForeground : theme.colorScheme.destructive),
-                Expanded(child: SelectableText(l.text, style: theme.textTheme.small)),
-              ]),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                spacing: 8,
+                children: [
+                  Icon(l.ok ? LucideIcons.circleCheck : LucideIcons.circleAlert, size: 16, color: l.ok ? theme.colorScheme.mutedForeground : theme.colorScheme.destructive),
+                  Expanded(child: SelectableText(l.text, style: theme.textTheme.small)),
+                ],
+              ),
             ),
         ],
       ),

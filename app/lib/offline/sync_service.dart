@@ -30,11 +30,23 @@ class SyncService {
       try {
         results = await _api.scanBatch(eventId, [for (final p in chunk) p.toBatchItem()]);
       } on ApiException catch (e) {
-        return SyncReport(sent: sent, accepted: accepted, duplicates: duplicates, rejected: rejected,
-            remaining: _store.pending(eventId: eventId).length, error: e.message);
+        return SyncReport(
+          sent: sent,
+          accepted: accepted,
+          duplicates: duplicates,
+          rejected: rejected,
+          remaining: _store.pending(eventId: eventId).length,
+          error: e.message,
+        );
       } catch (_) {
-        return SyncReport(sent: sent, accepted: accepted, duplicates: duplicates, rejected: rejected,
-            remaining: _store.pending(eventId: eventId).length, error: 'Belum terhubung ke server.');
+        return SyncReport(
+          sent: sent,
+          accepted: accepted,
+          duplicates: duplicates,
+          rejected: rejected,
+          remaining: _store.pending(eventId: eventId).length,
+          error: 'Belum terhubung ke server.',
+        );
       }
 
       final done = <String>[];
@@ -55,6 +67,12 @@ class SyncService {
       await _store.remove(done);
       sent += done.length;
     }
-    return SyncReport(sent: sent, accepted: accepted, duplicates: duplicates, rejected: rejected, remaining: _store.pending(eventId: eventId).length);
+    return SyncReport(
+      sent: sent,
+      accepted: accepted,
+      duplicates: duplicates,
+      rejected: rejected,
+      remaining: _store.pending(eventId: eventId).length,
+    );
   }
 }

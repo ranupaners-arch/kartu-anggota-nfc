@@ -17,9 +17,7 @@ typedef SoundPlayer = Future<void> Function(ScanSound sound);
 
 /// Umpan balik hasil scan (PRD: visual + getar + suara). Bunyi bisa dibisukan; pilihan diingat.
 class ScanFeedback {
-  ScanFeedback({SoundPlayer? player, Future<void> Function(ScanResult)? haptic})
-      : _player = player ?? _AssetSoundPlayer().play,
-        _haptic = haptic ?? _defaultHaptic;
+  ScanFeedback({SoundPlayer? player, Future<void> Function(ScanResult)? haptic}) : _player = player ?? _AssetSoundPlayer().play, _haptic = haptic ?? _defaultHaptic;
 
   final SoundPlayer _player;
   final Future<void> Function(ScanResult) _haptic;

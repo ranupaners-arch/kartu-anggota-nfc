@@ -57,7 +57,9 @@ class _KartuAnggotaAppState extends State<KartuAnggotaApp> {
         theme: () {
           final base = Theme.of(context);
           final fg = ShadTheme.of(context).colorScheme.foreground;
-          return base.copyWith(textTheme: base.textTheme.apply(bodyColor: fg, displayColor: fg));
+          return base.copyWith(
+            textTheme: base.textTheme.apply(bodyColor: fg, displayColor: fg),
+          );
         }(),
         home: widget.home ?? const _StartGate(),
         builder: (context, child) => ShadAppBuilder(child: child!),
@@ -78,10 +80,7 @@ ShadThemeData appTheme(Brightness brightness, ShadColorScheme c) {
   return ShadThemeData(
     brightness: brightness,
     colorScheme: c,
-    textTheme: ShadTextTheme(
-      h1Large: fg, h1: fg, h2: fg, h3: fg, h4: fg, p: fg, blockquote: fg, table: fg, list: fg,
-      large: fg, small: fg, lead: muted, muted: muted,
-    ),
+    textTheme: ShadTextTheme(h1Large: fg, h1: fg, h2: fg, h3: fg, h4: fg, p: fg, blockquote: fg, table: fg, list: fg, large: fg, small: fg, lead: muted, muted: muted),
   );
 }
 
@@ -93,13 +92,13 @@ class _StartGate extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => FutureBuilder<(Session?, ServerConfig?)>(
-        future: _load(),
-        builder: (context, snap) {
-          if (snap.connectionState != ConnectionState.done) return const Scaffold(body: Center(child: CircularProgressIndicator()));
-          final (session, server) = snap.data!;
-          if (session != null) return homeFor(session);
-          if (server != null) return LoginScreen(server: server);
-          return const ConnectScreen();
-        },
-      );
+    future: _load(),
+    builder: (context, snap) {
+      if (snap.connectionState != ConnectionState.done) return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      final (session, server) = snap.data!;
+      if (session != null) return homeFor(session);
+      if (server != null) return LoginScreen(server: server);
+      return const ConnectScreen();
+    },
+  );
 }
