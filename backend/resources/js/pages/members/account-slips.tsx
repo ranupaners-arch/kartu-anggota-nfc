@@ -2,6 +2,7 @@ import { Head, Link } from '@inertiajs/react';
 import { Check, Copy, Printer, TriangleAlert } from 'lucide-react';
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
+import { QRCodeSVG } from 'qrcode.react';
 import { DataTable } from '@/components/data-table';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -11,8 +12,9 @@ import AppLayout from '@/layouts/app-layout';
 
 type Created = { member_no: string; name: string; email: string; password: string };
 type Skipped = { member_no: string; name: string; reason: string };
+type Connect = { server: string; name: string | null; payload: string };
 
-function Slips({ created, organization, serverUrl }: { created: Created[]; organization: string | null; serverUrl: string }) {
+function Slips({ created, organization, connect }: { created: Created[]; organization: string | null; connect: Connect }) {
     return (
         <section aria-label="Lembar akun" className="grid gap-3 sm:grid-cols-2 print:grid-cols-2 print:gap-2">
             {created.map((c) => (
@@ -22,12 +24,18 @@ function Slips({ created, organization, serverUrl }: { created: Created[]; organ
                         <span className="text-xs text-muted-foreground tabular-nums print:text-neutral-600">{c.member_no}</span>
                     </div>
                     <div className="text-xs text-muted-foreground print:text-neutral-600">App Kartu Anggota{organization ? ` · ${organization}` : ''}</div>
-                    <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-3 gap-y-1">
-                        <dt className="text-muted-foreground print:text-neutral-600">Server</dt><dd className="font-mono text-xs break-all">{serverUrl}</dd>
+                    <div className="flex items-start gap-3">
+                    <dl className="grid min-w-0 flex-1 grid-cols-[auto_minmax(0,1fr)] gap-x-3 gap-y-1">
+                        <dt className="text-muted-foreground print:text-neutral-600">Server</dt><dd className="font-mono text-xs break-all">{connect.server}</dd>
                         <dt className="text-muted-foreground print:text-neutral-600">Email</dt><dd className="font-mono break-all">{c.email}</dd>
                         <dt className="text-muted-foreground print:text-neutral-600">Password</dt><dd className="font-mono text-base font-semibold tracking-wide">{c.password}</dd>
                     </dl>
-                    <p className="text-xs text-muted-foreground print:text-neutral-600">Masuk di app, lalu ganti password ini (wajib). Jangan bagikan ke orang lain.</p>
+                    {/* QR penghubung: dipindai di app (Hubungkan organisasi → Scan QR) atau kamera HP. */}
+                    <div className="shrink-0 rounded-md bg-white p-1.5" title="QR penghubung organisasi">
+                        <QRCodeSVG value={connect.payload} size={84} marginSize={0} aria-label="QR penghubung organisasi" />
+                    </div>
+                    </div>
+                    <p className="text-xs text-muted-foreground print:text-neutral-600">1. Pasang app Kartu Anggota, pindai QR ini untuk menghubungkan. 2. Masuk dengan email & password di atas. 3. Ganti password (wajib). Jangan bagikan lembar ini.</p>
                 </div>
             ))}
         </section>
@@ -38,7 +46,7 @@ function Slips({ created, organization, serverUrl }: { created: Created[]; organ
  * Hasil "Buat akun app": lembar per anggota berisi email & password sementara. Hanya tampil sekali
  * (dimuat ulang → hilang), jadi cetak/simpan sebagai PDF atau salin sekarang.
  */
-export default function AccountSlips({ created, skipped, organization, serverUrl }: { created: Created[]; skipped: Skipped[]; organization: string | null; serverUrl: string }) {
+export default function AccountSlips({ created, skipped, organization, connect }: { created: Created[]; skipped: Skipped[]; organization: string | null; connect: Connect }) {
     const [copied, setCopied] = useState(false);
     const copy = async () => {
         const rows = [['No. Anggota', 'Nama', 'Email', 'Password sementara'], ...created.map((c) => [c.member_no, c.name, c.email, c.password])];
@@ -72,11 +80,11 @@ export default function AccountSlips({ created, skipped, organization, serverUrl
                 <Button variant="ghost" render={<Link href="/anggota" />}>Kembali ke Anggota</Button>
             </div>
 
-            {created.length > 0 && <Slips created={created} organization={organization} serverUrl={serverUrl} />}
+            {created.length > 0 && <Slips created={created} organization={organization} connect={connect} />}
             {/* Salinan khusus cetak, langsung di <body> agar tidak ikut tata letak sidebar. */}
             {created.length > 0 && createPortal(
                 <div data-print-root="" className="hidden bg-white p-4 text-black print:block">
-                    <Slips created={created} organization={organization} serverUrl={serverUrl} />
+                    <Slips created={created} organization={organization} connect={connect} />
                 </div>,
                 document.body,
             )}

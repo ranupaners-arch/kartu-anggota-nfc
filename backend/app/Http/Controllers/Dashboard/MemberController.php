@@ -33,6 +33,9 @@ class MemberController extends Controller
                 ->where('status', $tab === 'alumni' ? 'alumni' : 'active')))
             ->when($r->query('q'), fn ($q, $s) => $q->where(fn ($w) => $w->where('name', 'ilike', "%$s%")->orWhere('member_no', 'ilike', "%$s%")))
             ->when($r->query('division_id'), fn ($q, $d) => $q->whereHas('memberships', fn ($m) => $m->where('term_id', $term->id)->where('division_id', $d)))
+            // Kesiapan: anggota yang belum punya akun app / kartu aktif (untuk memantau persiapan).
+            ->when($r->query('siap') === 'tanpa-akun', fn ($q) => $q->whereDoesntHave('user'))
+            ->when($r->query('siap') === 'tanpa-kartu', fn ($q) => $q->whereDoesntHave('activeCard'))
             ->orderBy('name');
 
         return Inertia::render('members/index', [
@@ -44,7 +47,7 @@ class MemberController extends Controller
                 'has_account' => $m->user_exists ?? false,
             ]),
             'divisions' => $superAdmin ? Division::orderBy('name')->get(['id', 'name']) : [],
-            'filters' => ['q' => $r->query('q'), 'division_id' => $r->query('division_id')],
+            'filters' => ['q' => $r->query('q'), 'division_id' => $r->query('division_id'), 'siap' => $r->query('siap')],
             'canManage' => $superAdmin,
         ]);
     }
@@ -182,7 +185,8 @@ class MemberController extends Controller
         return Inertia::render('members/account-slips', [
             'created' => $res['created'], 'skipped' => $res['skipped'],
             'organization' => $r->user()->organization?->name,
-            'serverUrl' => rtrim(config('app.url'), '/'),
+            // QR penghubung (sama dengan Pengaturan → Aplikasi): anggota pindai, app langsung terhubung.
+            'connect' => SettingsController::connectInfo(),
         ]);
     }
 

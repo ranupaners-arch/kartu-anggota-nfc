@@ -50,7 +50,9 @@ Bagian bertanda **(Super Admin)** hanya tersedia untuk Super Admin.
   app**. Login memakai email anggota; yang belum punya email atau sudah punya akun dilewati
   beserta alasannya. Halaman berikutnya berisi **lembar akun** (email + password sementara) —
   **Cetak lembar** / simpan sebagai PDF atau **Salin tabel** saat itu juga, karena hanya tampil
-  sekali. Kolom **Akun app** di daftar anggota menunjukkan siapa yang sudah punya akun.
+  sekali. Tiap lembar memuat **QR penghubung** — anggota memindainya di app, lalu masuk.
+  Kolom **Akun app** dan filter **Kesiapan** (*Belum punya akun app* / *Belum punya kartu*) di
+  daftar anggota membantu memantau siapa yang belum siap.
 - **Perangkat Petugas** → **Cabut akses** bila HP petugas hilang (akun di HP itu langsung keluar).
 - **Pengaturan** → *Aplikasi*: QR untuk menghubungkan app ke server ini.
 
