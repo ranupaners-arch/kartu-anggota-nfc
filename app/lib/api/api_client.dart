@@ -175,6 +175,12 @@ class ApiClient {
     return [for (final e in j['data'] as List) MemberEvent.fromJson(e as Map<String, dynamic>)];
   }
 
+  /// Pengumuman pengurus yang berlaku untuk anggota ini (disematkan dulu).
+  Future<List<Announcement>> myAnnouncements() async {
+    final j = await _send('GET', '/api/me/announcements');
+    return [for (final a in j['data'] as List) Announcement.fromJson(a as Map<String, dynamic>)];
+  }
+
   Future<MemberHistory> myHistory() async => MemberHistory.fromJson(await _send('GET', '/api/me/history'));
 
   /// Ajukan izin/sakit; lampiran opsional (gambar/PDF, maks. 5 MB).
@@ -352,4 +358,24 @@ class MemberHistory {
   final bool atRisk;
   final int alpaStreak;
   final List<({String event, DateTime? date, String status})> recent;
+}
+
+/// Pengumuman pengurus (GET /api/me/announcements).
+class Announcement {
+  const Announcement({required this.id, required this.title, required this.body, this.pinned = false, this.createdAt, this.division});
+
+  factory Announcement.fromJson(Map<String, dynamic> j) => Announcement(
+    id: j['id'] as int,
+    title: j['title'] as String,
+    body: j['body'] as String,
+    pinned: j['pinned'] as bool? ?? false,
+    createdAt: DateTime.tryParse(j['created_at'] as String? ?? '')?.toLocal(),
+    division: j['division'] as String?,
+  );
+
+  final int id;
+  final String title, body;
+  final bool pinned;
+  final DateTime? createdAt;
+  final String? division;
 }
