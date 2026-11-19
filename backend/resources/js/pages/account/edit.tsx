@@ -1,4 +1,4 @@
-import { Head, router, useForm } from '@inertiajs/react';
+import { Head, router, useForm, usePage } from '@inertiajs/react';
 import { CalendarPlus, Check, Copy, ShieldCheck } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { type FormEvent, useState } from 'react';
@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import AppLayout from '@/layouts/app-layout';
 import { fmtDateTime, roleLabel } from '@/lib/format';
+import type { SharedProps } from '@/types';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 type TwoFactor = {
@@ -113,6 +114,7 @@ function TwoFactorCard({ tf }: { tf: TwoFactor }) {
 }
 
 export default function Account({ user, twoFactor, calendarUrl }: Props) {
+    const mustChange = usePage<SharedProps>().props.auth?.mustChangePassword ?? false;
     const form = useForm({ current_password: '', password: '', password_confirmation: '' });
     const submit = (e: FormEvent) => {
         e.preventDefault();
@@ -123,6 +125,12 @@ export default function Account({ user, twoFactor, calendarUrl }: Props) {
         <AppLayout title="Akun Saya">
             <Head title="Akun Saya" />
             <div className="grid max-w-3xl gap-4">
+                {mustChange && (
+                    <Alert>
+                        <AlertTitle>Ganti password sementara Anda</AlertTitle>
+                        <AlertDescription>Akun ini memakai password yang dibuat pengurus. Ganti dulu di bawah sebelum memakai menu lain.</AlertDescription>
+                    </Alert>
+                )}
                 <Card>
                     <CardHeader><CardTitle>{user.name}</CardTitle><CardDescription>{user.email}</CardDescription></CardHeader>
                     <CardContent className="text-sm text-muted-foreground">

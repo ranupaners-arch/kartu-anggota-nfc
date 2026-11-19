@@ -15,7 +15,7 @@ import AppLayout from '@/layouts/app-layout';
 import { fmtDateTime } from '@/lib/format';
 import type { Paginated } from '@/types';
 
-type Row = { id: number; member_no: string; name: string; cohort: string | null; division: string | null; status: string | null; has_card: boolean; deleted_at?: string };
+type Row = { id: number; member_no: string; name: string; cohort: string | null; division: string | null; status: string | null; has_card: boolean; has_account?: boolean; deleted_at?: string };
 
 interface Props {
     tab: string; members: Paginated<Row>; divisions: { id: number; name: string }[]; term: { name: string };
@@ -47,6 +47,9 @@ function MemberBulkActions({ sel, divisions }: { sel: Selection; divisions: { id
                 <ConfirmAction size="sm" title={`Ubah status ${n} anggota menjadi ${statusLabels[status]}?`} description="Berlaku untuk keanggotaan periode berjalan." href="/anggota/massal"
                     data={{ ids: sel.ids, action: 'status', value: status }} onSuccess={sel.clear} confirmLabel="Ubah status">Ubah status</ConfirmAction>
             </div>
+            <ConfirmAction size="sm" title={`Buat akun app untuk ${n} anggota?`}
+                description="Akun dibuat memakai email anggota, dengan password sementara yang wajib diganti saat pertama masuk. Anggota tanpa email atau yang sudah punya akun dilewati. Password hanya ditampilkan sekali di halaman berikutnya — siapkan untuk dicetak."
+                href="/anggota/akun-app" data={{ ids: sel.ids }} onSuccess={sel.clear} confirmLabel="Buat akun">Buat akun app</ConfirmAction>
             <ConfirmAction size="sm" destructive title={`Arsipkan ${n} anggota?`} description="Anggota pindah ke tab Arsip dan kartu aktifnya diblokir. Bisa dipulihkan satu per satu dari Arsip."
                 href="/anggota/massal" data={{ ids: sel.ids, action: 'archive' }} onSuccess={sel.clear} confirmLabel="Arsipkan">Arsipkan</ConfirmAction>
         </>
@@ -100,7 +103,7 @@ export default function Members({ tab, members, divisions, term, filters, canMan
                 </DataTable>
             ) : (
             <>
-            <DataTable head={[...(bulk ? [<SelectAll key="all" sel={sel} />] : []), 'No. Anggota', 'Nama', 'Divisi', 'Angkatan', 'Status', 'Kartu']} count={members.data.length} empty="Tidak ada anggota.">
+            <DataTable head={[...(bulk ? [<SelectAll key="all" sel={sel} />] : []), 'No. Anggota', 'Nama', 'Divisi', 'Angkatan', 'Status', 'Kartu', ...(canManage ? ['Akun app'] : [])]} count={members.data.length} empty="Tidak ada anggota.">
                 {members.data.map((m) => (
                     <TableRow key={m.id} data-state={sel.has(m.id) ? 'selected' : undefined}>
                         {bulk && <TableCell className="w-8"><SelectRow sel={sel} id={m.id} label={m.name} /></TableCell>}
@@ -110,6 +113,7 @@ export default function Members({ tab, members, divisions, term, filters, canMan
                         <TableCell>{m.cohort ?? '—'}</TableCell>
                         <TableCell>{m.status ? <StatusBadge status={m.status} /> : <span className="text-xs text-muted-foreground">Bukan anggota periode ini</span>}</TableCell>
                         <TableCell>{m.has_card ? <StatusBadge status="active" /> : <span className="text-xs text-muted-foreground">Belum ada</span>}</TableCell>
+                        {canManage && <TableCell>{m.has_account ? <StatusBadge status="active" label="Ada" /> : <span className="text-xs text-muted-foreground">Belum ada</span>}</TableCell>}
                     </TableRow>
                 ))}
             </DataTable>
