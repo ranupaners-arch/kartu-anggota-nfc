@@ -29,6 +29,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('me/events', [MeController::class, 'events']);
     Route::get('me/history', [MeController::class, 'history']);
     Route::get('me/announcements', [MeController::class, 'announcements']);
+    Route::get('me/report-card', [MeController::class, 'reportCard'])->middleware('throttle:10,1');
     Route::get('members/{member}/summary', [MemberController::class, 'summary']);
     Route::post('excuses', [ExcuseController::class, 'store']);
     Route::get('members/{member}/photo', [MemberAdminController::class, 'photo'])->name('api.members.photo');
