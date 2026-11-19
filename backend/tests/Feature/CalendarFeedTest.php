@@ -76,7 +76,8 @@ class CalendarFeedTest extends TestCase
         $this->assertStringContainsString('LOCATION:Aula\, Lt. 2', $ics);
         $this->assertStringNotContainsString('Rapat Inti', $ics);
         $this->assertStringNotContainsString('Rahasia', $ics);
-        $this->assertMatchesRegularExpression('/DTSTART:\d{8}T020000Z/', $ics); // 09.00 WIB = 02.00 UTC
+        // Waktu ditulis dalam UTC (09.00 zona aplikasi; produksi Asia/Jakarta → 02.00Z, CI UTC → 09.00Z).
+        $this->assertStringContainsString('DTSTART:'.now()->addDays(3)->setTime(9, 0)->utc()->format('Ymd\THis\Z'), $ics);
         foreach (explode("\r\n", $ics) as $line) {
             $this->assertLessThanOrEqual(75, strlen($line));
         }
