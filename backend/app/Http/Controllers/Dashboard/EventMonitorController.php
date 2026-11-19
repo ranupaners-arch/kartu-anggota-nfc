@@ -35,6 +35,8 @@ class EventMonitorController extends Controller
             'latest' => fn () => $snap()['latest'],
             'missing' => fn () => $snap()['missing'],
             'serverTime' => fn () => $snap()['serverTime'],
+            'arrivals' => fn () => $snap()['arrivals'],
+            'divisions' => fn () => $snap()['divisions'],
             'session' => fn () => $snap()['session'],
             'sessions' => fn () => $snap()['sessions'],
             'pinnedSession' => $sessionId,
