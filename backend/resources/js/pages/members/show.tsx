@@ -1,5 +1,5 @@
 import { Head, Link, router, useForm } from '@inertiajs/react';
-import { Pencil, ShieldAlert, Trash2, UserRound } from 'lucide-react';
+import { FileText, Pencil, ShieldAlert, Trash2, UserRound } from 'lucide-react';
 import { type ChangeEvent, type FormEvent, useState } from 'react';
 import { type CardRow, CardsTable } from '@/components/cards-table';
 import { ConfirmAction } from '@/components/confirm-action';
@@ -22,7 +22,7 @@ import { fmtDate, fmtDateTime } from '@/lib/format';
 import type { Paginated } from '@/types';
 
 type Member = { id: number; member_no: string; name: string; email: string | null; phone: string | null; cohort: string | null; photo_url: string | null };
-type Ms = { id: number; term: string | null; division: string | null; role: string | null; status: string };
+type Ms = { id: number; term_id: number; term: string | null; division: string | null; role: string | null; status: string };
 type Att = { id: number; status: string; source: string; voided_at: string | null; event: { title: string; starts_at: string } | null };
 type Privacy = { consentedAt: string | null; consentedBy: string | null; anonymizedAt: string | null; blocker: string | null };
 
@@ -108,7 +108,12 @@ export default function MemberShow({ member, tab, memberships, cards, attendance
             </>
         }>
             <Head title={member.name} />
-            <p className="text-sm text-muted-foreground">No. anggota {member.member_no}</p>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+                <p className="text-sm text-muted-foreground">No. anggota {member.member_no}</p>
+                {!anonymized && (
+                    <Button variant="outline" size="sm" render={<a href={`/anggota/${member.id}/rapor`} target="_blank" rel="noreferrer" />}><FileText /> Rapor PDF</Button>
+                )}
+            </div>
             {anonymized && (
                 <Alert>
                     <ShieldAlert />
@@ -142,7 +147,7 @@ export default function MemberShow({ member, tab, memberships, cards, attendance
                         </Card>
                         <DataTable head={['Periode', 'Divisi', 'Jabatan', 'Status']} count={memberships.length} empty="Belum ada keanggotaan.">
                             {memberships.map((m) => (
-                                <TableRow key={m.id}><TableCell>{m.term}</TableCell><TableCell>{m.division ?? '—'}</TableCell><TableCell>{m.role ?? '—'}</TableCell><TableCell><StatusBadge status={m.status} /></TableCell></TableRow>
+                                <TableRow key={m.id}><TableCell>{m.term} {!anonymized && <a href={`/anggota/${member.id}/rapor?periode=${m.term_id}`} target="_blank" rel="noreferrer" className="ml-1 text-xs text-primary hover:underline">rapor</a>}</TableCell><TableCell>{m.division ?? '—'}</TableCell><TableCell>{m.role ?? '—'}</TableCell><TableCell><StatusBadge status={m.status} /></TableCell></TableRow>
                             ))}
                         </DataTable>
                         {editable && <PrivacyCard member={member} privacy={privacy} />}
