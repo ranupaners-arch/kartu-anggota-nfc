@@ -7,6 +7,7 @@ use App\Models\Event;
 use App\Models\ExcuseRequest;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 
@@ -56,6 +57,21 @@ class ExcuseService
         return ExcuseRequest::query()->with(['member:id,member_no,name', 'event:id,title,starts_at,division_id'])
             ->whereHas('event', fn ($q) => $q->when($user->role === User::DIVISION_ADMIN, fn ($q) => $q
                 ->where(fn ($w) => $w->whereNull('division_id')->orWhere('division_id', $user->division_id))));
+    }
+
+    /**
+     * Setujui/tolak banyak pengajuan sekaligus. Hanya yang masih menunggu dan terlihat oleh pengguna
+     * ini yang diproses (sisanya dilewati); semua atau tidak sama sekali. Mengembalikan jumlah diproses.
+     */
+    public function reviewMany(User $user, array $ids, string $status, ?string $note = null): int
+    {
+        $excuses = $this->visibleTo($user)->whereIn('id', $ids)->where('status', 'pending')->get();
+
+        return DB::transaction(function () use ($user, $excuses, $status, $note) {
+            $excuses->each(fn (ExcuseRequest $x) => $this->review($user, $x, $status, $note));
+
+            return $excuses->count();
+        });
     }
 
     public function review(User $user, ExcuseRequest $excuse, string $status, ?string $note = null): ExcuseRequest

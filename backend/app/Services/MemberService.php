@@ -96,6 +96,43 @@ class MemberService
         return $member->fresh();
     }
 
+    public const BULK_ACTIONS = ['division', 'status', 'archive'];
+
+    /**
+     * Tindakan massal pada anggota terpilih (semua atau tidak sama sekali):
+     * division = pindah divisi periode berjalan (null = tanpa divisi), status = ubah status keanggotaan,
+     * archive = arsipkan (soft delete, kartu diblokir). Anggota yang datanya sudah dihapus dilewati
+     * kecuali untuk arsip. Mengembalikan jumlah anggota yang diproses.
+     */
+    public function bulk(array $ids, string $action, ?string $value = null): int
+    {
+        abort_unless(in_array($action, self::BULK_ACTIONS, true), 422, 'Tindakan tidak dikenal.');
+        if ($action === 'division') {
+            $this->assertDivision(['division_id' => $value]);
+        }
+        abort_if($action === 'status' && ! in_array($value, self::STATUSES, true), 422, 'Status tidak valid.');
+
+        $members = Member::whereIn('id', $ids)->get(); // ter-scope ke organisasi
+        if ($action !== 'archive') {
+            $members = $members->filter(fn (Member $m) => ! $m->anonymized_at);
+        }
+
+        DB::transaction(function () use ($members, $action, $value) {
+            foreach ($members as $m) {
+                match ($action) {
+                    'archive' => $this->delete($m),
+                    'division' => $this->syncMembership($m, ['division_id' => $value ?: null]),
+                    'status' => $this->syncMembership($m, ['status' => $value]),
+                };
+            }
+        });
+        if ($action !== 'archive') {
+            AuditLogger::log("member.bulk_$action", 'member', null, ['ids' => $members->pluck('id')->values(), 'value' => $value]);
+        }
+
+        return $members->count();
+    }
+
     /** Soft delete. Kartu aktif ikut diblokir agar tidak bisa dipakai absen. */
     public function delete(Member $member): void
     {
