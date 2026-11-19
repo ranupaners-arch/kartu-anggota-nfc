@@ -9,7 +9,7 @@ import 'splash_screen.dart';
 
 /// Layar sambutan (belum login): latar hitam, logo di tengah, satu tombol Masuk di bawah.
 /// Masuk → layar Masuk bila server sudah diketahui, selain itu layar Hubungkan organisasi.
-/// Elemen muncul bertahap (memudar + naik): logo → judul → keterangan → tombol.
+/// Logo meluncur dari splash (Hero); setelah tiba, judul → keterangan → tombol muncul bergantian.
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key, this.server});
 
@@ -20,7 +20,7 @@ class WelcomeScreen extends StatefulWidget {
 }
 
 class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProviderStateMixin {
-  late final AnimationController _intro = AnimationController(vsync: this, duration: const Duration(milliseconds: 1200));
+  late final AnimationController _intro = AnimationController(vsync: this, duration: const Duration(milliseconds: 1600));
 
   @override
   void didChangeDependencies() {
@@ -41,7 +41,10 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
 
   /// Memudar + bergeser naik [dy] px pada rentang [start]–[end] (0..1) animasi; [scale]: mengecil ke ukuran akhir.
   Widget _enter(double start, double end, Widget child, {double dy = 16, bool scale = false}) {
-    final t = CurvedAnimation(parent: _intro, curve: Interval(start, end, curve: Curves.easeOutCubic));
+    final t = CurvedAnimation(
+      parent: _intro,
+      curve: Interval(start, end, curve: Curves.easeOutCubic),
+    );
     return AnimatedBuilder(
       animation: t,
       builder: (context, child) => Opacity(
@@ -73,13 +76,21 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        _enter(0, 0.45, const BrandLogo(size: 144), dy: 0, scale: true),
+                        const BrandLogo(size: 144),
                         const SizedBox(height: 20),
-                        _enter(0.25, 0.65, Text('Kartu Anggota', textAlign: TextAlign.center, style: text.h3.copyWith(color: Colors.white))),
-                        const SizedBox(height: 6),
                         _enter(
                           0.4,
-                          0.8,
+                          0.75,
+                          Text(
+                            'Kartu Anggota',
+                            textAlign: TextAlign.center,
+                            style: text.h3.copyWith(color: Colors.white),
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        _enter(
+                          0.5,
+                          0.85,
                           Text(
                             s != null && s.name.isNotEmpty ? s.name : 'Absensi organisasi dengan kartu NFC',
                             textAlign: TextAlign.center,
@@ -92,7 +103,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
                 ),
               ),
               _enter(
-                0.55,
+                0.6,
                 1,
                 dy: 24,
                 ConstrainedBox(
