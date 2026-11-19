@@ -2,8 +2,9 @@
 
 Satu VPS menjalankan seluruh stack: aplikasi (PHP-FPM), web server Caddy dengan **HTTPS otomatis**,
 PostgreSQL, Valkey (cache/queue/session), queue worker (ekspor), scheduler (tutup kegiatan otomatis),
-dan backup harian. Stack ini diuji otomatis oleh workflow **Deploy (uji stack Docker)** di GitHub
-Actions (termasuk backup & restore).
+dan backup harian. Stack ini diuji oleh workflow **Deploy (uji stack Docker)** di GitHub Actions
+(termasuk backup & restore) — otomatis tiap Minggu, atau manual lewat *Actions → Deploy → Run workflow*
+(misalnya sebelum memasang versi baru di VPS).
 
 ## Kebutuhan
 
