@@ -2,11 +2,14 @@
 
 namespace App\Services;
 
+use App\Models\Attendance;
 use App\Models\Division;
 use App\Models\Event;
+use App\Models\EventSession;
 use App\Models\Member;
 use App\Models\Term;
 use App\Models\User;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -92,6 +95,41 @@ class EventService
         $this->assertOwned($divisionIds, $memberIds);
         DB::transaction(fn () => $this->syncTargets($event, $divisionIds, $memberIds));
         AuditLogger::log('event.targets_changed', 'event', $event->id, ['divisions' => $divisionIds, 'members' => $memberIds]);
+    }
+
+    /**
+     * Ubah sesi. Sesi utama: hanya judul (jadwalnya = jadwal kegiatan). Sesi lain: judul & jam;
+     * jendela check-in dihitung ulang. Mengubah jam sesi yang check-in-nya sudah dibuka wajib beralasan.
+     */
+    public function updateSession(Event $event, EventSession $session, array $d, ?string $reason = null): EventSession
+    {
+        abort_unless($session->event_id === $event->id, 404);
+        abort_if($event->closed_at, 422, 'Kegiatan sudah ditutup.');
+        $isDefault = $event->defaultSession()->is($session);
+        $d = $isDefault ? ['title' => $d['title']] : $d;
+
+        $timeChanged = ! $isDefault && isset($d['starts_at']) && ! $session->starts_at?->equalTo(Carbon::parse($d['starts_at']));
+        if ($timeChanged && $session->checkin_opens_at->lte(now())) {
+            if (mb_strlen(trim((string) $reason)) < 5) {
+                throw ValidationException::withMessages(['reason' => 'Check-in sesi ini sudah dibuka: alasan perubahan jam wajib diisi (min. 5 karakter).']);
+            }
+        }
+        $session->fill($d);
+        $session->fill($event->windowFor($session, $isDefault))->save();
+        AuditLogger::log('event.session_updated', 'event', $event->id, ['session_id' => $session->id, 'reason' => $reason] + ($timeChanged ? ['starts_at' => $session->starts_at?->toIso8601String()] : []));
+
+        return $session;
+    }
+
+    /** Hapus sesi tambahan yang belum punya absensi. Sesi utama tidak bisa dihapus. */
+    public function deleteSession(Event $event, EventSession $session): void
+    {
+        abort_unless($session->event_id === $event->id, 404);
+        abort_if($event->closed_at, 422, 'Kegiatan sudah ditutup.');
+        abort_if($event->defaultSession()->is($session), 422, 'Sesi utama tidak bisa dihapus.');
+        abort_if(Attendance::where('session_id', $session->id)->exists(), 422, 'Sesi ini sudah memiliki absensi; koreksi lewat Daftar Hadir, jangan dihapus.');
+        $session->delete();
+        AuditLogger::log('event.session_deleted', 'event', $event->id, ['session_id' => $session->id, 'title' => $session->title]);
     }
 
     /** Tutup manual: tandai Alpa/Izin/Sakit untuk yang tidak scan. */

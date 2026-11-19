@@ -9,13 +9,14 @@ import { StatusBadge } from '@/components/status-badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select';
 import { TableCell, TableRow } from '@/components/ui/table';
 import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
-import { fmtDateTime, fmtTime } from '@/lib/format';
+import { fmtDateTime, fmtTime, toLocalInput } from '@/lib/format';
 
 type Ev = {
     id: number; title: string; location: string | null; starts_at: string; ends_at: string; checkin_opens_at: string;
@@ -94,18 +95,65 @@ function Summary({ event, report, canDelete }: Pick<Props, 'event' | 'report' | 
     );
 }
 
+/** Ubah sesi. Sesi utama: judul saja (jadwalnya mengikuti kegiatan). */
+function EditSession({ event, session, isDefault }: { event: Ev; session: Session; isDefault: boolean }) {
+    const [open, setOpen] = useState(false);
+    const form = useForm({ title: session.title, starts_at: toLocalInput(session.starts_at), ends_at: toLocalInput(session.ends_at), reason: '' });
+    const opened = new Date(session.checkin_opens_at).getTime() <= Date.now();
+    const submit = (e: FormEvent) => {
+        e.preventDefault();
+        form.put(`/kegiatan/${event.id}/sesi/${session.id}`, { preserveScroll: true, onSuccess: () => setOpen(false) });
+    };
+    return (
+        <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger render={<Button size="sm" variant="outline" />}><Pencil /> Ubah</DialogTrigger>
+            <DialogContent>
+                <form onSubmit={submit} className="grid gap-4">
+                    <DialogHeader>
+                        <DialogTitle>Ubah sesi</DialogTitle>
+                        <DialogDescription>{isDefault ? 'Jadwal sesi utama mengikuti jadwal kegiatan (ubah lewat tombol Ubah kegiatan).' : 'Jendela check-in dihitung ulang dari jam mulai baru.'}</DialogDescription>
+                    </DialogHeader>
+                    <FormField label="Judul sesi" error={form.errors.title}><Input required value={form.data.title} onChange={(e) => form.setData('title', e.target.value)} /></FormField>
+                    {!isDefault && (
+                        <div className="grid gap-4 sm:grid-cols-2">
+                            <FormField label="Mulai" error={form.errors.starts_at}><Input type="datetime-local" required value={form.data.starts_at} onChange={(e) => form.setData('starts_at', e.target.value)} /></FormField>
+                            <FormField label="Selesai" error={form.errors.ends_at}><Input type="datetime-local" value={form.data.ends_at} onChange={(e) => form.setData('ends_at', e.target.value)} /></FormField>
+                        </div>
+                    )}
+                    {!isDefault && opened && (
+                        <FormField label="Alasan perubahan jam" hint="Wajib bila jam diubah, karena check-in sesi ini sudah dibuka." error={form.errors.reason}>
+                            <Input value={form.data.reason} onChange={(e) => form.setData('reason', e.target.value)} />
+                        </FormField>
+                    )}
+                    <DialogFooter><Button type="submit" disabled={form.processing}>Simpan</Button></DialogFooter>
+                </form>
+            </DialogContent>
+        </Dialog>
+    );
+}
+
 function Sessions({ event, sessions }: Pick<Props, 'event' | 'sessions'>) {
     const form = useForm({ title: '', starts_at: '', ends_at: '' });
     const submit = (e: FormEvent) => { e.preventDefault(); form.post(`/kegiatan/${event.id}/sesi`, { preserveScroll: true, onSuccess: () => form.reset() }); };
     return (
         <>
-            <DataTable head={['Sesi', 'Mulai', 'Selesai', 'Check-in', 'Telat setelah']} count={sessions.length} empty="Belum ada sesi.">
+            <DataTable head={['Sesi', 'Mulai', 'Selesai', 'Check-in', 'Telat setelah', '']} count={sessions.length} empty="Belum ada sesi.">
                 {sessions.map((s, i) => (
                     <TableRow key={s.id}>
                         <TableCell>{s.title} {i === 0 && <StatusBadge status="open" label="Utama" />}</TableCell>
                         <TableCell>{fmtDateTime(s.starts_at)}</TableCell><TableCell>{fmtDateTime(s.ends_at)}</TableCell>
                         <TableCell className="tabular-nums">{fmtDateTime(s.checkin_opens_at)}–{fmtTime(s.checkin_closes_at)}</TableCell>
                         <TableCell className="tabular-nums">{fmtTime(s.late_after)}</TableCell>
+                        <TableCell className="text-right">
+                            {!event.closed_at && (
+                                <div className="flex justify-end gap-1.5">
+                                    <EditSession event={event} session={s} isDefault={i === 0} />
+                                    {i > 0 && (
+                                        <ConfirmAction size="sm" destructive title={`Hapus sesi ${s.title}?`} description="Hanya sesi tanpa absensi yang bisa dihapus." href={`/kegiatan/${event.id}/sesi/${s.id}`} method="delete" confirmLabel="Hapus">Hapus</ConfirmAction>
+                                    )}
+                                </div>
+                            )}
+                        </TableCell>
                     </TableRow>
                 ))}
             </DataTable>
