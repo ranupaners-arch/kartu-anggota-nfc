@@ -30,6 +30,9 @@ class EventController extends Controller
             ->when($f['type'] ?? null, fn ($q, $t) => $q->where('type', $t))
             ->when($f['from'] ?? null, fn ($q, $d) => $q->where('starts_at', '>=', Carbon::parse($d)->startOfDay()))
             ->when($f['to'] ?? null, fn ($q, $d) => $q->where('starts_at', '<', Carbon::parse($d)->addDay()->startOfDay()));
+        if ($tab === 'kalender') {
+            return $this->calendar($r, $q, $f);
+        }
         match ($tab) {
             'akan-datang' => $q->where('checkin_opens_at', '>', now())->orderBy('starts_at'),
             'selesai' => $q->finished()->orderByDesc('starts_at'),
@@ -40,6 +43,34 @@ class EventController extends Controller
             'tab' => $tab,
             'events' => $q->select('events.*')->withPresentCount()->paginate(20)->withQueryString(),
             'filters' => $f + ['q' => null, 'division' => null, 'type' => null, 'from' => null, 'to' => null],
+            'divisions' => $r->user()->isSuperAdmin() ? Division::orderBy('name')->get(['id', 'name']) : [],
+            'types' => $this->events->visibleTo($r->user())->whereNotNull('type')->distinct()->orderBy('type')->pluck('type'),
+        ]);
+    }
+
+    /**
+     * Kalender bulanan (?bulan=YYYY-MM, bawaan bulan ini). Kotak kalender Senin–Minggu mencakup
+     * hari dari bulan sebelum/sesudahnya, jadi kegiatan diambil untuk seluruh rentang kotak.
+     */
+    private function calendar(Request $r, $q, array $f)
+    {
+        $month = rescue(fn () => Carbon::createFromFormat('!Y-m', (string) $r->query('bulan')), null, false) ?: now()->startOfMonth();
+        $from = $month->copy()->startOfMonth()->startOfWeek(Carbon::MONDAY);
+        $to = $month->copy()->endOfMonth()->endOfWeek(Carbon::SUNDAY);
+        $events = $q->where('starts_at', '<=', $to)->where('ends_at', '>=', $from)->orderBy('starts_at')
+            ->get(['id', 'title', 'type', 'location', 'division_id', 'is_mandatory', 'starts_at', 'ends_at', 'closed_at']);
+
+        return Inertia::render('events/index', [
+            'tab' => 'kalender',
+            'calendar' => [
+                'month' => $month->format('Y-m'),
+                'from' => $from->toDateString(),
+                'to' => $to->toDateString(),
+                'events' => $events,
+            ],
+            'filters' => $f + ['q' => null, 'division' => null, 'type' => null, 'from' => null, 'to' => null],
+            // Semua divisi (urut id → warna tetap per divisi walau difilter); admin divisi juga perlu namanya.
+            'allDivisions' => Division::orderBy('id')->get(['id', 'name']),
             'divisions' => $r->user()->isSuperAdmin() ? Division::orderBy('name')->get(['id', 'name']) : [],
             'types' => $this->events->visibleTo($r->user())->whereNotNull('type')->distinct()->orderBy('type')->pluck('type'),
         ]);
