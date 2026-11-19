@@ -5,6 +5,7 @@ import 'package:shadcn_ui/shadcn_ui.dart';
 import '../app/server_config.dart';
 import 'login_screen.dart';
 import '../widgets/ui.dart';
+import 'splash_screen.dart';
 
 /// Hubungkan app ke server organisasi (model self-hosted): scan QR dari dashboard atau ketik alamat.
 class ConnectScreen extends StatefulWidget {
@@ -77,58 +78,60 @@ class _ConnectScreenState extends State<ConnectScreen> {
   Widget build(BuildContext context) {
     final theme = ShadTheme.of(context);
     return Scaffold(
-      backgroundColor: theme.colorScheme.muted,
+      backgroundColor: splashBlack,
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(16),
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 420),
-              child: ShadCard(
-                title: const Text('Hubungkan ke Organisasi'),
-                description: const Text('Minta pengurus membuka dashboard → Pengaturan → Aplikasi, lalu scan QR-nya.'),
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    spacing: 12,
-                    children: [
-                      if (_error != null) ShadAlert.destructive(icon: const Icon(LucideIcons.circleAlert), description: Text(_error!)),
-                      if (_scanning)
-                        ClipRRect(
-                          borderRadius: theme.radius,
-                          child: AspectRatio(aspectRatio: 1, child: MobileScanner(onDetect: _onQr)),
-                        )
-                      else
-                        FlexButton(
-                          enabled: !_busy,
-                          icon: LucideIcons.scanQrCode,
-                          onPressed: () => setState(() {
-                            _scanning = true;
-                            _error = null;
-                          }),
-                          label: 'Scan QR dari dashboard',
-                        ),
-                      Row(
-                        children: [
-                          const Expanded(child: Divider()),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 8),
-                            child: Text('atau', style: theme.textTheme.muted),
+              child: AuthLayout(
+                child: ShadCard(
+                  title: const Text('Hubungkan ke Organisasi'),
+                  description: const Text('Minta pengurus membuka dashboard → Pengaturan → Aplikasi, lalu scan QR-nya.'),
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      spacing: 12,
+                      children: [
+                        if (_error != null) ShadAlert.destructive(icon: const Icon(LucideIcons.circleAlert), description: Text(_error!)),
+                        if (_scanning)
+                          ClipRRect(
+                            borderRadius: theme.radius,
+                            child: AspectRatio(aspectRatio: 1, child: MobileScanner(onDetect: _onQr)),
+                          )
+                        else
+                          FlexButton(
+                            enabled: !_busy,
+                            icon: LucideIcons.scanQrCode,
+                            onPressed: () => setState(() {
+                              _scanning = true;
+                              _error = null;
+                            }),
+                            label: 'Scan QR dari dashboard',
                           ),
-                          const Expanded(child: Divider()),
-                        ],
-                      ),
-                      Text('Alamat server', style: theme.textTheme.small),
-                      ShadInput(
-                        controller: _address,
-                        keyboardType: TextInputType.url,
-                        placeholder: const Text('absen.organisasi.id'),
-                        leading: const Icon(LucideIcons.server, size: 16),
-                        onSubmitted: (v) => _busy ? null : _connect(v),
-                      ),
-                      FlexButton(variant: ShadButtonVariant.outline, enabled: !_busy, onPressed: () => _connect(_address.text), label: _busy ? 'Memeriksa server…' : 'Hubungkan'),
-                    ],
+                        Row(
+                          children: [
+                            const Expanded(child: Divider()),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 8),
+                              child: Text('atau', style: theme.textTheme.muted),
+                            ),
+                            const Expanded(child: Divider()),
+                          ],
+                        ),
+                        Text('Alamat server', style: theme.textTheme.small),
+                        ShadInput(
+                          controller: _address,
+                          keyboardType: TextInputType.url,
+                          placeholder: const Text('absen.organisasi.id'),
+                          leading: const Icon(LucideIcons.server, size: 16),
+                          onSubmitted: (v) => _busy ? null : _connect(v),
+                        ),
+                        FlexButton(variant: ShadButtonVariant.outline, enabled: !_busy, onPressed: () => _connect(_address.text), label: _busy ? 'Memeriksa server…' : 'Hubungkan'),
+                      ],
+                    ),
                   ),
                 ),
               ),

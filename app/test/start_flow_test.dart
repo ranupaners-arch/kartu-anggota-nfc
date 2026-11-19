@@ -58,8 +58,8 @@ void main() {
     SharedPreferences.setMockInitialValues({});
     await Session(baseUrl: 'http://srv', token: 't', userName: 'Petugas', role: 'scanner').save();
     await start(tester);
-    await tester.pump(const Duration(seconds: 2));
-    await tester.pump(const Duration(milliseconds: 400));
+    await tester.pump(const Duration(seconds: 3)); // splash ±2,6 detik
+    await tester.pump(const Duration(seconds: 1)); // transisi
     expect(find.byType(EventsScreen), findsOneWidget);
     expect(find.byType(WelcomeScreen), findsNothing);
     await tester.pumpWidget(const SizedBox());
