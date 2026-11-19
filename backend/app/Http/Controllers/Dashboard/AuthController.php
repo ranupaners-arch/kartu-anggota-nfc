@@ -25,9 +25,13 @@ class AuthController extends Controller
             throw ValidationException::withMessages(['email' => 'Email atau password salah.']);
         }
         $user = Auth::guard('web')->user();
-        if ($user->disabled_at || ! in_array($user->role, [User::SUPER_ADMIN, User::DIVISION_ADMIN], true)) {
+        // Pengurus → dashboard; anggota (akun tertaut) → portal anggota /saya. Petugas scan memakai app.
+        $member = $user->role === User::MEMBER && $user->member_id;
+        if ($user->disabled_at || (! $user->isAdmin() && ! $member)) {
             Auth::guard('web')->logout();
-            throw ValidationException::withMessages(['email' => 'Dashboard hanya untuk pengurus dengan akun aktif.']);
+            throw ValidationException::withMessages(['email' => $user->disabled_at
+                ? 'Akun dinonaktifkan. Hubungi pengurus.'
+                : 'Akun petugas scan dipakai di app, bukan di web.']);
         }
 
         if (app(TwoFactorService::class)->enabled($user)) {
@@ -80,7 +84,7 @@ class AuthController extends Controller
         $r->session()->regenerate();
         AuditLogger::log('auth.dashboard_login', 'user', $user->id, [], $user->id);
 
-        return redirect()->intended(route('home'));
+        return $user->isAdmin() ? redirect()->intended(route('home')) : redirect()->route('portal.qr');
     }
 
     public function logout(Request $r)

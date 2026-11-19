@@ -19,7 +19,7 @@ import { roleLabel } from '@/lib/format';
 import type { SharedProps } from '@/types';
 
 /** Tampilkan pesan flash dari server sebagai toast. */
-function FlashToaster() {
+export function FlashToaster({ position = 'top-right' }: { position?: 'top-right' | 'top-center' }) {
     const { flash, errors } = usePage<SharedProps>().props;
     useEffect(() => {
         if (flash?.status) toast.success(flash.status);
@@ -28,7 +28,7 @@ function FlashToaster() {
         const first = Object.values(errors ?? {})[0];
         if (first) toast.error(first);
     }, [errors]);
-    return <Toaster position="top-right" richColors />;
+    return <Toaster position={position} richColors />;
 }
 
 function UserMenu() {

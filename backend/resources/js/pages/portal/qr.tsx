@@ -1,0 +1,63 @@
+import { Head, usePoll } from '@inertiajs/react';
+import { QRCodeSVG } from 'qrcode.react';
+import { useEffect, useState } from 'react';
+import { Card, CardContent } from '@/components/ui/card';
+import PortalLayout from '@/layouts/portal-layout';
+
+type Profile = { name: string; member_no: string; division: string | null; organization: string | null };
+type Qr = { payload: string; expires_in: number; generated_at: string };
+
+/** Jaga layar tetap menyala selama QR ditampilkan (bila browser mendukung), pasang ulang saat kembali ke tab. */
+function useWakeLock() {
+    useEffect(() => {
+        if (!('wakeLock' in navigator)) return;
+        let lock: WakeLockSentinel | null = null;
+        const acquire = async () => {
+            try {
+                if (document.visibilityState === 'visible') lock = await navigator.wakeLock.request('screen');
+            } catch { /* ditolak (mis. hemat daya) — QR tetap tampil */ }
+        };
+        const onVisible = () => { if (document.visibilityState === 'visible') acquire(); };
+        acquire();
+        document.addEventListener('visibilitychange', onVisible);
+        return () => {
+            document.removeEventListener('visibilitychange', onVisible);
+            lock?.release().catch(() => {});
+        };
+    }, []);
+}
+
+/** QR Saya: cadangan saat kartu tertinggal. Server merotasi QR tiap menit; halaman mengambil yang baru tiap 30 detik. */
+export default function PortalQr({ profile, qr }: { profile: Profile; qr: Qr }) {
+    usePoll(30_000, { only: ['qr'] }, { keepAlive: true });
+    useWakeLock();
+    const [age, setAge] = useState(0);
+    useEffect(() => {
+        const start = Date.now();
+        setAge(0);
+        const t = setInterval(() => setAge(Math.floor((Date.now() - start) / 1000)), 1000);
+        return () => clearInterval(t);
+    }, [qr.payload]);
+    const stale = age > qr.expires_in;
+
+    return (
+        <PortalLayout title="QR Saya">
+            <Head title="QR Saya" />
+            <Card>
+                <CardContent className="grid justify-items-center gap-4 py-2 text-center">
+                    <div className={`rounded-2xl bg-white p-4 transition-opacity ${stale ? 'opacity-30' : ''}`}>
+                        <QRCodeSVG value={qr.payload} size={240} marginSize={0} level="M" aria-label={`QR kehadiran ${profile.name}`} />
+                    </div>
+                    <div className="grid gap-0.5">
+                        <div className="text-lg font-semibold">{profile.name}</div>
+                        <div className="text-sm text-muted-foreground tabular-nums">{[profile.member_no, profile.division].filter(Boolean).join(' · ')}</div>
+                    </div>
+                    <p role="status" className="text-sm text-muted-foreground">
+                        {stale ? 'QR kedaluwarsa — periksa koneksi internet, halaman akan memperbarui otomatis.' : 'Tunjukkan ke petugas untuk dipindai. QR berganti otomatis tiap menit.'}
+                    </p>
+                </CardContent>
+            </Card>
+            <p className="text-center text-xs text-muted-foreground">Naikkan kecerahan layar agar mudah dipindai. Jangan bagikan tangkapan layar QR ini.</p>
+        </PortalLayout>
+    );
+}

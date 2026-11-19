@@ -47,7 +47,7 @@ class HandleInertiaRequests extends Middleware
                 'mustChangePassword' => (bool) $user->must_change_password,
             ] : null,
             // Badge jumlah pekerjaan di menu (dihitung hanya bila login).
-            'navBadges' => fn () => $user ? [
+            'navBadges' => fn () => $user?->isAdmin() ? [
                 'excuses' => app(\App\Services\ExcuseService::class)->visibleTo($user)->where('status', 'pending')->count(),
                 'reviews' => app(\App\Services\AttendanceService::class)->pendingReviewCount($user),
             ] : null,

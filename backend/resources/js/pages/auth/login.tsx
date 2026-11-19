@@ -26,8 +26,8 @@ export default function Login({ canResetPassword = false }: { canResetPassword?:
                 </div>
                 <Card className="w-full">
                 <CardHeader>
-                    <CardTitle className="text-xl">Masuk Dashboard</CardTitle>
-                    <CardDescription>Khusus pengurus organisasi.</CardDescription>
+                    <CardTitle className="text-xl">Masuk</CardTitle>
+                    <CardDescription>Pengurus ke dashboard; anggota ke portal anggota (QR Saya, kegiatan, izin, riwayat).</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <form onSubmit={submit} className="grid gap-4">

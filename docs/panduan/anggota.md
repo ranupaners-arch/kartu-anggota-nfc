@@ -13,6 +13,21 @@ opsional, tetapi berguna bila kartu tertinggal, untuk mengajukan izin, dan melih
 4. Lupa password? Ketuk **Lupa password?** di layar Masuk; tautan dikirim ke email Anda (bila
    organisasi sudah mengaktifkan email). Bila belum aktif, minta pengurus mereset password.
 
+## Tanpa app (iPhone / HP lain): portal web
+
+App hanya ada untuk Android. Pengguna iPhone atau yang tidak memasang app bisa memakai **portal
+anggota** di browser — isinya sama dengan app:
+
+1. Buka alamat server organisasi (tertulis di lembar akun) lalu **Masuk** dengan email & password
+   yang sama. Anggota otomatis diarahkan ke portal (`/saya`).
+2. Menu bawah: **QR Saya** (tunjukkan ke petugas; berganti tiap menit, layar dijaga tetap menyala),
+   **Kegiatan** (pengumuman, pengingat, **Ajukan izin** + bukti foto/PDF), **Riwayat** (ringkasan,
+   peringatan, **Unduh rapor PDF**), **Akun** (ganti password, langganan jadwal, keluar).
+3. Agar seperti app: iPhone Safari → **Bagikan → Tambahkan ke Layar Utama**; Android Chrome →
+   menu ⋮ → **Tambahkan ke layar utama**.
+
+Kartu NFC tetap dipakai seperti biasa — portal hanya cadangan QR dan pengganti fitur app lainnya.
+
 ## QR Saya — saat kartu tertinggal
 
 Buka tab **QR Saya** dan tunjukkan ke petugas. QR berganti otomatis tiap menit, sehingga tangkapan
