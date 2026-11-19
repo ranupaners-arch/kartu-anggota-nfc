@@ -10,6 +10,8 @@ opsional, tetapi berguna bila kartu tertinggal, untuk mengajukan izin, dan melih
 2. **Masuk** dengan email & password sementara dari pengurus (lembar akun).
 3. Pertama kali masuk, app meminta **password baru** (minimal 10 karakter, huruf & angka). Setelah
    itu password sementara tidak berlaku lagi.
+4. Lupa password? Ketuk **Lupa password?** di layar Masuk; tautan dikirim ke email Anda (bila
+   organisasi sudah mengaktifkan email). Bila belum aktif, minta pengurus mereset password.
 
 ## QR Saya — saat kartu tertinggal
 

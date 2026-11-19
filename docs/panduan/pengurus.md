@@ -22,6 +22,16 @@ Bagian bertanda **(Super Admin)** hanya tersedia untuk Super Admin.
   tambahkan di Google Calendar (*Setelan → Tambahkan kalender → Dari URL*). Isinya kegiatan yang
   bisa Anda kelola, periode berjalan. **Ganti tautan** bila tersebar.
 
+## Email: lupa password & ringkasan mingguan
+
+Aktif setelah email server diatur (lihat *Pengaturan → Sistem → Email*; cara mengatur di
+`docs/deploy.md`).
+- **Lupa password?** di halaman masuk (dashboard) dan di app: tautan atur ulang dikirim ke email.
+  Sebelum aktif, reset password lewat **Pengguna & Peran → Reset password**.
+- **Ringkasan mingguan** tiap Senin 07.00 ke email pengurus: kegiatan 7 hari terakhir (% hadir),
+  izin & tinjauan yang menunggu, anggota yang perlu perhatian, kegiatan pekan ini (Admin Divisi:
+  divisinya saja). Atur di **Akun → Ringkasan mingguan** (ada **Lihat contoh**).
+
 ## Menyiapkan data (Super Admin)
 
 ### Anggota
