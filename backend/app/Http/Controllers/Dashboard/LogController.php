@@ -14,7 +14,7 @@ class LogController extends Controller
     {
         $orgUsers = User::where('organization_id', $r->user()->organization_id)->orderBy('name')->get(['id', 'name']);
         $logs = AuditLog::query()->whereIn('user_id', $orgUsers->pluck('id'))
-            ->when($r->query('action'), fn ($q, $a) => $q->where('action', 'like', "$a%"))
+            ->when($r->query('action'), fn ($q, $a) => $q->where('action', 'like', rtrim($a, '.').'.%'))
             ->when($r->query('user_id'), fn ($q, $u) => $q->where('user_id', $u))
             ->when($r->query('from'), fn ($q, $d) => $q->where('created_at', '>=', $d))
             ->when($r->query('to'), fn ($q, $d) => $q->where('created_at', '<', \Illuminate\Support\Carbon::parse($d)->addDay()))

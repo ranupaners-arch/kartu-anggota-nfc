@@ -20,13 +20,19 @@ class ExcuseController extends Controller
     public function index(Request $r)
     {
         $tab = $r->query('tab', 'menunggu');
+        $f = $r->only('q', 'type');
         $q = $this->excuses->visibleTo($r->user())
+            ->when($f['q'] ?? null, fn ($q, $s) => $q->where(fn ($w) => $w
+                ->whereHas('member', fn ($m) => $m->where('name', 'ilike', "%$s%")->orWhere('member_no', 'ilike', "%$s%"))
+                ->orWhereHas('event', fn ($e) => $e->where('title', 'ilike', "%$s%"))))
+            ->when($f['type'] ?? null, fn ($q, $t) => $q->where('type', $t))
             ->when($tab === 'menunggu', fn ($q) => $q->where('status', 'pending')->oldest(),
                 fn ($q) => $q->where('status', '!=', 'pending')->latest('reviewed_at'));
 
         return Inertia::render('excuses/index', [
             'tab' => $tab,
             'excuses' => $q->paginate(30)->withQueryString(),
+            'filters' => $f + ['q' => null, 'type' => null],
             // Untuk formulir "Catat izin": kegiatan yang bisa dikelola, 60 hari terakhir & yang akan datang.
             'events' => fn () => $this->events->visibleTo($r->user())->where('ends_at', '>=', now()->subDays(60))
                 ->orderByDesc('starts_at')->limit(100)->get(['id', 'title', 'starts_at', 'closed_at']),

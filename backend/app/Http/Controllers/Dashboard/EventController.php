@@ -13,6 +13,7 @@ use App\Services\AuditLogger;
 use App\Services\EventService;
 use App\Services\ReportService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Inertia\Inertia;
 
 class EventController extends Controller
@@ -22,14 +23,26 @@ class EventController extends Controller
     public function index(Request $r)
     {
         $tab = $r->query('tab', 'berlangsung');
-        $q = $this->events->visibleTo($r->user());
+        $f = $r->only('q', 'division', 'type', 'from', 'to');
+        $q = $this->events->visibleTo($r->user())
+            ->when($f['q'] ?? null, fn ($q, $s) => $q->where(fn ($w) => $w->where('title', 'ilike', "%$s%")->orWhere('location', 'ilike', "%$s%")))
+            ->when($f['division'] ?? null, fn ($q, $d) => $d === 'umum' ? $q->whereNull('division_id') : $q->where('division_id', (int) $d))
+            ->when($f['type'] ?? null, fn ($q, $t) => $q->where('type', $t))
+            ->when($f['from'] ?? null, fn ($q, $d) => $q->where('starts_at', '>=', Carbon::parse($d)->startOfDay()))
+            ->when($f['to'] ?? null, fn ($q, $d) => $q->where('starts_at', '<', Carbon::parse($d)->addDay()->startOfDay()));
         match ($tab) {
             'akan-datang' => $q->where('checkin_opens_at', '>', now())->orderBy('starts_at'),
             'selesai' => $q->finished()->orderByDesc('starts_at'),
             default => $q->ongoing()->orderBy('starts_at'),
         };
 
-        return Inertia::render('events/index', ['tab' => $tab, 'events' => $q->select('events.*')->withPresentCount()->paginate(20)->withQueryString()]);
+        return Inertia::render('events/index', [
+            'tab' => $tab,
+            'events' => $q->select('events.*')->withPresentCount()->paginate(20)->withQueryString(),
+            'filters' => $f + ['q' => null, 'division' => null, 'type' => null, 'from' => null, 'to' => null],
+            'divisions' => $r->user()->isSuperAdmin() ? Division::orderBy('name')->get(['id', 'name']) : [],
+            'types' => $this->events->visibleTo($r->user())->whereNotNull('type')->distinct()->orderBy('type')->pluck('type'),
+        ]);
     }
 
     public function create()
