@@ -328,13 +328,15 @@ class MemberEvent {
 
 /// Ringkasan kehadiran anggota (GET /api/me/history).
 class MemberHistory {
-  const MemberHistory({required this.byStatus, required this.total, this.term, this.rate, this.recent = const []});
+  const MemberHistory({required this.byStatus, required this.total, this.term, this.rate, this.recent = const [], this.atRisk = false, this.alpaStreak = 0});
 
   factory MemberHistory.fromJson(Map<String, dynamic> j) => MemberHistory(
     term: j['term'] as String?,
     byStatus: {for (final e in (j['by_status'] as Map<String, dynamic>).entries) e.key: (e.value as num).toInt()},
     total: (j['total'] as num).toInt(),
     rate: (j['attendance_rate'] as num?)?.toDouble(),
+    atRisk: (j['warning'] as Map<String, dynamic>?)?['at_risk'] as bool? ?? false,
+    alpaStreak: ((j['warning'] as Map<String, dynamic>?)?['alpa_streak'] as num?)?.toInt() ?? 0,
     recent: [
       for (final r in j['recent'] as List)
         (event: (r as Map<String, dynamic>)['event'] as String? ?? '-', date: DateTime.tryParse(r['date'] as String? ?? '')?.toLocal(), status: r['status'] as String),
@@ -345,5 +347,9 @@ class MemberHistory {
   final Map<String, int> byStatus;
   final int total;
   final double? rate;
+
+  /// Peringatan (aturan sama dengan "Perlu perhatian" di dashboard): Alpa berturut-turut / kehadiran rendah.
+  final bool atRisk;
+  final int alpaStreak;
   final List<({String event, DateTime? date, String status})> recent;
 }

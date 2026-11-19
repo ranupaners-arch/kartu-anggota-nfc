@@ -43,6 +43,20 @@ class _MyHistoryTabState extends State<MyHistoryTab> {
             children.add(ErrorBanner(snap.error is ApiException ? (snap.error as ApiException).message : 'Tidak bisa memuat riwayat. Tarik untuk mencoba lagi.'));
           } else {
             final h = snap.data!;
+            if (h.atRisk) {
+              children.addAll([
+                ShadAlert(
+                  icon: const Icon(LucideIcons.triangleAlert),
+                  title: const Text('Kehadiran Anda perlu perhatian'),
+                  description: Text(
+                    h.alpaStreak >= 3
+                        ? 'Anda tercatat Alpa ${h.alpaStreak}× berturut-turut. Ajukan izin bila berhalangan, atau hubungi pengurus.'
+                        : 'Persentase kehadiran Anda masih rendah. Ajukan izin bila berhalangan, atau hubungi pengurus.',
+                  ),
+                ),
+                const SizedBox(height: 12),
+              ]);
+            }
             children.add(
               ShadCard(
                 title: Text(h.rate == null ? '–' : '${h.rate!.toStringAsFixed(h.rate! % 1 == 0 ? 0 : 1)}%', style: theme.textTheme.h2),
