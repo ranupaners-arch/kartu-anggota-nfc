@@ -15,7 +15,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 void main() {
   group('alamat server', () {
     test('normalisasi menambah http:// dan membuang garis miring', () {
-      expect(ServerAddress.normalize(' 100.84.251.14:8000/ '), 'http://100.84.251.14:8000');
+      expect(ServerAddress.normalize(' 192.0.2.10:8000/ '), 'http://192.0.2.10:8000');
       expect(ServerAddress.normalize('https://absen.org.id'), 'https://absen.org.id');
     });
 
@@ -27,8 +27,8 @@ void main() {
     });
 
     test('QR penghubung dari dashboard dan URL biasa', () {
-      final q = ServerAddress.parseQr('kartuanggota://connect?server=http%3A%2F%2F100.84.251.14%3A8000&name=HMPS')!;
-      expect(q.url, 'http://100.84.251.14:8000');
+      final q = ServerAddress.parseQr('kartuanggota://connect?server=http%3A%2F%2F192.0.2.10%3A8000&name=HMPS')!;
+      expect(q.url, 'http://192.0.2.10:8000');
       expect(q.name, 'HMPS');
       expect(ServerAddress.parseQr('https://absen.org.id/')!.url, 'https://absen.org.id');
       expect(ServerAddress.parseQr('card:qr:abc'), isNull); // QR anggota, bukan QR penghubung
@@ -57,13 +57,13 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Hubungkan ke Organisasi'), findsOneWidget);
 
-    await tester.enterText(find.byType(EditableText), '100.84.251.14:8000');
+    await tester.enterText(find.byType(EditableText), '192.0.2.10:8000');
     await tester.tap(find.text('Hubungkan'));
     await tester.pumpAndSettle();
     expect(find.text('Organisasi: HMPS'), findsOneWidget);
     expect(find.text('Organisasi: HMPS'), findsOneWidget);
     expect(find.text('Ganti organisasi'), findsOneWidget);
-    expect((await SharedPreferences.getInstance()).getString('server_url'), 'http://100.84.251.14:8000');
+    expect((await SharedPreferences.getInstance()).getString('server_url'), 'http://192.0.2.10:8000');
   });
 
   testWidgets('server bukan Kartu Anggota ditolak dengan pesan jelas', (tester) async {
