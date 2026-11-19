@@ -8,6 +8,7 @@ import '../app/session.dart';
 import 'connect_screen.dart';
 import '../app/home.dart';
 import '../widgets/ui.dart';
+import 'splash_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key, required this.server});
@@ -69,47 +70,48 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = ShadTheme.of(context);
     final serverLabel = widget.server.name.isNotEmpty ? widget.server.name : Uri.parse(widget.server.url).host;
     return Scaffold(
-      backgroundColor: theme.colorScheme.muted,
+      backgroundColor: splashBlack,
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(16),
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 420),
-              child: ShadCard(
-                title: const Text('Masuk'),
-                description: Text(serverMode == ServerMode.selectable ? 'Organisasi: $serverLabel' : 'Gunakan akun anggota, petugas, atau pengurus.'),
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    spacing: 12,
-                    children: [
-                      if (_error != null) ShadAlert.destructive(icon: const Icon(LucideIcons.circleAlert), description: Text(_error!)),
-                      _field(
-                        'Email',
-                        ShadInput(controller: _email, keyboardType: TextInputType.emailAddress, placeholder: const Text('nama@organisasi.id'), leading: const Icon(LucideIcons.mail, size: 16)),
-                      ),
-                      _field('Password', ShadInput(controller: _password, obscureText: true, leading: const Icon(LucideIcons.lock, size: 16), onSubmitted: (_) => _busy ? null : _login())),
-                      if (_needOtp)
+              child: AuthLayout(
+                child: ShadCard(
+                  title: const Text('Masuk'),
+                  description: Text(serverMode == ServerMode.selectable ? 'Organisasi: $serverLabel' : 'Gunakan akun anggota, petugas, atau pengurus.'),
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      spacing: 12,
+                      children: [
+                        if (_error != null) ShadAlert.destructive(icon: const Icon(LucideIcons.circleAlert), description: Text(_error!)),
                         _field(
-                          'Kode 2FA',
-                          ShadInput(
-                            controller: _otp,
-                            keyboardType: TextInputType.visiblePassword,
-                            autofocus: true,
-                            placeholder: const Text('6 digit dari aplikasi authenticator, atau kode cadangan'),
-                            leading: const Icon(LucideIcons.shieldCheck, size: 16),
-                            onSubmitted: (_) => _busy ? null : _login(),
-                          ),
+                          'Email',
+                          ShadInput(controller: _email, keyboardType: TextInputType.emailAddress, placeholder: const Text('nama@organisasi.id'), leading: const Icon(LucideIcons.mail, size: 16)),
                         ),
-                      const SizedBox(height: 4),
-                      FlexButton(onPressed: _busy ? null : _login, label: _busy ? 'Memproses…' : 'Masuk'),
-                      if (serverMode == ServerMode.selectable) FlexButton(variant: ShadButtonVariant.link, small: true, onPressed: _busy ? null : _changeServer, label: 'Ganti organisasi'),
-                    ],
+                        _field('Password', ShadInput(controller: _password, obscureText: true, leading: const Icon(LucideIcons.lock, size: 16), onSubmitted: (_) => _busy ? null : _login())),
+                        if (_needOtp)
+                          _field(
+                            'Kode 2FA',
+                            ShadInput(
+                              controller: _otp,
+                              keyboardType: TextInputType.visiblePassword,
+                              autofocus: true,
+                              placeholder: const Text('6 digit dari aplikasi authenticator, atau kode cadangan'),
+                              leading: const Icon(LucideIcons.shieldCheck, size: 16),
+                              onSubmitted: (_) => _busy ? null : _login(),
+                            ),
+                          ),
+                        const SizedBox(height: 4),
+                        FlexButton(onPressed: _busy ? null : _login, label: _busy ? 'Memproses…' : 'Masuk'),
+                        if (serverMode == ServerMode.selectable) FlexButton(variant: ShadButtonVariant.link, small: true, onPressed: _busy ? null : _changeServer, label: 'Ganti organisasi'),
+                      ],
+                    ),
                   ),
                 ),
               ),

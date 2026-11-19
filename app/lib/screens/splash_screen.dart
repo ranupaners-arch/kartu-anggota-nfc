@@ -102,3 +102,42 @@ class BrandLogo extends StatelessWidget {
     child: Image(image: const AssetImage('assets/brand/logo-3d.png'), width: size, height: size, semanticLabel: 'Logo Kartu Anggota'),
   );
 }
+
+/// Kerangka layar Masuk/Hubungkan: latar hitam, logo kecil di atas (meluncur naik & mengecil dari
+/// layar sambutan lewat Hero), formulir di bawahnya muncul memudar sambil naik.
+class AuthLayout extends StatelessWidget {
+  const AuthLayout({super.key, required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) => Column(
+    mainAxisSize: MainAxisSize.min,
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: [
+      const Center(child: BrandLogo(size: 88)),
+      const SizedBox(height: 24),
+      TweenAnimationBuilder<double>(
+        tween: Tween(begin: 0, end: 1),
+        duration: const Duration(milliseconds: 900),
+        curve: const Interval(0.35, 1, curve: Curves.easeOutCubic), // setelah logo hampir tiba
+        builder: (context, t, child) => Opacity(
+          opacity: t,
+          child: Transform.translate(offset: Offset(0, (1 - t) * 24), child: child),
+        ),
+        child: child,
+      ),
+    ],
+  );
+}
+
+/// Rute dengan transisi memudar yang cukup lama agar logo (Hero) meluncur mulus.
+PageRouteBuilder<void> fadeRoute(Widget page) => PageRouteBuilder<void>(
+  pageBuilder: (_, _, _) => page,
+  transitionDuration: const Duration(milliseconds: 700),
+  reverseTransitionDuration: const Duration(milliseconds: 500),
+  transitionsBuilder: (_, a, _, child) => FadeTransition(
+    opacity: CurvedAnimation(parent: a, curve: Curves.easeInOut),
+    child: child,
+  ),
+);

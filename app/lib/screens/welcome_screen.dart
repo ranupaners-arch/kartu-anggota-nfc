@@ -112,7 +112,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
                     label: 'Masuk',
                     backgroundColor: Colors.white,
                     foregroundColor: splashBlack,
-                    onPressed: () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => s != null ? LoginScreen(server: s) : const ConnectScreen())),
+                    onPressed: () => Navigator.of(context).push(fadeRoute(s != null ? LoginScreen(server: s) : const ConnectScreen())),
                   ),
                 ),
               ),
