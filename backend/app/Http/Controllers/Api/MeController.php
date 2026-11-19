@@ -67,6 +67,8 @@ class MeController extends Controller
             'by_status' => $byStatus,
             'total' => $total,
             'attendance_rate' => $total ? round(($byStatus['hadir'] + $byStatus['telat']) / $total * 100, 1) : null,
+            // Peringatan untuk anggota sendiri (aturan sama dengan daftar "Perlu perhatian" di dashboard).
+            'warning' => $term ? app(\App\Services\StatsService::class)->memberRisk($memberId, $term) : null,
             'recent' => $rows->take(50)->map(fn (Attendance $a) => [
                 'event' => $a->event?->title, 'date' => $a->event?->starts_at, 'status' => $a->status, 'source' => $a->source,
             ]),
