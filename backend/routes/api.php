@@ -22,9 +22,10 @@ Route::get('health', \App\Http\Controllers\Api\HealthController::class)->middlew
 Route::get('instance', InstanceController::class)->middleware('throttle:60,1');
 Route::post('auth/login', [AuthController::class, 'login'])->middleware('throttle:10,1');
 
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(['auth:sanctum', 'password.changed'])->group(function () {
     Route::post('auth/logout', [AuthController::class, 'logout']);
     Route::get('me', [AuthController::class, 'me']);
+    Route::put('me/password', [AuthController::class, 'changePassword'])->middleware('throttle:10,1');
     Route::get('me/qr', [MemberController::class, 'myQr']);
     Route::get('me/events', [MeController::class, 'events']);
     Route::get('me/history', [MeController::class, 'history']);

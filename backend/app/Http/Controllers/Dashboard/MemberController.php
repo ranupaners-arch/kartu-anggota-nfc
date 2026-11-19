@@ -28,7 +28,7 @@ class MemberController extends Controller
             return $this->archive($r, $term);
         }
         $q = $this->members->visibleTo($r->user())
-            ->with(['memberships' => fn ($m) => $m->where('term_id', $term->id)->with('division:id,name'), 'activeCard:id,member_id,status'])
+            ->with(['memberships' => fn ($m) => $m->where('term_id', $term->id)->with('division:id,name'), 'activeCard:id,member_id,status'])->withExists('user')
             ->when($tab !== 'semua', fn ($q) => $q->whereHas('memberships', fn ($m) => $m->where('term_id', $term->id)
                 ->where('status', $tab === 'alumni' ? 'alumni' : 'active')))
             ->when($r->query('q'), fn ($q, $s) => $q->where(fn ($w) => $w->where('name', 'ilike', "%$s%")->orWhere('member_no', 'ilike', "%$s%")))
@@ -41,6 +41,7 @@ class MemberController extends Controller
                 'id' => $m->id, 'member_no' => $m->member_no, 'name' => $m->name, 'cohort' => $m->cohort,
                 'division' => $m->memberships->first()?->division?->name, 'status' => $m->memberships->first()?->status,
                 'has_card' => (bool) $m->activeCard,
+                'has_account' => $m->user_exists ?? false,
             ]),
             'divisions' => $superAdmin ? Division::orderBy('name')->get(['id', 'name']) : [],
             'filters' => ['q' => $r->query('q'), 'division_id' => $r->query('division_id')],
@@ -159,6 +160,30 @@ class MemberController extends Controller
         $what = ['division' => 'dipindahkan divisinya', 'status' => 'diubah statusnya', 'archive' => 'diarsipkan, kartunya diblokir'][$d['action']];
 
         return back()->with('status', "$n anggota $what.");
+    }
+
+    /** Buat akun app untuk anggota terpilih; hasil (password sementara) hanya ditampilkan sekali. */
+    public function createAccounts(Request $r, \App\Services\MemberAccountService $accounts)
+    {
+        $d = $r->validate(['ids' => 'required|array|min:1|max:100', 'ids.*' => 'integer']);
+        $res = $accounts->createFor($r->user(), $d['ids']);
+
+        return redirect()->route('members.accounts.slips')->with('accountSlips', $res);
+    }
+
+    /** Lembar akun untuk dicetak/dibagikan. Data hanya ada di sesi sekali (flash); dimuat ulang → hilang. */
+    public function accountSlips(Request $r)
+    {
+        $res = $r->session()->get('accountSlips');
+        if (! $res) {
+            return redirect()->route('members.index')->with('status', 'Lembar akun hanya ditampilkan sekali. Reset password dari Pengguna & Peran bila hilang.');
+        }
+
+        return Inertia::render('members/account-slips', [
+            'created' => $res['created'], 'skipped' => $res['skipped'],
+            'organization' => $r->user()->organization?->name,
+            'serverUrl' => rtrim(config('app.url'), '/'),
+        ]);
     }
 
     public function destroy(Member $member)

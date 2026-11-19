@@ -63,7 +63,7 @@ class AccountController extends Controller
             'current_password' => 'required|current_password:web',
             'password' => ['required', 'confirmed', Password::min(10)->letters()->numbers()],
         ]);
-        $r->user()->update(['password' => $r->input('password')]);
+        $r->user()->update(['password' => $r->input('password'), 'must_change_password' => false]);
         AuditLogger::log('user.password_changed', 'user', $r->user()->id);
 
         return back()->with('status', 'Password berhasil diganti.');

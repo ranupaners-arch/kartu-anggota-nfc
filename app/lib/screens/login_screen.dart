@@ -5,6 +5,7 @@ import '../api/api_client.dart';
 import '../api/ids.dart';
 import '../app/server_config.dart';
 import '../app/session.dart';
+import 'change_password_screen.dart';
 import 'connect_screen.dart';
 import '../app/home.dart';
 import '../widgets/ui.dart';
@@ -44,6 +45,14 @@ class _LoginScreenState extends State<LoginScreen> {
       final api = ApiClient(baseUrl: widget.server.url);
       final user = await api.login(_email.text.trim(), _password.text, deviceUuid: await deviceUuid(), otp: _needOtp ? _otp.text.trim() : null);
       final session = Session(baseUrl: widget.server.url, token: api.token!, userName: user['name'] as String? ?? '', role: user['role'] as String? ?? '');
+      // Password sementara dari pengurus: ganti dulu; sesi baru disimpan setelah berhasil.
+      if (user['must_change_password'] == true) {
+        if (!mounted) return;
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute<void>(builder: (_) => ChangePasswordScreen(api: api, session: session, currentPassword: _password.text, server: widget.server)),
+        );
+        return;
+      }
       await session.save();
       if (!mounted) return;
       Navigator.of(context).pushReplacement(MaterialPageRoute<void>(builder: (_) => homeFor(session)));

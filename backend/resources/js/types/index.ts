@@ -5,7 +5,7 @@ export interface SharedProps {
     auth: {
         user: { id: number; name: string; email: string; role: Role; division_id: number | null };
         organization: { id: number; name: string } | null;
-        isSuperAdmin: boolean;
+        isSuperAdmin: boolean; mustChangePassword?: boolean;
     } | null;
     navBadges: { excuses: number; reviews: number } | null;
     flash: { status: string | null };

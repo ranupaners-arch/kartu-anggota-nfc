@@ -67,9 +67,28 @@ class AuthController extends Controller
         return $this->userData($r->user());
     }
 
+    /** Ganti password dari app (wajib bila password masih sementara). Sesi perangkat lain dikeluarkan. */
+    public function changePassword(Request $r)
+    {
+        $r->validate([
+            'current_password' => 'required|string',
+            'password' => ['required', 'confirmed', \Illuminate\Validation\Rules\Password::min(10)->letters()->numbers()],
+        ]);
+        $user = $r->user();
+        if (! Hash::check($r->input('current_password'), $user->password)) {
+            throw ValidationException::withMessages(['current_password' => 'Password sekarang salah.']);
+        }
+        abort_if(Hash::check($r->input('password'), $user->password), 422, 'Password baru harus berbeda dari password sementara.');
+        $user->update(['password' => $r->input('password'), 'must_change_password' => false]);
+        $user->tokens()->whereKeyNot($user->currentAccessToken()->id)->delete();
+        AuditLogger::log('user.password_changed', 'user', $user->id);
+
+        return $this->userData($user->fresh());
+    }
+
     private function userData(User $u): array
     {
         return ['id' => $u->id, 'name' => $u->name, 'email' => $u->email, 'role' => $u->role,
-            'member_id' => $u->member_id, 'division_id' => $u->division_id];
+            'member_id' => $u->member_id, 'division_id' => $u->division_id, 'must_change_password' => (bool) $u->must_change_password];
     }
 }
