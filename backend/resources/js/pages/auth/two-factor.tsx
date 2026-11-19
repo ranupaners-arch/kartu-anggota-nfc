@@ -17,7 +17,12 @@ export default function TwoFactor() {
     return (
         <div className="flex min-h-screen items-center justify-center bg-muted/40 p-4">
             <Head title="Verifikasi 2FA" />
-            <Card className="w-full max-w-sm">
+            <div className="flex w-full max-w-sm flex-col items-center gap-6">
+                <div className="flex flex-col items-center gap-3">
+                    <img src="/brand/logo-2d.svg" alt="Logo Kartu Anggota" className="size-20 drop-shadow-md" />
+                    <span className="text-lg font-semibold tracking-tight">Kartu Anggota</span>
+                </div>
+                <Card className="w-full">
                 <CardHeader>
                     <CardTitle className="text-xl">Verifikasi dua langkah</CardTitle>
                     <CardDescription>
@@ -41,7 +46,8 @@ export default function TwoFactor() {
                         <Link href="/masuk" className="text-center text-sm text-muted-foreground hover:underline">Kembali ke halaman masuk</Link>
                     </form>
                 </CardContent>
-            </Card>
+                </Card>
+            </div>
         </div>
     );
 }
