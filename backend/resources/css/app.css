@@ -212,6 +212,21 @@
     --chart-bar: #6366f1;
 }
 
+/*
+ * Warna kategorikal per divisi (kalender), urutan tetap — palet tervalidasi skill dataviz
+ * (pemisahan buta warna & kontras), versi gelap disetel untuk latar gelap. Kegiatan umum = abu.
+ */
+:root {
+    --cat-1: #2a78d6; --cat-2: #eb6834; --cat-3: #1baf7a; --cat-4: #eda100;
+    --cat-5: #e87ba4; --cat-6: #008300; --cat-7: #6250d6; --cat-8: #e34948;
+    --cat-none: #8a8a8a;
+}
+.dark {
+    --cat-1: #3987e5; --cat-2: #d95926; --cat-3: #199e70; --cat-4: #c98500;
+    --cat-5: #d55181; --cat-6: #0ca30c; --cat-7: #9085e9; --cat-8: #e66767;
+    --cat-none: #8a8a8a;
+}
+
 /* Tabel yang meluap bisa difokus untuk digeser dengan keyboard (lihat DataTable): tampilkan cincin fokus. */
 [data-slot='table-container']:focus-visible {
     outline: 2px solid var(--ring);

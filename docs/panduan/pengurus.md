@@ -60,6 +60,12 @@ Setelah dibuat, buka kegiatan:
 - **Duplikat** (halaman kegiatan): salin kegiatan ke tanggal baru — target, sesi, dan jendela
   check-in ikut. Bisa **berulang** tiap minggu / 2 minggu / bulan (maks. 12), cocok untuk rapat rutin.
 
+### Kalender kegiatan
+- **Kegiatan** → tab **Kalender**: semua kegiatan sebulan, warna per divisi (abu = kegiatan umum),
+  tanggal hari ini ditandai. Tanda ⚠ **Bentrok** muncul bila dua kegiatan di hari yang sama
+  waktunya tumpang-tindih — cek dulu sebelum membuat kegiatan baru. Di HP tampil sebagai daftar
+  agenda per hari. Filter divisi/tipe/cari tetap berlaku.
+
 ## Pengumuman
 
 **Pengumuman** → **Pengumuman Baru**: judul, isi, untuk semua anggota atau satu divisi, opsional
