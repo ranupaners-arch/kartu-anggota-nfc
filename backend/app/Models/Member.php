@@ -12,6 +12,11 @@ class Member extends Model
 
     protected $guarded = [];
 
+    protected function casts(): array
+    {
+        return ['consented_at' => 'datetime', 'anonymized_at' => 'datetime'];
+    }
+
     public function memberships() { return $this->hasMany(Membership::class); }
     public function cards() { return $this->hasMany(Card::class); }
     public function activeCard() { return $this->hasOne(Card::class)->where('status', 'active'); }

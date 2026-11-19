@@ -30,6 +30,8 @@ class MemberService
             'division_id' => 'nullable|integer',
             'status' => 'sometimes|in:'.implode(',', self::STATUSES),
             'role' => 'nullable|string|max:50',
+            // Anggota baru wajib sudah menyetujui datanya diproses (PRD §13 Privasi).
+            'consent' => $member ? 'sometimes|accepted' : 'accepted',
         ];
     }
 
@@ -43,7 +45,7 @@ class MemberService
         $this->assertDivision($d);
         $d['status'] ??= 'active';
         $member = DB::transaction(function () use ($d) {
-            $member = Member::create($this->memberFields($d) + ['consented_at' => now()]);
+            $member = Member::create($this->memberFields($d) + ['consented_at' => now(), 'consented_by' => auth()->id()]);
             $this->syncMembership($member, $d);
 
             return $member;
@@ -55,9 +57,13 @@ class MemberService
 
     public function update(Member $member, array $d): Member
     {
+        $this->assertNotAnonymized($member);
         $this->assertDivision($d);
         DB::transaction(function () use ($member, $d) {
             $member->update($this->memberFields($d));
+            if (! empty($d['consent']) && ! $member->consented_at) {
+                $member->forceFill(['consented_at' => now(), 'consented_by' => auth()->id()])->save();
+            }
             $this->syncMembership($member, $d);
         });
         AuditLogger::log('member.updated', 'member', $member->id, ['fields' => array_keys($d)]);
@@ -79,6 +85,7 @@ class MemberService
     /** Ganti foto anggota (diperkecil, disk privat); foto lama dihapus. */
     public function setPhoto(Member $member, \Illuminate\Http\UploadedFile $file): Member
     {
+        $this->assertNotAnonymized($member);
         $old = $member->photo_path;
         $member->update(['photo_path' => app(PhotoService::class)->store($file, "members/{$member->organization_id}")]);
         if ($old) {
@@ -87,6 +94,21 @@ class MemberService
         AuditLogger::log('member.photo_updated', 'member', $member->id);
 
         return $member;
+    }
+
+    /** Catat persetujuan anggota lama yang belum tercatat. */
+    public function recordConsent(Member $member): Member
+    {
+        $this->assertNotAnonymized($member);
+        $member->forceFill(['consented_at' => now(), 'consented_by' => auth()->id()])->save();
+        AuditLogger::log('member.consent_recorded', 'member', $member->id);
+
+        return $member;
+    }
+
+    public function assertNotAnonymized(Member $member): void
+    {
+        abort_if($member->anonymized_at, 422, 'Data pribadi anggota ini sudah dihapus dan tidak bisa diubah.');
     }
 
     private function memberFields(array $d): array

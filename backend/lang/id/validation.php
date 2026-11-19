@@ -158,7 +158,9 @@ return [
     'ulid' => ':Attribute harus berupa ULID yang valid.',
     'uuid' => ':Attribute harus berupa UUID yang valid.',
 
-    'custom' => [],
+    'custom' => [
+        'consent' => ['accepted' => 'Pastikan anggota sudah menyetujui datanya (termasuk foto) diproses untuk absensi, lalu centang persetujuan.'],
+    ],
 
     // Nama kolom yang tampil di pesan (:Attribute di awal kalimat = huruf awal besar).
     'attributes' => [

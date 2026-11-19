@@ -94,7 +94,10 @@ class MemberImportService
                 $n[$member->exists ? 'updated' : 'created']++;
                 $member->fill(array_intersect_key($row, array_flip(['name', 'email', 'phone', 'cohort'])));
                 $member->deleted_at = null;
-                $member->consented_at ??= now();
+                if (! $member->consented_at) {
+                    $member->consented_at = now();
+                    $member->consented_by = auth()->id();
+                }
                 $member->save();
                 Membership::updateOrCreate(['member_id' => $member->id, 'term_id' => $term->id],
                     ['division_id' => $row['division_id'], 'status' => $row['status']]);

@@ -32,6 +32,7 @@ class CardController extends Controller
     {
         $d = $r->validate(['member_id' => 'required|integer', 'hw_uid' => 'nullable|string|max:64']);
         $member = Member::findOrFail($d['member_id']); // ter-scope ke organisasi
+        app(\App\Services\MemberService::class)->assertNotAnonymized($member);
         abort_unless($card->status === Card::UNASSIGNED, 409, 'Kartu sudah dipakai.');
 
         DB::transaction(function () use ($card, $d, $member) {

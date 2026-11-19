@@ -167,7 +167,7 @@ class DashboardTest extends TestCase
     public function test_member_crud_import_and_card_block(): void
     {
         $this->actingAs($this->admin);
-        $this->post(route('members.store'), ['member_no' => 'X1', 'name' => 'Budi', 'division_id' => $this->humas->id, 'status' => 'active'])->assertRedirect();
+        $this->post(route('members.store'), ['member_no' => 'X1', 'name' => 'Budi', 'division_id' => $this->humas->id, 'status' => 'active', 'consent' => '1'])->assertRedirect();
         $m = Member::where('member_no', 'X1')->firstOrFail();
         $this->put(route('members.update', $m), ['name' => 'Budi S', 'division_id' => $this->inti->id, 'status' => 'alumni'])->assertRedirect();
         $this->assertDatabaseHas('memberships', ['member_id' => $m->id, 'division_id' => $this->inti->id, 'status' => 'alumni']);
@@ -182,7 +182,8 @@ class DashboardTest extends TestCase
         $preview = $this->post(route('members.import.preview'), ['file' => $csv])->assertOk()->assertInertia(fn (Assert $page) => $page
             ->component('members/import')->where('preview.summary.valid', 1)->where('preview.summary.errors', 1));
         $token = $preview->viewData('page')['props']['preview']['token'];
-        $this->post(route('members.import.commit'), ['token' => $token, 'skip_errors' => '1'])->assertRedirect(route('members.index'));
+        $this->post(route('members.import.commit'), ['token' => $token, 'skip_errors' => '1'])->assertSessionHasErrors('consent');
+        $this->post(route('members.import.commit'), ['token' => $token, 'skip_errors' => '1', 'consent' => '1'])->assertRedirect(route('members.index'));
         $this->assertDatabaseHas('members', ['member_no' => 'Y1']);
 
         $card = Card::create(['organization_id' => $this->org->id, 'public_id' => (string) Str::ulid(), 'member_id' => $m->id, 'status' => 'active']);

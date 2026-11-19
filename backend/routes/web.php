@@ -45,6 +45,8 @@ Route::middleware(['auth:web', 'dashboard'])->group(function () {
         Route::resource('anggota', Dashboard\MemberController::class)->parameters(['anggota' => 'member'])->names('members');
         Route::get('anggota/{member}/foto', [Dashboard\MemberController::class, 'photo'])->name('members.photo');
         Route::post('anggota/{member}/foto', [Dashboard\MemberController::class, 'uploadPhoto'])->name('members.photo.upload');
+        Route::post('anggota/{member}/persetujuan', [Dashboard\MemberController::class, 'consent'])->name('members.consent');
+        Route::post('anggota/{member}/hapus-data', [Dashboard\MemberController::class, 'anonymize'])->name('members.anonymize');
         Route::get('kartu', [Dashboard\CardController::class, 'index'])->name('cards.index');
         Route::post('kartu/{card}/blokir', [Dashboard\CardController::class, 'block'])->name('cards.block');
         Route::resource('pengguna', Dashboard\UserController::class)->parameters(['pengguna' => 'user'])->names('users')->except(['show', 'destroy']);
@@ -56,6 +58,7 @@ Route::middleware(['auth:web', 'dashboard'])->group(function () {
         Route::get('log', [Dashboard\LogController::class, 'index'])->name('logs.index');
         Route::get('pengaturan', [Dashboard\SettingsController::class, 'index'])->name('settings.index');
         Route::put('pengaturan/organisasi', [Dashboard\SettingsController::class, 'updateOrganization'])->name('settings.organization');
+        Route::put('pengaturan/privasi', [Dashboard\SettingsController::class, 'updatePrivacy'])->name('settings.privacy');
         Route::post('pengaturan/periode', [Dashboard\SettingsController::class, 'storeTerm'])->name('settings.terms.store');
         Route::post('pengaturan/periode/{term}/berjalan', [Dashboard\SettingsController::class, 'setCurrentTerm'])->name('settings.terms.current');
         Route::post('pengaturan/divisi', [Dashboard\SettingsController::class, 'storeDivision'])->name('settings.divisions.store');
