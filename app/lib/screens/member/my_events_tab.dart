@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
@@ -137,6 +138,19 @@ class _MyEventsTabState extends State<MyEventsTab> {
               );
             }
           }
+          if (snap.connectionState == ConnectionState.done && !snap.hasError) {
+            children.add(
+              Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: FlexButton(
+                  label: 'Langganan jadwal ke kalender',
+                  icon: LucideIcons.calendarPlus,
+                  variant: ShadButtonVariant.outline,
+                  onPressed: () => showCalendarSubscription(context, widget.api),
+                ),
+              ),
+            );
+          }
           return ListView(padding: const EdgeInsets.all(16), physics: const AlwaysScrollableScrollPhysics(), children: children);
         },
       ),
@@ -145,6 +159,95 @@ class _MyEventsTabState extends State<MyEventsTab> {
 }
 
 /// Label status kegiatan untuk anggota: hasil absensi, status izin, atau belum.
+/// Dialog tautan langganan jadwal (.ics): salin, lalu tambahkan di Google Calendar / kalender HP.
+Future<void> showCalendarSubscription(BuildContext context, ApiClient api) {
+  return showShadDialog<void>(
+    context: context,
+    builder: (context) => _CalendarDialog(api: api),
+  );
+}
+
+class _CalendarDialog extends StatefulWidget {
+  const _CalendarDialog({required this.api});
+
+  final ApiClient api;
+
+  @override
+  State<_CalendarDialog> createState() => _CalendarDialogState();
+}
+
+class _CalendarDialogState extends State<_CalendarDialog> {
+  late Future<String> _url = widget.api.calendarUrl();
+  bool _copied = false;
+
+  Future<void> _copy(String url) async {
+    await Clipboard.setData(ClipboardData(text: url));
+    if (mounted) setState(() => _copied = true);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = ShadTheme.of(context);
+    return FutureBuilder<String>(
+      future: _url,
+      builder: (context, snap) {
+        final url = snap.data;
+        return ShadDialog(
+          title: const Text('Langganan jadwal'),
+          description: const Text('Kegiatan Anda muncul otomatis di aplikasi kalender dan ikut diperbarui.'),
+          actions: [
+            ShadButton.outline(onPressed: () => Navigator.of(context).pop(), child: const Text('Tutup')),
+            ShadButton(
+              enabled: url != null,
+              onPressed: url == null ? null : () => _copy(url),
+              leading: Icon(_copied ? LucideIcons.check : LucideIcons.copy, size: 16),
+              child: Text(_copied ? 'Tersalin' : 'Salin tautan'),
+            ),
+          ],
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (snap.hasError)
+                  ErrorBanner(snap.error is ApiException ? (snap.error as ApiException).message : 'Tidak bisa memuat tautan. Coba lagi nanti.')
+                else if (url == null)
+                  const Center(child: Padding(padding: EdgeInsets.all(12), child: CircularProgressIndicator()))
+                else ...[
+                  SelectableText(url, style: theme.textTheme.small.copyWith(fontFamily: 'monospace')),
+                  const SizedBox(height: 12),
+                  Text('Cara memakai:', style: theme.textTheme.small),
+                  const SizedBox(height: 4),
+                  Text(
+                    '1. Salin tautan.\n'
+                    '2. Google Calendar: buka calendar.google.com di browser → Setelan → Tambahkan kalender → Dari URL → tempel.\n'
+                    '3. Kalender iPhone: Setelan → Kalender → Akun → Tambah akun → Lainnya → Tambah kalender langganan.',
+                    style: theme.textTheme.muted,
+                  ),
+                  const SizedBox(height: 8),
+                  Text('Rahasiakan tautan ini. Bila tersebar, buat tautan baru — yang lama langsung tidak berlaku.', style: theme.textTheme.muted),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: ShadButton.link(
+                      padding: EdgeInsets.zero,
+                      onPressed: () => setState(() {
+                        _copied = false;
+                        _url = widget.api.calendarUrl(reset: true);
+                      }),
+                      child: const Text('Buat tautan baru'),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
 abstract final class MyEventsTabStatus {
   static String of(MemberEvent e) {
     if (e.sessions > 1 && (e.myStatus != null || e.presentSessions > 0)) return 'Hadir ${e.presentSessions}/${e.sessions} sesi';

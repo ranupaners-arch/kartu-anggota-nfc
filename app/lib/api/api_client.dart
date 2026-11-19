@@ -181,6 +181,12 @@ class ApiClient {
     return [for (final a in j['data'] as List) Announcement.fromJson(a as Map<String, dynamic>)];
   }
 
+  /// Tautan langganan jadwal (.ics) milik akun ini; [reset] = buat tautan baru (yang lama mati).
+  Future<String> calendarUrl({bool reset = false}) async {
+    final j = await _send(reset ? 'POST' : 'GET', reset ? '/api/me/calendar/reset' : '/api/me/calendar');
+    return j['url'] as String;
+  }
+
   Future<MemberHistory> myHistory() async => MemberHistory.fromJson(await _send('GET', '/api/me/history'));
 
   /// Ajukan izin/sakit; lampiran opsional (gambar/PDF, maks. 5 MB).

@@ -29,6 +29,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('me/events', [MeController::class, 'events']);
     Route::get('me/history', [MeController::class, 'history']);
     Route::get('me/announcements', [MeController::class, 'announcements']);
+    Route::get('me/calendar', [\App\Http\Controllers\CalendarFeedController::class, 'url']);
+    Route::post('me/calendar/reset', [\App\Http\Controllers\CalendarFeedController::class, 'reset'])->middleware('throttle:5,1');
     Route::get('me/report-card', [MeController::class, 'reportCard'])->middleware('throttle:10,1');
     Route::get('members/{member}/summary', [MemberController::class, 'summary']);
     Route::post('excuses', [ExcuseController::class, 'store']);

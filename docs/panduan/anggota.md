@@ -29,6 +29,15 @@ layar tidak bisa dipakai. Butuh koneksi internet.
 Tab **Kegiatan** menampilkan pengumuman dari pengurus, dan **pengingat** untuk kegiatan yang dimulai
 dalam 24 jam ke depan (bila Anda belum tercatat hadir atau belum mengajukan izin).
 
+## Jadwal di kalender HP
+
+- Tab **Kegiatan** → paling bawah **Langganan jadwal ke kalender** → **Salin tautan**.
+- Google Calendar: buka *calendar.google.com* di browser → **Setelan** → **Tambahkan kalender** →
+  **Dari URL** → tempel. Kegiatan Anda lalu muncul di Google Calendar HP juga dan diperbarui
+  otomatis (bisa tertunda beberapa jam).
+- iPhone: **Setelan → Kalender → Akun → Tambah akun → Lainnya → Tambah kalender langganan**.
+- Rahasiakan tautannya. Bila tersebar, tekan **Buat tautan baru** — tautan lama langsung mati.
+
 ## Riwayat
 
 Tab **Riwayat** menampilkan persentase kehadiran periode berjalan dan daftar kehadiran Anda. Bila

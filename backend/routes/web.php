@@ -3,6 +3,10 @@
 use App\Http\Controllers\Dashboard;
 use Illuminate\Support\Facades\Route;
 
+// Langganan jadwal (.ics): tanpa login, token rahasia di URL.
+Route::get('jadwal/{token}.ics', [App\Http\Controllers\CalendarFeedController::class, 'show'])
+    ->where('token', '[A-Za-z0-9]{48}')->middleware('throttle:30,1')->name('calendar.feed');
+
 Route::middleware('guest')->group(function () {
     Route::get('masuk', [Dashboard\AuthController::class, 'show'])->name('login');
     Route::post('masuk', [Dashboard\AuthController::class, 'login'])->middleware('throttle:10,1');
@@ -15,6 +19,7 @@ Route::middleware(['auth:web', 'dashboard'])->group(function () {
     Route::get('/', Dashboard\HomeController::class)->name('home');
     Route::get('cari', Dashboard\SearchController::class)->middleware('throttle:60,1')->name('search');
     Route::get('akun', [Dashboard\AccountController::class, 'edit'])->name('account');
+    Route::post('akun/kalender', [App\Http\Controllers\CalendarFeedController::class, 'reset'])->name('account.calendar.reset');
     Route::put('akun/password', [Dashboard\AccountController::class, 'password'])->name('account.password');
     Route::post('akun/2fa', [Dashboard\AccountController::class, 'startTwoFactor'])->name('account.2fa.start');
     Route::post('akun/2fa/konfirmasi', [Dashboard\AccountController::class, 'confirmTwoFactor'])->middleware('throttle:10,1')->name('account.2fa.confirm');

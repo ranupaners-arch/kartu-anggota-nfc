@@ -1,7 +1,8 @@
 import { Head, router, useForm } from '@inertiajs/react';
-import { Copy, ShieldCheck } from 'lucide-react';
+import { CalendarPlus, Check, Copy, ShieldCheck } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
-import { type FormEvent } from 'react';
+import { type FormEvent, useState } from 'react';
+import { ConfirmAction } from '@/components/confirm-action';
 import { FormField } from '@/components/form-field';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,7 +15,45 @@ type TwoFactor = {
     enabled: boolean; confirmedAt: string | null; recoveryRemaining: number;
     setup: { otpauthUrl: string; secret: string } | null; recoveryCodes: string[] | null;
 };
-interface Props { user: { name: string; email: string; role: string; member: { member_no: string; name: string } | null }; twoFactor: TwoFactor }
+interface Props { user: { name: string; email: string; role: string; member: { member_no: string; name: string } | null }; twoFactor: TwoFactor; calendarUrl: string | null }
+
+/** Tautan langganan jadwal (.ics) untuk Google Calendar / kalender HP. */
+function CalendarCard({ url }: { url: string | null }) {
+    const [copied, setCopied] = useState(false);
+    const copy = async () => {
+        if (!url) return;
+        try {
+            await navigator.clipboard.writeText(url);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+        } catch { /* clipboard ditolak: pengguna bisa salin manual dari kotak */ }
+    };
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle className="flex items-center gap-2"><CalendarPlus className="size-4" /> Langganan jadwal</CardTitle>
+                <CardDescription>Tampilkan kegiatan yang bisa Anda kelola di Google Calendar atau kalender HP, diperbarui otomatis.</CardDescription>
+            </CardHeader>
+            <CardContent className="grid gap-3 text-sm">
+                {url ? (
+                    <>
+                        <div className="flex gap-2">
+                            <Input readOnly value={url} aria-label="Tautan langganan jadwal" onFocus={(e) => e.currentTarget.select()} className="font-mono text-xs" />
+                            <Button variant="outline" onClick={copy} aria-live="polite">{copied ? <><Check /> Tersalin</> : <><Copy /> Salin</>}</Button>
+                        </div>
+                        <p className="text-muted-foreground">Google Calendar (komputer): <b>Setelan → Tambahkan kalender → Dari URL</b>, tempel tautan ini. Kalender Apple: <b>Tambah langganan kalender</b>. Pembaruan bisa tertunda beberapa jam (diatur aplikasi kalendernya).</p>
+                        <p className="text-muted-foreground">Rahasiakan tautan ini — siapa pun yang memilikinya bisa melihat jadwal Anda.</p>
+                        <div>
+                            <ConfirmAction size="sm" title="Ganti tautan langganan?" description="Tautan lama langsung tidak berlaku; kalender yang memakai tautan lama perlu ditambahkan ulang." href="/akun/kalender" confirmLabel="Ganti tautan">Ganti tautan</ConfirmAction>
+                        </div>
+                    </>
+                ) : (
+                    <div><Button onClick={() => router.post('/akun/kalender', {}, { preserveScroll: true })}><CalendarPlus /> Buat tautan langganan</Button></div>
+                )}
+            </CardContent>
+        </Card>
+    );
+}
 
 /** Aktifkan / konfirmasi / nonaktifkan 2FA (TOTP). */
 function TwoFactorCard({ tf }: { tf: TwoFactor }) {
@@ -73,7 +112,7 @@ function TwoFactorCard({ tf }: { tf: TwoFactor }) {
     );
 }
 
-export default function Account({ user, twoFactor }: Props) {
+export default function Account({ user, twoFactor, calendarUrl }: Props) {
     const form = useForm({ current_password: '', password: '', password_confirmation: '' });
     const submit = (e: FormEvent) => {
         e.preventDefault();
@@ -108,6 +147,7 @@ export default function Account({ user, twoFactor }: Props) {
                     </CardContent>
                 </Card>
                 <TwoFactorCard tf={twoFactor} />
+                <CalendarCard url={calendarUrl} />
             </div>
         </AppLayout>
     );
