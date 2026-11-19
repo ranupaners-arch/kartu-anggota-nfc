@@ -1,11 +1,11 @@
 name: Deploy (uji stack Docker)
 
 # Menjalankan stack produksi (deploy/compose.yaml) seperti di VPS, tanpa domain (HTTP :80),
-# lalu menguji setup, halaman, login, queue, scheduler, serta backup + restore.
+# lalu menguji setup, halaman, login, queue, scheduler, uji beban scan, serta backup + restore.
 on:
   push:
     branches: [main]
-    paths: ['backend/**', 'deploy/**', '.dockerignore', '.github/workflows/deploy.yml']
+    paths: ['backend/**', 'deploy/**', '.dockerignore', '.github/workflows/deploy.yml', '.github/scripts/**']
   workflow_dispatch:
 
 defaults:
@@ -100,6 +100,11 @@ jobs:
           echo "request id: $id"; test -n "$id"
           docker compose exec -T app php artisan tinker --execute='Illuminate\Support\Facades\Log::warning("uji log ci");' 2>&1 \
             | tee /dev/stderr | grep 'uji log ci' | grep -q '"level_name":"WARNING"'
+
+      - name: Uji beban scan (PRD — scan < 1 detik, batch 200 < 5 detik)
+        run: |
+          docker compose exec -T app php artisan tinker --execute="$(tail -n +2 ../.github/scripts/uji-beban-siapkan.php)" > beban.json
+          python3 ../.github/scripts/uji-beban-scan.py beban.json http://localhost
 
       - name: Backup lalu restore ke database kosong
         run: |
