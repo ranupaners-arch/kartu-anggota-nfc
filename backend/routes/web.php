@@ -46,6 +46,7 @@ Route::middleware(['auth:web', 'dashboard'])->group(function () {
     Route::get('anggota', [Dashboard\MemberController::class, 'index'])->name('members.index');
     Route::get('anggota/{member}', [Dashboard\MemberController::class, 'show'])->whereNumber('member')->name('members.show');
     Route::get('anggota/{member}/foto', [Dashboard\MemberController::class, 'photo'])->whereNumber('member')->name('members.photo');
+    Route::get('anggota/{member}/rapor', [Dashboard\MemberController::class, 'reportCard'])->whereNumber('member')->name('members.report-card');
 
     // Data & Administrasi — Super Admin
     Route::middleware('role:super_admin')->group(function () {

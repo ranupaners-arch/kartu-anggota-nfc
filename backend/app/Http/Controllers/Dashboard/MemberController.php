@@ -102,7 +102,7 @@ class MemberController extends Controller
             ],
             'tab' => $tab,
             'memberships' => $member->memberships->sortByDesc('term_id')->values()->map(fn ($ms) => [
-                'id' => $ms->id, 'term' => $ms->term?->name, 'division' => $ms->division?->name, 'role' => $ms->role, 'status' => $ms->status,
+                'id' => $ms->id, 'term_id' => $ms->term_id, 'term' => $ms->term?->name, 'division' => $ms->division?->name, 'role' => $ms->role, 'status' => $ms->status,
             ]),
             'cards' => $member->cards->sortByDesc('issued_at')->values()->map->only('id', 'public_id', 'status', 'issued_at', 'revoked_at'),
             'attendances' => $tab === 'riwayat'
@@ -161,6 +161,16 @@ class MemberController extends Controller
         $this->members->setPhoto($member, $r->file('photo'));
 
         return back()->with('status', 'Foto diperbarui.');
+    }
+
+    /** Rapor kehadiran PDF; ?periode= (bawaan: periode berjalan). */
+    public function reportCard(Request $r, Member $member, \App\Services\ReportCardService $cards)
+    {
+        $this->members->authorizeView($r->user(), $member);
+        $term = $r->integer('periode') ? \App\Models\Term::findOrFail($r->integer('periode')) : $this->members->currentTerm();
+        [$pdf, $name] = $cards->pdf($member, $term);
+
+        return response($pdf, 200, ['Content-Type' => 'application/pdf', 'Content-Disposition' => 'inline; filename="'.$name.'"']);
     }
 
     public function photo(Request $r, Member $member)

@@ -59,6 +59,16 @@ class MeController extends Controller
             ->map(fn ($a) => $a->only('id', 'title', 'body', 'pinned', 'created_at') + ['division' => $a->division?->name])];
     }
 
+    /** Rapor kehadiran PDF periode berjalan untuk anggota sendiri. */
+    public function reportCard(Request $r, \App\Services\ReportCardService $cards)
+    {
+        $member = \App\Models\Member::findOrFail($this->memberId($r));
+        $term = Term::where('is_current', true)->firstOrFail();
+        [$pdf, $name] = $cards->pdf($member, $term);
+
+        return response($pdf, 200, ['Content-Type' => 'application/pdf', 'Content-Disposition' => 'attachment; filename="'.$name.'"']);
+    }
+
     /** Ringkasan kehadiran periode berjalan + riwayat terbaru. */
     public function history(Request $r)
     {
