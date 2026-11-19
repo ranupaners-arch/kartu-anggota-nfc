@@ -214,7 +214,7 @@ function PrivacySettings({ privacy }: { privacy: Privacy }) {
 }
 
 type Check = { status: 'ok' | 'warn' | 'fail'; message: string; ms?: number };
-type Health = { status: Check['status']; checks: Record<string, Check>; checked_at: string; sentry: boolean; healthTokenSet: boolean; healthUrl: string };
+type Health = { status: Check['status']; checks: Record<string, Check>; checked_at: string; sentry: boolean; healthTokenSet: boolean; healthUrl: string; mail: { enabled: boolean; mailer: string; from: string | null } };
 const checkLabels: Record<string, string> = { database: 'Database', cache: 'Cache (Redis)', storage: 'Penyimpanan berkas', queue: 'Queue worker', scheduler: 'Scheduler' };
 const statusTone: Record<Check['status'], string> = {
     ok: 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400', warn: 'bg-amber-500/10 text-amber-700 dark:text-amber-400', fail: 'bg-destructive/10 text-destructive',
@@ -225,6 +225,26 @@ const statusText: Record<Check['status'], string> = { ok: 'Normal', warn: 'Perlu
 function SystemHealth({ health }: { health: Health }) {
     return (
         <>
+            <Card className="max-w-3xl">
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                        Email <span className={`rounded-md px-2 py-0.5 text-sm font-medium ${statusTone[health.mail.enabled ? 'ok' : 'warn']}`}>{health.mail.enabled ? 'Aktif' : 'Belum diatur'}</span>
+                    </CardTitle>
+                    <CardDescription>Dipakai untuk <b>lupa password</b> dan <b>ringkasan mingguan</b> pengurus (Senin 07.00).</CardDescription>
+                </CardHeader>
+                <CardContent className="grid gap-3 text-sm">
+                    {health.mail.enabled ? (
+                        <>
+                            <p className="text-muted-foreground">Pengirim: <code className="rounded bg-muted px-1.5 py-0.5">{health.mail.from}</code> · driver <code className="rounded bg-muted px-1.5 py-0.5">{health.mail.mailer}</code></p>
+                            <div><ConfirmAction size="sm" title="Kirim email uji?" description="Email uji dikirim ke alamat akun Anda." href="/pengaturan/email-uji" confirmLabel="Kirim">Kirim email uji</ConfirmAction></div>
+                        </>
+                    ) : (
+                        <p className="text-muted-foreground">
+                            Isi <code className="rounded bg-muted px-1.5 py-0.5">MAIL_MAILER=smtp</code>, <code className="rounded bg-muted px-1.5 py-0.5">MAIL_HOST</code>, <code className="rounded bg-muted px-1.5 py-0.5">MAIL_PORT</code>, <code className="rounded bg-muted px-1.5 py-0.5">MAIL_USERNAME</code>, <code className="rounded bg-muted px-1.5 py-0.5">MAIL_PASSWORD</code>, dan <code className="rounded bg-muted px-1.5 py-0.5">MAIL_FROM_ADDRESS</code> di file <code>.env</code> server (lihat docs/deploy.md), lalu jalankan ulang. Sampai saat itu, reset password hanya lewat pengurus.
+                        </p>
+                    )}
+                </CardContent>
+            </Card>
             <Card className="max-w-3xl">
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2">

@@ -1,4 +1,4 @@
-import { Head, useForm } from '@inertiajs/react';
+import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import { type FormEvent } from 'react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -6,8 +6,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import type { SharedProps } from '@/types';
 
-export default function Login() {
+export default function Login({ canResetPassword = false }: { canResetPassword?: boolean }) {
+    const status = usePage<SharedProps>().props.flash?.status;
     const form = useForm({ email: '', password: '', remember: false });
     const submit = (e: FormEvent) => {
         e.preventDefault();
@@ -29,6 +31,7 @@ export default function Login() {
                 </CardHeader>
                 <CardContent>
                     <form onSubmit={submit} className="grid gap-4">
+                        {status && <Alert role="status"><AlertDescription>{status}</AlertDescription></Alert>}
                         {form.errors.email && (
                             <Alert variant="destructive"><AlertDescription>{form.errors.email}</AlertDescription></Alert>
                         )}
@@ -38,7 +41,10 @@ export default function Login() {
                                 value={form.data.email} onChange={(e) => form.setData('email', e.target.value)} />
                         </div>
                         <div className="grid gap-2">
-                            <Label htmlFor="password">Password</Label>
+                            <div className="flex items-center justify-between">
+                                <Label htmlFor="password">Password</Label>
+                                {canResetPassword && <Link href="/lupa-password" className="text-sm text-muted-foreground underline-offset-4 hover:underline">Lupa password?</Link>}
+                            </div>
                             <Input id="password" type="password" autoComplete="current-password" required
                                 value={form.data.password} onChange={(e) => form.setData('password', e.target.value)} />
                         </div>
