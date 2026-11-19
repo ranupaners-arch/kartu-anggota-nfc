@@ -211,3 +211,9 @@
 .dark {
     --chart-bar: #6366f1;
 }
+
+/* Tabel yang meluap bisa difokus untuk digeser dengan keyboard (lihat DataTable): tampilkan cincin fokus. */
+[data-slot='table-container']:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: -2px;
+}
