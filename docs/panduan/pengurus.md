@@ -63,8 +63,10 @@ Setelah dibuat, buka kegiatan:
 - **Tutup Kegiatan**: anggota wajib yang tidak scan ditandai **Alpa**, atau **Izin/Sakit** bila
   izinnya sudah disetujui. Bila tidak ditutup manual, sistem menutup otomatis ±5 menit setelah
   check-in sesi terakhir berakhir.
-- **Pengajuan Izin**: **Setujui** / **Tolak** (lihat lampiran bukti). Setujui **sebelum** kegiatan
-  ditutup agar langsung tercatat Izin/Sakit; sesudahnya, koreksi lewat Daftar Hadir.
+- **Pengajuan Izin**: **Setujui** / **Tolak** (lihat lampiran bukti). Bila disetujui setelah
+  kegiatan ditutup, status Alpa anggota itu otomatis diganti Izin/Sakit (tercatat sebagai koreksi).
+- Anggota mengabarkan izin langsung (tanpa app)? **Pengajuan Izin** → **Catat Izin**: pilih
+  kegiatan, isi nomor anggota, jenis, alasan, bukti (opsional); centang **Langsung setujui**.
 - **Perlu Ditinjau**: scan yang perlu keputusan —
   *Konflik Offline* (mis. kartu diblokir setelah scan offline), *Override*, *Anomali* (kartu sama
   di dua tempat dalam satu menit). **Terima** atau **Batalkan**.

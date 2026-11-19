@@ -30,6 +30,7 @@ Route::middleware(['auth:web', 'dashboard'])->group(function () {
     Route::delete('kegiatan/{event}/sesi/{session}', [Dashboard\EventController::class, 'destroySession'])->name('events.sessions.destroy');
     Route::patch('absensi/{attendance}', [Dashboard\EventController::class, 'correct'])->name('attendances.correct');
     Route::get('izin', [Dashboard\ExcuseController::class, 'index'])->name('excuses.index');
+    Route::post('izin', [Dashboard\ExcuseController::class, 'store'])->name('excuses.store');
     Route::patch('izin/{excuse}', [Dashboard\ExcuseController::class, 'review'])->name('excuses.review');
     Route::get('izin/{excuse}/bukti', [Dashboard\ExcuseController::class, 'attachment'])->name('excuses.attachment');
     Route::get('tinjauan', [Dashboard\ReviewController::class, 'index'])->name('reviews.index');

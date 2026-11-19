@@ -2,14 +2,53 @@
 
 namespace App\Services;
 
+use App\Models\Attendance;
+use App\Models\Event;
 use App\Models\ExcuseRequest;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 
 /** Pengajuan izin/sakit. */
 class ExcuseService
 {
-    public function __construct(private EventService $events) {}
+    public function __construct(private EventService $events, private AttendanceService $attendances) {}
+
+    /**
+     * Ajukan/ubah izin. Anggota: untuk dirinya, selama kegiatan belum ditutup. Pengurus: atas nama
+     * anggota peserta kegiatan yang boleh ia kelola, juga setelah kegiatan ditutup (retroaktif).
+     */
+    public function submit(User $actor, Event $event, int $memberId, string $type, string $reason, ?UploadedFile $attachment = null): ExcuseRequest
+    {
+        if ($actor->isAdmin()) {
+            $this->events->authorize($actor, $event);
+        } else {
+            abort_unless($actor->member_id === $memberId, 403);
+            abort_if($event->closed_at, 422, 'Kegiatan sudah ditutup; hubungi admin.');
+        }
+        abort_unless($event->targetMembers()->whereKey($memberId)->exists(), 422, 'Anggota ini bukan peserta kegiatan tersebut.');
+        abort_if(Attendance::where('event_id', $event->id)->where('member_id', $memberId)->whereNull('voided_at')
+            ->whereIn('status', ['hadir', 'telat'])->count() >= $event->sessions()->count(), 422, 'Sudah tercatat hadir di kegiatan ini.');
+
+        $excuse = ExcuseRequest::firstOrNew(['event_id' => $event->id, 'member_id' => $memberId]);
+        // Yang sudah diputuskan tidak bisa dibuka ulang lewat pengajuan baru.
+        abort_if($excuse->exists && $excuse->status !== 'pending', 422, 'Pengajuan untuk kegiatan ini sudah diputuskan.');
+
+        $old = $excuse->attachment_path;
+        $excuse->fill(['type' => $type, 'reason' => $reason, 'status' => 'pending']);
+        if ($attachment) {
+            $excuse->attachment_path = $attachment->store("excuses/{$event->organization_id}", 'local');
+        }
+        $excuse->save();
+        if ($old && $old !== $excuse->attachment_path) {
+            Storage::disk('local')->delete($old); // lampiran lama diganti
+        }
+        AuditLogger::log($event->closed_at ? 'excuse.retroactive' : 'excuse.submitted', 'excuse', $excuse->id,
+            $actor->isAdmin() ? ['by_admin' => true] : [], $actor->id);
+
+        return $excuse;
+    }
 
     /** Pengajuan yang boleh dilihat user (Admin Divisi: kegiatan divisinya + kegiatan umum). */
     public function visibleTo(User $user): Builder
@@ -26,6 +65,13 @@ class ExcuseService
 
         $excuse->update(['status' => $status, 'review_note' => $note, 'reviewed_by' => $user->id, 'reviewed_at' => now()]);
         AuditLogger::log("excuse.$status", 'excuse', $excuse->id);
+
+        // Kegiatan sudah ditutup: Alpa anggota ini diganti Izin/Sakit (tercatat sebagai koreksi).
+        if ($status === 'approved' && $excuse->event->closed_at) {
+            Attendance::where('event_id', $excuse->event_id)->where('member_id', $excuse->member_id)
+                ->whereNull('voided_at')->where('status', Attendance::ALPA)->get()
+                ->each(fn (Attendance $a) => $this->attendances->correct($user, $a, $excuse->type, false, 'Izin disetujui setelah kegiatan ditutup'));
+        }
 
         return $excuse->fresh();
     }
