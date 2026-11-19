@@ -145,3 +145,10 @@ docker compose exec app php artisan app:retention --dry-run   # lihat apa yang a
   — tanpa nama/email. Cari semua log satu request: `docker compose logs app | grep <request_id>`.
 - **Pelacakan error (opsional):** isi `SENTRY_LARAVEL_DSN` (sentry.io atau GlitchTip self-hosted), lalu
   `docker compose up -d`. Data pribadi tidak dikirim; error dikelompokkan dengan request_id-nya.
+
+## Performa
+
+Target PRD: scan < 1 detik (p95), batch 200 scan < 5 detik. Dibuktikan otomatis di CI uji stack
+(`.github/scripts/uji-beban-scan.py`: 4 petugas scan bersamaan + satu batch 200 scan offline) dan
+dijaga oleh anggaran query di `tests/Feature/ScanPerformanceTest.php` (≤ 12 query per scan,
+± 2 query per scan dalam batch). Batas laju scan: 120 per menit per petugas.

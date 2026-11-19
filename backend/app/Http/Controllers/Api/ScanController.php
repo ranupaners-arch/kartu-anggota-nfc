@@ -29,8 +29,12 @@ class ScanController extends Controller
         $user = $r->user();
         $device = $this->device($r);
 
-        $results = collect($r->input('scans'))->map(function ($s) use ($event, $user, $device) {
-            $res = $this->scans->process($event, $s, $user, $device, fromBatch: true);
+        // Data kegiatan, kartu, dan absensi dimuat sekali untuk seluruh batch.
+        $ctx = new \App\Services\ScanContext($event);
+        $ctx->prefetch($r->input('scans'));
+
+        $results = collect($r->input('scans'))->map(function ($s) use ($event, $user, $device, $ctx) {
+            $res = $this->scans->process($event, $s, $user, $device, fromBatch: true, ctx: $ctx);
 
             return ['client_uuid' => $s['client_uuid'] ?? null] + $res;
         });
