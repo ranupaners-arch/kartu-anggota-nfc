@@ -88,17 +88,18 @@ function PrivacyCard({ member, privacy }: { member: Member; privacy: Privacy }) 
     );
 }
 
-export default function MemberShow({ member, tab, memberships, cards, attendances, privacy }: {
-    member: Member; tab: string; memberships: Ms[]; cards: CardRow[]; attendances: Paginated<Att> | null; privacy: Privacy;
+export default function MemberShow({ member, tab, memberships, cards, attendances, privacy, canManage }: {
+    member: Member; tab: string; memberships: Ms[]; cards: CardRow[]; attendances: Paginated<Att> | null; privacy: Privacy; canManage: boolean;
 }) {
     const anonymized = Boolean(privacy.anonymizedAt);
+    const editable = canManage && !anonymized;
     const upload = (e: ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) router.post(`/anggota/${member.id}/foto`, { photo: file }, { forceFormData: true, preserveScroll: true });
     };
 
     return (
-        <AppLayout title={member.name} actions={anonymized ? undefined :
+        <AppLayout title={member.name} actions={!editable ? undefined :
             <>
                 <Button variant="outline" render={<Link href={`/anggota/${member.id}/edit`} />}><Pencil /> Ubah</Button>
                 <ConfirmAction destructive title="Hapus anggota?" description="Data disimpan sebagai arsip (soft delete) dan kartu aktifnya diblokir." href={`/anggota/${member.id}`} method="delete" confirmLabel="Hapus">
@@ -123,7 +124,7 @@ export default function MemberShow({ member, tab, memberships, cards, attendance
                             {member.photo_url
                                 ? <img src={member.photo_url} alt={`Foto ${member.name}`} className="aspect-square w-40 rounded-lg object-cover" />
                                 : <div className="flex aspect-square w-40 items-center justify-center rounded-lg bg-muted"><UserRound className="size-12 text-muted-foreground" /></div>}
-                            {!anonymized && (
+                            {editable && (
                                 <Button variant="outline" size="sm" render={<label className="cursor-pointer" />}>
                                     Unggah foto<input type="file" accept="image/*" className="sr-only" onChange={upload} />
                                 </Button>
@@ -144,7 +145,7 @@ export default function MemberShow({ member, tab, memberships, cards, attendance
                                 <TableRow key={m.id}><TableCell>{m.term}</TableCell><TableCell>{m.division ?? '—'}</TableCell><TableCell>{m.role ?? '—'}</TableCell><TableCell><StatusBadge status={m.status} /></TableCell></TableRow>
                             ))}
                         </DataTable>
-                        {!anonymized && <PrivacyCard member={member} privacy={privacy} />}
+                        {editable && <PrivacyCard member={member} privacy={privacy} />}
                     </div>
                 </div>
             )}

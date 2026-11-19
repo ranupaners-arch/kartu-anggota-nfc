@@ -40,13 +40,18 @@ Route::middleware(['auth:web', 'dashboard'])->group(function () {
     Route::post('ekspor', [Dashboard\ReportController::class, 'export'])->name('exports.store');
     Route::get('ekspor/{export}/unduh', [Dashboard\ReportController::class, 'download'])->name('exports.download');
 
+    // Anggota: lihat (Admin Divisi: divisinya saja, dicek di MemberService)
+    Route::get('anggota', [Dashboard\MemberController::class, 'index'])->name('members.index');
+    Route::get('anggota/{member}', [Dashboard\MemberController::class, 'show'])->whereNumber('member')->name('members.show');
+    Route::get('anggota/{member}/foto', [Dashboard\MemberController::class, 'photo'])->whereNumber('member')->name('members.photo');
+
     // Data & Administrasi — Super Admin
     Route::middleware('role:super_admin')->group(function () {
         Route::get('anggota/impor', [Dashboard\MemberController::class, 'importForm'])->name('members.import');
         Route::post('anggota/impor', [Dashboard\MemberController::class, 'importPreview'])->name('members.import.preview');
         Route::post('anggota/impor/simpan', [Dashboard\MemberController::class, 'importCommit'])->name('members.import.commit');
-        Route::resource('anggota', Dashboard\MemberController::class)->parameters(['anggota' => 'member'])->names('members');
-        Route::get('anggota/{member}/foto', [Dashboard\MemberController::class, 'photo'])->name('members.photo');
+        Route::resource('anggota', Dashboard\MemberController::class)->parameters(['anggota' => 'member'])->names('members')->except(['index', 'show']);
+        Route::post('anggota/{member}/pulihkan', [Dashboard\MemberController::class, 'restore'])->withTrashed()->name('members.restore');
         Route::post('anggota/{member}/foto', [Dashboard\MemberController::class, 'uploadPhoto'])->name('members.photo.upload');
         Route::post('anggota/{member}/persetujuan', [Dashboard\MemberController::class, 'consent'])->name('members.consent');
         Route::post('anggota/{member}/hapus-data', [Dashboard\MemberController::class, 'anonymize'])->name('members.anonymize');

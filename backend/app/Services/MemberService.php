@@ -7,6 +7,8 @@ use App\Models\Division;
 use App\Models\Member;
 use App\Models\Membership;
 use App\Models\Term;
+use App\Models\User;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
@@ -21,8 +23,8 @@ class MemberService
         $req = $member ? 'sometimes' : 'required';
 
         return [
-            'member_no' => [$req, 'string', 'max:50', Rule::unique('members')->where('organization_id', $organizationId)
-                ->whereNull('deleted_at')->ignore($member?->id)],
+            // Unik termasuk anggota di arsip (indeks database juga begitu): nomor arsip dipulihkan, bukan dipakai ulang.
+            'member_no' => [$req, 'string', 'max:50', Rule::unique('members')->where('organization_id', $organizationId)->ignore($member?->id)],
             'name' => "$req|string|max:150",
             'email' => 'nullable|email|max:150',
             'phone' => 'nullable|string|max:30',
@@ -33,6 +35,29 @@ class MemberService
             // Anggota baru wajib sudah menyetujui datanya diproses (PRD §13 Privasi).
             'consent' => $member ? 'sometimes|accepted' : 'accepted',
         ];
+    }
+
+    /** Anggota yang boleh dilihat: Super Admin semua; Admin Divisi hanya divisinya di periode berjalan. */
+    public function visibleTo(User $user): Builder
+    {
+        return Member::query()->when($user->role === User::DIVISION_ADMIN, fn ($q) => $q->whereHas('memberships', fn ($m) => $m
+            ->where('division_id', $user->division_id)->whereHas('term', fn ($t) => $t->where('is_current', true))));
+    }
+
+    public function authorizeView(User $user, Member $member): void
+    {
+        abort_unless($this->visibleTo($user)->whereKey($member->id)->exists(), 403, 'Bukan anggota divisi Anda.');
+    }
+
+    /** Pulihkan anggota dari arsip. Kartu lamanya tetap diblokir. */
+    public function restore(Member $member): Member
+    {
+        abort_unless($member->trashed(), 422, 'Anggota tidak ada di arsip.');
+        abort_if($member->anonymized_at, 422, 'Data pribadi anggota ini sudah dihapus.');
+        $member->restore();
+        AuditLogger::log('member.restored', 'member', $member->id);
+
+        return $member;
     }
 
     public function currentTerm(): Term

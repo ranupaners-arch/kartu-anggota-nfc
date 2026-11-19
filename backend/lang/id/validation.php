@@ -159,6 +159,7 @@ return [
     'uuid' => ':Attribute harus berupa UUID yang valid.',
 
     'custom' => [
+        'member_no' => ['unique' => 'Nomor anggota sudah dipakai — bisa jadi oleh anggota di tab Arsip; pulihkan dari sana.'],
         'consent' => ['accepted' => 'Pastikan anggota sudah menyetujui datanya (termasuk foto) diproses untuk absensi, lalu centang persetujuan.'],
     ],
 

@@ -30,7 +30,8 @@ function useNavigation(): Group[] {
         {
             label: 'Data',
             items: [
-                ...(superAdmin ? [{ label: 'Anggota', href: '/anggota', icon: Users }, { label: 'Kartu', href: '/kartu', icon: CreditCard }] : []),
+                { label: 'Anggota', href: '/anggota', icon: Users },
+                ...(superAdmin ? [{ label: 'Kartu', href: '/kartu', icon: CreditCard }] : []),
                 { label: 'Rekap & Ekspor', href: '/rekap', icon: BarChart3 },
             ],
         },
