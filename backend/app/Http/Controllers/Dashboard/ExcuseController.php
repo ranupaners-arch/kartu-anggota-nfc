@@ -67,6 +67,17 @@ class ExcuseController extends Controller
         return back()->with('status', $d['status'] === 'approved' ? 'Izin disetujui.' : 'Izin ditolak.');
     }
 
+    public function reviewMany(Request $r)
+    {
+        $d = $r->validate([
+            'ids' => 'required|array|min:1|max:100', 'ids.*' => 'integer',
+            'status' => 'required|in:approved,rejected', 'note' => 'nullable|string|max:500',
+        ]);
+        $n = $this->excuses->reviewMany($r->user(), $d['ids'], $d['status'], $d['note'] ?? null);
+
+        return back()->with('status', $n.' pengajuan '.($d['status'] === 'approved' ? 'disetujui.' : 'ditolak.'));
+    }
+
     /** Bukti izin disimpan privat; hanya pengurus yang berhak bisa membuka. */
     public function attachment(Request $r, ExcuseRequest $excuse, EventService $events)
     {

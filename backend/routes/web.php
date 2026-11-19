@@ -32,6 +32,7 @@ Route::middleware(['auth:web', 'dashboard'])->group(function () {
     Route::patch('absensi/{attendance}', [Dashboard\EventController::class, 'correct'])->name('attendances.correct');
     Route::get('izin', [Dashboard\ExcuseController::class, 'index'])->name('excuses.index');
     Route::post('izin', [Dashboard\ExcuseController::class, 'store'])->name('excuses.store');
+    Route::post('izin/massal', [Dashboard\ExcuseController::class, 'reviewMany'])->name('excuses.review-many');
     Route::patch('izin/{excuse}', [Dashboard\ExcuseController::class, 'review'])->name('excuses.review');
     Route::get('izin/{excuse}/bukti', [Dashboard\ExcuseController::class, 'attachment'])->name('excuses.attachment');
     Route::resource('pengumuman', Dashboard\AnnouncementController::class)->parameters(['pengumuman' => 'announcement'])->names('announcements')->only(['index', 'store', 'update', 'destroy']);
@@ -52,6 +53,7 @@ Route::middleware(['auth:web', 'dashboard'])->group(function () {
     Route::middleware('role:super_admin')->group(function () {
         Route::get('anggota/impor', [Dashboard\MemberController::class, 'importForm'])->name('members.import');
         Route::post('anggota/impor', [Dashboard\MemberController::class, 'importPreview'])->name('members.import.preview');
+        Route::post('anggota/massal', [Dashboard\MemberController::class, 'bulk'])->name('members.bulk');
         Route::post('anggota/impor/simpan', [Dashboard\MemberController::class, 'importCommit'])->name('members.import.commit');
         Route::resource('anggota', Dashboard\MemberController::class)->parameters(['anggota' => 'member'])->names('members')->except(['index', 'show']);
         Route::post('anggota/{member}/pulihkan', [Dashboard\MemberController::class, 'restore'])->withTrashed()->name('members.restore');

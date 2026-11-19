@@ -148,6 +148,19 @@ class MemberController extends Controller
         return redirect()->route('members.show', $member)->with('status', 'Data pribadi anggota dihapus. Catatan kehadirannya tetap ada di rekap.');
     }
 
+    public function bulk(Request $r)
+    {
+        $d = $r->validate([
+            'ids' => 'required|array|min:1|max:100', 'ids.*' => 'integer',
+            'action' => 'required|in:'.implode(',', MemberService::BULK_ACTIONS),
+            'value' => 'nullable|string|max:20',
+        ]);
+        $n = $this->members->bulk($d['ids'], $d['action'], $d['value'] ?? null);
+        $what = ['division' => 'dipindahkan divisinya', 'status' => 'diubah statusnya', 'archive' => 'diarsipkan, kartunya diblokir'][$d['action']];
+
+        return back()->with('status', "$n anggota $what.");
+    }
+
     public function destroy(Member $member)
     {
         $this->members->delete($member);

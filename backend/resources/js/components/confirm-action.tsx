@@ -11,7 +11,9 @@ type Props = {
     description: string;
     href: string;
     method?: 'post' | 'put' | 'patch' | 'delete';
-    data?: Record<string, string>;
+    data?: Record<string, string | number | number[] | null>;
+    /** Dipanggil setelah server berhasil memproses (mis. kosongkan pilihan). */
+    onSuccess?: () => void;
     confirmLabel?: string;
     destructive?: boolean;
     children: ReactNode;
@@ -20,12 +22,12 @@ type Props = {
 };
 
 /** Tombol dengan dialog konfirmasi sebelum mengirim aksi ke server. */
-export function ConfirmAction({ title, description, href, method = 'post', data, confirmLabel = 'Lanjutkan', destructive, children, variant, size }: Props) {
+export function ConfirmAction({ title, description, href, method = 'post', data, onSuccess, confirmLabel = 'Lanjutkan', destructive, children, variant, size }: Props) {
     const [open, setOpen] = useState(false);
     const [busy, setBusy] = useState(false);
     const run = () => {
         setBusy(true);
-        router[method](href, data ?? {}, { preserveScroll: true, onFinish: () => { setBusy(false); setOpen(false); } });
+        router[method](href, data ?? {}, { preserveScroll: true, onSuccess, onFinish: () => { setBusy(false); setOpen(false); } });
     };
 
     return (

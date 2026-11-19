@@ -21,6 +21,9 @@ Bagian bertanda **(Super Admin)** hanya tersedia untuk Super Admin.
 - Anggota yang dihapus masuk tab **Arsip** dan bisa **Pulihkan** (kartu lamanya tetap diblokir).
   Nomor anggota di arsip tidak bisa dipakai anggota baru — pulihkan saja.
 - Admin Divisi bisa melihat daftar & detail anggota divisinya (baca-saja).
+- **Tindakan massal** (Super Admin): centang beberapa anggota (atau **Pilih semua** di halaman
+  itu) → bilah di bawah layar: **Pindahkan** ke divisi lain, **Ubah status** (mis. jadikan Alumni
+  di akhir periode), atau **Arsipkan**. Selalu ada konfirmasi dulu.
 
 ### Kartu
 - Kartu diterbitkan lewat **app** (login Super Admin): ikon kartu di kanan atas → cari anggota →
@@ -67,6 +70,9 @@ untuk divisinya.
 
 - **Monitor langsung** (tombol di halaman kegiatan, buka di laptop/proyektor): jumlah hadir,
   scan terbaru dengan foto, dan daftar yang belum datang; diperbarui tiap 4 detik.
+  Grafik **Kedatangan** menunjukkan jumlah scan per beberapa menit sejak check-in dibuka; batang di
+  kanan garis putus-putus *Batas telat* berarti datang telat. **Per divisi** menunjukkan berapa
+  yang sudah hadir dari target tiap divisi (terendah di atas).
 - **Daftar Hadir**: koreksi status (Hadir/Telat/Izin/Sakit/Alpa) atau **Batalkan** scan yang salah —
   wajib alasan; riwayat koreksi tersimpan.
 
@@ -77,6 +83,8 @@ untuk divisinya.
   check-in sesi terakhir berakhir.
 - **Pengajuan Izin**: **Setujui** / **Tolak** (lihat lampiran bukti). Bila disetujui setelah
   kegiatan ditutup, status Alpa anggota itu otomatis diganti Izin/Sakit (tercatat sebagai koreksi).
+  Banyak pengajuan sekaligus: centang di tab *Menunggu* → **Setujui** / **Tolak** di bilah bawah
+  (catatan opsional berlaku untuk semuanya).
 - Anggota mengabarkan izin langsung (tanpa app)? **Pengajuan Izin** → **Catat Izin**: pilih
   kegiatan, isi nomor anggota, jenis, alasan, bukti (opsional); centang **Langsung setujui**.
 - **Perlu Ditinjau**: scan yang perlu keputusan —
