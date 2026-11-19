@@ -1,19 +1,22 @@
 name: App (Flutter)
 
+# Hanya di pull request (tidak diulang setelah merge ke main: isinya sama dengan yang sudah lulus di PR).
 on:
-  push:
-    branches: [main]
-    paths: ['app/**', '.github/workflows/app.yml']
   pull_request:
     paths: ['app/**', '.github/workflows/app.yml']
   workflow_dispatch:
+
+# Hemat menit Actions: push baru di PR yang sama membatalkan run yang masih berjalan.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 defaults:
   run:
     working-directory: app
 
 jobs:
-  # Setiap push ke main & pull request: analisis + tes saja (cepat, tanpa APK).
+  # Setiap pull request: analisis + tes saja (cepat, tanpa APK).
   test:
     runs-on: ubuntu-latest
     timeout-minutes: 15
