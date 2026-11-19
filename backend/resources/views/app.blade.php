@@ -16,6 +16,11 @@
     <link rel="icon" href="/favicon.svg" type="image/svg+xml">
     <link rel="icon" href="/favicon.ico" sizes="48x48">
     <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    {{-- Portal anggota bisa dipasang di Layar Utama (iPhone: Bagikan → Tambahkan ke Layar Utama). --}}
+    <link rel="manifest" href="/manifest.webmanifest">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Kartu Anggota">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="theme-color" content="#4F46E5">
     @viteReactRefresh
     @vite(['resources/css/app.css', 'resources/js/app.tsx'])

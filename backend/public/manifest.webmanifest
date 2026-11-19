@@ -1,0 +1,16 @@
+{
+    "name": "Kartu Anggota",
+    "short_name": "Kartu Anggota",
+    "description": "QR kehadiran, kegiatan, izin, dan riwayat anggota organisasi.",
+    "lang": "id",
+    "start_url": "/saya",
+    "scope": "/",
+    "display": "standalone",
+    "background_color": "#000000",
+    "theme_color": "#4F46E5",
+    "icons": [
+        { "src": "/favicon.svg", "type": "image/svg+xml", "sizes": "any" },
+        { "src": "/brand/icon-512.webp", "type": "image/webp", "sizes": "512x512" },
+        { "src": "/apple-touch-icon.png", "type": "image/png", "sizes": "180x180" }
+    ]
+}
