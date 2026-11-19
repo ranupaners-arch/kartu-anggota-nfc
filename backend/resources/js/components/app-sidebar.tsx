@@ -1,6 +1,6 @@
 import { Link, usePage } from '@inertiajs/react';
 import {
-    BarChart3, CalendarDays, ClipboardCheck, CreditCard, House, ScrollText, Settings, ShieldAlert, Smartphone, UserCog, Users,
+    BarChart3, CalendarDays, ClipboardCheck, CreditCard, House, Megaphone, ScrollText, Settings, ShieldAlert, Smartphone, UserCog, Users,
     type LucideIcon,
 } from 'lucide-react';
 import {
@@ -25,6 +25,7 @@ function useNavigation(): Group[] {
                 { label: 'Kegiatan', href: '/kegiatan', icon: CalendarDays },
                 { label: 'Pengajuan Izin', href: '/izin', icon: ClipboardCheck, badge: navBadges?.excuses },
                 { label: 'Perlu Ditinjau', href: '/tinjauan', icon: ShieldAlert, badge: navBadges?.reviews },
+                { label: 'Pengumuman', href: '/pengumuman', icon: Megaphone },
             ],
         },
         {

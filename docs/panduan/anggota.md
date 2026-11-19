@@ -24,9 +24,15 @@ layar tidak bisa dipakai. Butuh koneksi internet.
   menolak, statusnya tampil di tab Kegiatan.
 - Izin yang disetujui membuat Anda tercatat **Izin/Sakit** (bukan Alpa) saat kegiatan ditutup.
 
+## Pengumuman & pengingat
+
+Tab **Kegiatan** menampilkan pengumuman dari pengurus, dan **pengingat** untuk kegiatan yang dimulai
+dalam 24 jam ke depan (bila Anda belum tercatat hadir atau belum mengajukan izin).
+
 ## Riwayat
 
-Tab **Riwayat** menampilkan persentase kehadiran periode berjalan dan daftar kehadiran Anda.
+Tab **Riwayat** menampilkan persentase kehadiran periode berjalan dan daftar kehadiran Anda. Bila
+Anda Alpa beberapa kali berturut-turut atau kehadirannya rendah, muncul peringatan di sini.
 
 ## Data pribadi
 

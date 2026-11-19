@@ -56,6 +56,15 @@ MockClient server({List<http.Request>? seen, int qrCalls = 0, void Function()? o
         }),
         200,
       );
+    case '/api/me/announcements':
+      return http.Response(
+        jsonEncode({
+          'data': [
+            {'id': 1, 'title': 'Sekre tutup Jumat', 'body': 'Libur nasional.', 'pinned': true, 'created_at': '2026-11-01T02:00:00Z', 'division': null},
+          ],
+        }),
+        200,
+      );
     case '/api/excuses':
       return http.Response(jsonEncode({'id': 1}), 201);
   }
@@ -206,5 +215,31 @@ void main() {
     });
     expect((h.atRisk, h.alpaStreak), (true, 3));
     expect(MemberHistory.fromJson({'by_status': <String, dynamic>{}, 'total': 0, 'recent': []}).atRisk, isFalse); // server lama
+  });
+
+  test('pengingat: kegiatan 24 jam ke depan tanpa status/izin', () {
+    final now = DateTime(2026, 11, 20, 8);
+    MemberEvent ev(Duration from, [Map<String, dynamic> over = const {}]) => MemberEvent.fromJson({...eventJson, 'starts_at': now.add(from).toUtc().toIso8601String(), ...over});
+    final list = [
+      ev(const Duration(hours: 3)),
+      ev(const Duration(hours: 30)),
+      ev(const Duration(hours: -1)),
+      ev(const Duration(hours: 5), {'my_status': 'hadir'}),
+      ev(const Duration(hours: 6), {
+        'excuse': {'type': 'izin', 'status': 'pending'},
+      }),
+    ];
+    expect(eventReminders(list, now), hasLength(1));
+  });
+
+  testWidgets('tab Kegiatan menampilkan pengumuman', (tester) async {
+    await tester.pumpWidget(
+      KartuAnggotaApp(
+        home: Scaffold(body: MyEventsTab(api: api(server()))),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Sekre tutup Jumat'), findsOneWidget);
+    expect(find.text('Rapat Pleno'), findsOneWidget); // kegiatan tetap tampil
   });
 }

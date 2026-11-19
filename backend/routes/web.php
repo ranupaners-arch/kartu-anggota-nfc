@@ -34,6 +34,7 @@ Route::middleware(['auth:web', 'dashboard'])->group(function () {
     Route::post('izin', [Dashboard\ExcuseController::class, 'store'])->name('excuses.store');
     Route::patch('izin/{excuse}', [Dashboard\ExcuseController::class, 'review'])->name('excuses.review');
     Route::get('izin/{excuse}/bukti', [Dashboard\ExcuseController::class, 'attachment'])->name('excuses.attachment');
+    Route::resource('pengumuman', Dashboard\AnnouncementController::class)->parameters(['pengumuman' => 'announcement'])->names('announcements')->only(['index', 'store', 'update', 'destroy']);
     Route::get('tinjauan', [Dashboard\ReviewController::class, 'index'])->name('reviews.index');
     Route::post('tinjauan/{attendance}/terima', [Dashboard\ReviewController::class, 'accept'])->name('reviews.accept');
     Route::post('tinjauan/{attendance}/batalkan', [Dashboard\ReviewController::class, 'void'])->name('reviews.void');
