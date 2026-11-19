@@ -17,6 +17,7 @@ import 'package:kartuanggota/screens/login_screen.dart';
 import 'package:kartuanggota/screens/member/excuse_screen.dart';
 import 'package:kartuanggota/screens/member/member_home_screen.dart';
 import 'package:kartuanggota/screens/scan_screen.dart';
+import 'package:kartuanggota/screens/welcome_screen.dart';
 import 'package:kartuanggota/widgets/scan_result_card.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
@@ -54,6 +55,7 @@ final sessionsJson = [
 
 /// Layar yang diuji. Dibuat ulang tiap ukuran (state baru).
 Map<String, Future<Widget> Function()> screens() => {
+      'Sambutan': () async => const WelcomeScreen(server: ServerConfig(url: 'https://absen.himpunan-mahasiswa.ac.id', name: 'Himpunan Mahasiswa Program Studi Teknik Informatika')),
       'Hubungkan': () async => const ConnectScreen(),
       'Masuk': () async => const LoginScreen(server: ServerConfig(url: 'https://absen.himpunan-mahasiswa.ac.id', name: 'Himpunan Mahasiswa Program Studi')),
       'Kegiatan': () async => EventsScreen(session: session, api: api()),

@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="brand_indigo">#4F46E5</color>
+    <!-- Latar splash: hitam, sama dengan splash & sambutan Flutter. -->
+    <color name="splash_black">#000000</color>
 </resources>

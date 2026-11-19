@@ -59,7 +59,17 @@ class ErrorBanner extends StatelessWidget {
 /// dan pada ukuran huruf besar (tinggi mengikuti isi). Hanya untuk ruang yang lebarnya terbatas
 /// (mis. Column dengan stretch atau di dalam Expanded).
 class FlexButton extends StatelessWidget {
-  const FlexButton({super.key, required this.label, this.onPressed, this.icon, this.variant = ShadButtonVariant.primary, this.enabled = true, this.small = false});
+  const FlexButton({
+    super.key,
+    required this.label,
+    this.onPressed,
+    this.icon,
+    this.variant = ShadButtonVariant.primary,
+    this.enabled = true,
+    this.small = false,
+    this.backgroundColor,
+    this.foregroundColor,
+  });
 
   final String label;
   final VoidCallback? onPressed;
@@ -68,6 +78,9 @@ class FlexButton extends StatelessWidget {
   final bool enabled;
   final bool small;
 
+  /// Warna khusus (mis. tombol putih di layar sambutan hitam).
+  final Color? backgroundColor, foregroundColor;
+
   @override
   Widget build(BuildContext context) => ShadButton.raw(
     variant: variant,
@@ -75,6 +88,12 @@ class FlexButton extends StatelessWidget {
     enabled: enabled,
     onPressed: onPressed,
     expands: true,
+    backgroundColor: backgroundColor,
+    hoverBackgroundColor: backgroundColor?.withValues(alpha: 0.9),
+    pressedBackgroundColor: backgroundColor?.withValues(alpha: 0.8),
+    foregroundColor: foregroundColor,
+    hoverForegroundColor: foregroundColor,
+    pressedForegroundColor: foregroundColor,
     height: 0, // tinggi mengikuti isi
     padding: EdgeInsets.symmetric(horizontal: small ? 12 : 16, vertical: small ? 6 : 10),
     leading: icon == null ? null : Icon(icon, size: 16),

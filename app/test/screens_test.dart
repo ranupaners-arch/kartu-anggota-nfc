@@ -79,16 +79,21 @@ void main() {
     expect(find.textContaining('Organisasi:'), findsNothing);
   });
 
-  testWidgets('app pertama kali dibuka (tanpa server) menampilkan layar Hubungkan', (tester) async {
+  // Alur awal sejak layar sambutan: splash → sambutan → Masuk → Hubungkan/Masuk (lihat start_flow_test.dart).
+  testWidgets('app pertama kali dibuka (tanpa server): sambutan → Masuk → layar Hubungkan', (tester) async {
     SharedPreferences.setMockInitialValues({});
     await tester.pumpWidget(const KartuAnggotaApp());
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Masuk'));
     await tester.pumpAndSettle();
     expect(find.text('Hubungkan ke Organisasi'), findsOneWidget);
   });
 
-  testWidgets('server tersimpan → langsung ke Login', (tester) async {
+  testWidgets('server tersimpan: sambutan → Masuk → layar Masuk organisasi itu', (tester) async {
     SharedPreferences.setMockInitialValues({'server_url': 'http://srv', 'server_name': 'HMPS'});
     await tester.pumpWidget(const KartuAnggotaApp());
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Masuk'));
     await tester.pumpAndSettle();
     expect(find.text('Organisasi: HMPS'), findsOneWidget);
   });
