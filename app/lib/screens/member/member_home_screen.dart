@@ -57,8 +57,6 @@ class _MemberHomeScreenState extends State<MemberHomeScreen> {
       ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _tab,
-        backgroundColor: theme.colorScheme.background,
-        indicatorColor: theme.colorScheme.secondary,
         onDestinationSelected: (i) => setState(() => _tab = i),
         destinations: const [
           NavigationDestination(icon: Icon(LucideIcons.qrCode), label: 'QR Saya'),
