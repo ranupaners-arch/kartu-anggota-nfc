@@ -18,6 +18,18 @@ Route::middleware('guest')->group(function () {
     Route::post('atur-password', [Dashboard\PasswordResetController::class, 'update'])->middleware('throttle:10,1')->name('password.update');
 });
 
+// Portal anggota (web, untuk yang tidak memakai app Android).
+Route::middleware(['auth:web', 'portal'])->prefix('saya')->name('portal.')->group(function () {
+    Route::get('/', [App\Http\Controllers\Portal\PortalController::class, 'qr'])->name('qr');
+    Route::get('kegiatan', [App\Http\Controllers\Portal\PortalController::class, 'events'])->name('events');
+    Route::post('izin', [App\Http\Controllers\Portal\PortalController::class, 'storeExcuse'])->middleware('throttle:10,1')->name('excuse');
+    Route::get('riwayat', [App\Http\Controllers\Portal\PortalController::class, 'history'])->name('history');
+    Route::get('rapor', [App\Http\Controllers\Portal\PortalController::class, 'reportCard'])->middleware('throttle:10,1')->name('report-card');
+    Route::get('akun', [App\Http\Controllers\Portal\PortalController::class, 'account'])->name('account');
+    Route::put('password', [App\Http\Controllers\Portal\PortalController::class, 'password'])->middleware('throttle:10,1')->name('password');
+    Route::post('kalender', [App\Http\Controllers\CalendarFeedController::class, 'reset'])->name('calendar');
+});
+
 Route::middleware(['auth:web', 'dashboard'])->group(function () {
     Route::post('keluar', [Dashboard\AuthController::class, 'logout'])->name('logout');
     Route::get('/', Dashboard\HomeController::class)->name('home');
