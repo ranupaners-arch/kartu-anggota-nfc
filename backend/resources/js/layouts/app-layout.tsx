@@ -11,6 +11,7 @@ import {
     DropdownMenuSeparator, DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Separator } from '@/components/ui/separator';
+import { QuickSearch } from '@/components/quick-search';
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { Toaster } from '@/components/ui/sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
@@ -78,6 +79,7 @@ export default function AppLayout({ title, actions, children }: { title: string;
                         <SidebarTrigger className="-ml-1" />
                         <Separator orientation="vertical" className="mr-2 h-4" />
                         <h1 className="flex-1 truncate text-sm font-medium">{title}</h1>
+                        <QuickSearch />
                         <UserMenu />
                     </header>
                     <main className="flex min-w-0 flex-1 flex-col gap-4 p-4 md:p-6">

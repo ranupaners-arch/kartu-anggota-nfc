@@ -13,7 +13,7 @@ type Item = { label: string; href: string; icon: LucideIcon; badge?: number };
 type Group = { label?: string; items: Item[] };
 
 /** Navigasi dua tingkat: menu (grup) → submenu (halaman). */
-function useNavigation(): Group[] {
+export function useNavigation(): Group[] {
     const { auth, navBadges } = usePage<SharedProps>().props;
     const superAdmin = auth?.isSuperAdmin ?? false;
 
