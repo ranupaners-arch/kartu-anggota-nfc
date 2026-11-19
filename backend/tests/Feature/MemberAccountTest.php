@@ -55,6 +55,7 @@ class MemberAccountTest extends TestCase
         $this->actingAs($this->admin)->get('/anggota/akun-app/hasil')->assertOk()->assertInertia(fn (Assert $p) => $p
             ->component('members/account-slips')
             ->has('created', 1)->where('created.0.email', 'ani@mhs.test')->where('created.0.password', fn ($pw) => (bool) preg_match('/^[A-HJ-NP-Za-km-z2-9]{4}(-[A-HJ-NP-Za-km-z2-9]{4}){2}$/', $pw))
+            ->where('connect.payload', fn ($v) => str_starts_with($v, 'kartuanggota://connect?server='))
             ->has('skipped', 3)
             ->where('skipped', fn ($s) => collect($s)->pluck('reason', 'member_no')->all() === [
                 'B1' => 'Belum ada email yang valid', 'C1' => 'Sudah punya akun', 'D1' => 'Email sudah dipakai akun lain',
@@ -68,6 +69,11 @@ class MemberAccountTest extends TestCase
         $this->actingAs($this->admin)->get('/anggota')->assertInertia(fn (Assert $p) => $p
             ->where('members.data', fn ($rows) => collect($rows)->firstWhere('member_no', 'A1')['has_account'] === true
                 && collect($rows)->firstWhere('member_no', 'B1')['has_account'] === false));
+        // Filter kesiapan: yang belum punya akun app (A1 & C1 sudah punya).
+        $this->actingAs($this->admin)->get('/anggota?siap=tanpa-akun')->assertInertia(fn (Assert $p) => $p
+            ->where('filters.siap', 'tanpa-akun')
+            ->where('members.data', fn ($rows) => collect($rows)->pluck('member_no')->sort()->values()->all() === ['B1', 'D1']));
+        $this->actingAs($this->admin)->get('/anggota?siap=tanpa-kartu')->assertInertia(fn (Assert $p) => $p->has('members.data', 4));
     }
 
     public function test_temporary_password_must_be_changed_before_using_the_api(): void
