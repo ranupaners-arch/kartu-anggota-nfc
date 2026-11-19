@@ -21,11 +21,12 @@ type Preview = {
 export default function MemberImport({ preview }: { preview: Preview | null }) {
     const upload = useForm<{ file: File | null }>({ file: null });
     const [skip, setSkip] = useState(false);
+    const [consent, setConsent] = useState(false);
     const [saving, setSaving] = useState(false);
     const submit = (e: FormEvent) => { e.preventDefault(); upload.post('/anggota/impor', { forceFormData: true }); };
     const commit = () => {
         setSaving(true);
-        router.post('/anggota/impor/simpan', { token: preview!.token, skip_errors: skip ? '1' : '' }, { onFinish: () => setSaving(false) });
+        router.post('/anggota/impor/simpan', { token: preview!.token, skip_errors: skip ? '1' : '', consent: consent ? '1' : '' }, { onFinish: () => setSaving(false) });
     };
 
     return (
@@ -70,7 +71,11 @@ export default function MemberImport({ preview }: { preview: Preview | null }) {
                         {preview.errors.length > 0 && (
                             <Label className="flex items-center gap-2 font-normal"><Checkbox checked={skip} onCheckedChange={(v) => setSkip(v === true)} /> Lewati baris error dan simpan yang valid</Label>
                         )}
-                        <Button disabled={saving || (preview.errors.length > 0 && !skip)} onClick={commit}>Simpan {preview.summary.valid} anggota</Button>
+                        <Label className="flex basis-full items-start gap-2 font-normal">
+                            <Checkbox className="mt-0.5" checked={consent} onCheckedChange={(v) => setConsent(v === true)} />
+                            Semua anggota di berkas ini sudah menyetujui data dirinya (termasuk foto) diproses organisasi untuk keperluan absensi.
+                        </Label>
+                        <Button disabled={saving || !consent || (preview.errors.length > 0 && !skip)} onClick={commit}>Simpan {preview.summary.valid} anggota</Button>
                         <Button variant="ghost" render={<Link href="/anggota/impor" />}>Unggah ulang</Button>
                     </div>
                 </>
