@@ -2,6 +2,7 @@ import { Head, router, useForm } from '@inertiajs/react';
 import { Paperclip, Plus } from 'lucide-react';
 import { type FormEvent, useState } from 'react';
 import { DataTable } from '@/components/data-table';
+import { FilterBar } from '@/components/filter-bar';
 import { FormField } from '@/components/form-field';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -91,11 +92,19 @@ function Review({ excuse }: { excuse: Excuse }) {
     );
 }
 
-export default function Excuses({ tab, excuses, events }: { tab: string; excuses: Paginated<Excuse>; events: Ev[] }) {
+export default function Excuses({ tab, excuses, events, filters }: { tab: string; excuses: Paginated<Excuse>; events: Ev[]; filters: { q: string | null; type: string | null } }) {
+    const [f, setF] = useState({ q: filters.q ?? '', type: filters.type ?? '' });
     return (
         <AppLayout title="Pengajuan Izin" actions={<RecordExcuse events={events} />}>
             <Head title="Pengajuan Izin" />
             <PageTabs tabs={{ menunggu: 'Menunggu', riwayat: 'Riwayat' }} current={tab} />
+            <FilterBar url="/izin" keep={{ tab }} values={f} search={f.q} onSearch={(q) => setF({ ...f, q })} placeholder="Cari anggota / kegiatan">
+                <NativeSelect value={f.type} onChange={(e) => setF({ ...f, type: e.target.value })} aria-label="Jenis">
+                    <NativeSelectOption value="">Izin & sakit</NativeSelectOption>
+                    <NativeSelectOption value="izin">Izin</NativeSelectOption>
+                    <NativeSelectOption value="sakit">Sakit</NativeSelectOption>
+                </NativeSelect>
+            </FilterBar>
             <DataTable head={['Anggota', 'Kegiatan', 'Jenis', 'Alasan', 'Bukti', tab === 'menunggu' ? 'Tindakan' : 'Keputusan']} count={excuses.data.length} empty="Tidak ada pengajuan.">
                 {excuses.data.map((x) => (
                     <TableRow key={x.id}>
