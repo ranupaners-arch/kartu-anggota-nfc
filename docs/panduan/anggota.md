@@ -7,7 +7,9 @@ opsional, tetapi berguna bila kartu tertinggal, untuk mengajukan izin, dan melih
 
 1. Pasang app **Kartu Anggota**, lalu hubungkan ke organisasi (pindai QR dari pengurus atau
    ketik alamat server).
-2. **Masuk** dengan email & password akun anggota dari pengurus.
+2. **Masuk** dengan email & password sementara dari pengurus (lembar akun).
+3. Pertama kali masuk, app meminta **password baru** (minimal 10 karakter, huruf & angka). Setelah
+   itu password sementara tidak berlaku lagi.
 
 ## QR Saya — saat kartu tertinggal
 
