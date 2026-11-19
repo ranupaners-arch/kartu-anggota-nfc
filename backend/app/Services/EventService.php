@@ -10,6 +10,7 @@ use App\Models\Member;
 use App\Models\Term;
 use App\Models\User;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -70,6 +71,58 @@ class EventService
         AuditLogger::log('event.created', 'event', $event->id);
 
         return $event;
+    }
+
+    public const REPEATS = ['none', 'weekly', 'biweekly', 'monthly'];
+    public const MAX_REPEAT = 12;
+
+    /**
+     * Duplikat kegiatan ke jam mulai baru (opsional berulang): judul, tipe, lokasi, wajib hadir,
+     * divisi pemilik, target peserta, dan sesi tambahan ikut disalin; semua waktu bergeser dengan
+     * selisih yang sama terhadap jam mulai. Masuk periode berjalan.
+     *
+     * @return Collection<int, Event>
+     */
+    public function duplicate(User $user, Event $source, Carbon $startsAt, string $repeat = 'none', int $count = 1): Collection
+    {
+        $this->authorize($user, $source);
+        abort_unless(in_array($repeat, self::REPEATS, true), 422, 'Pola ulang tidak dikenal.');
+        $count = $repeat === 'none' ? 1 : max(1, min(self::MAX_REPEAT, $count));
+        $term = Term::where('is_current', true)->firstOr(fn () => abort(422, 'Belum ada periode aktif.'));
+        $source->load(['targets', 'sessions']);
+        $extraSessions = $source->sessions->sortBy('id')->slice(1);
+
+        $created = DB::transaction(function () use ($user, $source, $startsAt, $repeat, $count, $term, $extraSessions) {
+            $out = collect();
+            for ($i = 0; $i < $count; $i++) {
+                $start = match ($repeat) {
+                    'weekly' => $startsAt->copy()->addWeeks($i),
+                    'biweekly' => $startsAt->copy()->addWeeks(2 * $i),
+                    'monthly' => $startsAt->copy()->addMonthsNoOverflow($i), // 31 Jan → 28/29 Feb, bukan 3 Mar
+                    default => $startsAt->copy(),
+                };
+                $shift = fn (?Carbon $t) => $t ? $start->copy()->addSeconds((int) $source->starts_at->diffInSeconds($t, false)) : null;
+                $event = Event::create([
+                    'organization_id' => $source->organization_id, 'term_id' => $term->id, 'division_id' => $source->division_id,
+                    'created_by' => $user->id, 'title' => $source->title, 'type' => $source->type, 'location' => $source->location,
+                    'is_mandatory' => $source->is_mandatory, 'starts_at' => $start, 'ends_at' => $shift($source->ends_at),
+                    'checkin_opens_at' => $shift($source->checkin_opens_at), 'late_after' => $shift($source->late_after),
+                    'checkin_closes_at' => $shift($source->checkin_closes_at),
+                ]);
+                foreach ($source->targets as $t) {
+                    $event->targets()->create(['division_id' => $t->division_id, 'member_id' => $t->member_id]);
+                }
+                foreach ($extraSessions as $s) {
+                    $event->sessions()->create(['title' => $s->title, 'starts_at' => $shift($s->starts_at), 'ends_at' => $shift($s->ends_at)]);
+                }
+                $out->push($event);
+            }
+
+            return $out;
+        });
+        AuditLogger::log('event.duplicated', 'event', $source->id, ['new_ids' => $created->pluck('id')->all(), 'repeat' => $repeat]);
+
+        return $created;
     }
 
     /** Jendela waktu kegiatan yang sudah berjalan hanya boleh diubah dengan alasan tercatat. */
