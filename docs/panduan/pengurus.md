@@ -16,6 +16,12 @@ Bagian bertanda **(Super Admin)** hanya tersedia untuk Super Admin.
 - Ketik nama halaman, nama/nomor anggota, atau judul/lokasi kegiatan; **↑/↓** memilih, **Enter**
   membuka, **Esc** menutup. Admin Divisi hanya menemukan anggota & kegiatan divisinya.
 
+## Jadwal di kalender
+
+- **Akun** (menu kanan atas) → **Langganan jadwal** → **Buat tautan langganan** → **Salin**, lalu
+  tambahkan di Google Calendar (*Setelan → Tambahkan kalender → Dari URL*). Isinya kegiatan yang
+  bisa Anda kelola, periode berjalan. **Ganti tautan** bila tersebar.
+
 ## Menyiapkan data (Super Admin)
 
 ### Anggota
