@@ -52,6 +52,15 @@ app lama di-uninstall sekali; APK berikutnya cukup "Perbarui".
   **Riwayat** (persentase + daftar). Lalu setujui/tolak izinnya di dashboard → Pengajuan Izin.
 - **2FA admin:** dashboard → Akun Saya → Aktifkan 2FA → scan QR dengan aplikasi authenticator → simpan
   kode cadangan. Keluar lalu masuk lagi → diminta kode. Di app: login akun itu → muncul kolom Kode 2FA.
+- **Splash & sambutan (app):** buka app → logo berputar di latar hitam → layar sambutan (logo meluncur,
+  teks muncul bertahap, tombol Masuk) → Masuk: logo naik & mengecil, formulir muncul. Ikon launcher baru.
+- **Navigasi bawah anggota (mode gelap HP):** tiga tombol terbaca (aktif putih).
+- **Statistik:** dashboard Beranda → grafik tren, per divisi, tabel Perlu perhatian. App anggota → Riwayat
+  menampilkan peringatan bila Alpa 3× berturut-turut.
+- **Duplikat kegiatan:** halaman kegiatan → Duplikat (coba Tiap minggu × 3).
+- **Pengumuman & pengingat:** dashboard → Pengumuman → buat → muncul di app anggota (tab Kegiatan);
+  kegiatan yang mulai < 24 jam muncul sebagai pengingat.
+- **Rapor PDF:** dashboard → detail anggota → Rapor PDF; app anggota → Riwayat → Unduh rapor PDF.
 - **Status sistem:** dashboard → Pengaturan → Sistem → semua "Normal" bila `php artisan queue:work` dan
   `php artisan schedule:work` jalan; hentikan worker > 5 menit → Queue worker "Gagal".
 - **Privasi:** Tambah anggota → wajib centang persetujuan (juga saat impor CSV). Detail anggota alumni →
