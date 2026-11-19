@@ -1,15 +1,30 @@
+import 'dart:io';
+
 import 'package:material_ui/material_ui.dart';
+import 'package:open_filex/open_filex.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
 import '../../api/api_client.dart';
 import '../../app/format.dart';
 import '../../widgets/ui.dart';
 
-/// Ringkasan & riwayat kehadiran anggota periode berjalan.
+/// Simpan PDF ke folder sementara lalu buka dengan penampil PDF HP. Kembalikan pesan galat atau null.
+Future<String?> _saveAndOpenPdf(List<int> bytes) async {
+  final f = File('${(await getTemporaryDirectory()).path}/rapor-kehadiran.pdf');
+  await f.writeAsBytes(bytes, flush: true);
+  final r = await OpenFilex.open(f.path, type: 'application/pdf');
+  return r.type == ResultType.done ? null : 'Tidak ada aplikasi untuk membuka PDF di HP ini.';
+}
+
+/// Ringkasan & riwayat kehadiran anggota periode berjalan, dengan unduhan rapor PDF.
 class MyHistoryTab extends StatefulWidget {
-  const MyHistoryTab({super.key, required this.api});
+  const MyHistoryTab({super.key, required this.api, this.openPdf = _saveAndOpenPdf});
 
   final ApiClient api;
+
+  /// Untuk tes.
+  final Future<String?> Function(List<int> bytes) openPdf;
 
   @override
   State<MyHistoryTab> createState() => _MyHistoryTabState();
@@ -17,6 +32,26 @@ class MyHistoryTab extends StatefulWidget {
 
 class _MyHistoryTabState extends State<MyHistoryTab> {
   late Future<MemberHistory> _history = widget.api.myHistory();
+  bool _downloading = false;
+  String? _downloadError;
+
+  Future<void> _downloadReport() async {
+    setState(() {
+      _downloading = true;
+      _downloadError = null;
+    });
+    try {
+      final bytes = await widget.api.downloadBytes('${widget.api.baseUrl}/api/me/report-card');
+      final err = await widget.openPdf(bytes);
+      if (mounted) setState(() => _downloadError = err);
+    } on ApiException catch (e) {
+      if (mounted) setState(() => _downloadError = e.message);
+    } catch (_) {
+      if (mounted) setState(() => _downloadError = 'Gagal mengunduh rapor. Periksa koneksi.');
+    } finally {
+      if (mounted) setState(() => _downloading = false);
+    }
+  }
 
   Future<void> _refresh() async {
     setState(() => _history = widget.api.myHistory());
@@ -73,6 +108,17 @@ class _MyHistoryTabState extends State<MyHistoryTab> {
                 ),
               ),
             );
+            children.add(const SizedBox(height: 12));
+            children.add(
+              FlexButton(
+                variant: ShadButtonVariant.outline,
+                icon: LucideIcons.fileDown,
+                enabled: !_downloading,
+                onPressed: _downloadReport,
+                label: _downloading ? 'Mengunduh rapor…' : 'Unduh rapor PDF',
+              ),
+            );
+            if (_downloadError != null) children.addAll([const SizedBox(height: 8), ErrorBanner(_downloadError!)]);
             children.add(const SizedBox(height: 12));
             if (h.recent.isEmpty) {
               children.add(Text('Belum ada riwayat kehadiran.', style: theme.textTheme.muted));

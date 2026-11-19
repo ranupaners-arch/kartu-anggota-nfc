@@ -11,6 +11,7 @@ import 'package:kartuanggota/screens/events_screen.dart';
 import 'package:kartuanggota/screens/member/excuse_screen.dart';
 import 'package:kartuanggota/screens/member/member_home_screen.dart';
 import 'package:kartuanggota/screens/member/my_events_tab.dart';
+import 'package:kartuanggota/screens/member/my_history_tab.dart';
 import 'package:kartuanggota/screens/member/my_qr_tab.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:qr_flutter/qr_flutter.dart';
@@ -241,5 +242,34 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Sekre tutup Jumat'), findsOneWidget);
     expect(find.text('Rapat Pleno'), findsOneWidget); // kegiatan tetap tampil
+  });
+
+  testWidgets('Riwayat: unduh rapor PDF', (tester) async {
+    List<int>? opened;
+    final seen = <http.Request>[];
+    final c = MockClient((req) async {
+      seen.add(req);
+      if (req.url.path == '/api/me/report-card') return http.Response.bytes([0x25, 0x50, 0x44, 0x46], 200, headers: {'content-type': 'application/pdf'});
+      // Jawab langsung (request yang sudah difinalisasi tidak bisa diteruskan ke mock lain).
+      return http.Response(jsonEncode({'term': '2026', 'by_status': {'hadir': 1}, 'total': 1, 'attendance_rate': 100, 'recent': []}), 200);
+    });
+    await tester.pumpWidget(
+      KartuAnggotaApp(
+        home: Scaffold(
+          body: MyHistoryTab(
+            api: api(c),
+            openPdf: (b) async {
+              opened = b;
+              return null;
+            },
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Unduh rapor PDF'));
+    await tester.pumpAndSettle();
+    expect(opened, [0x25, 0x50, 0x44, 0x46]); // %PDF
+    expect(seen.last.headers['Authorization'], 'Bearer t');
   });
 }
