@@ -13,6 +13,10 @@ on:
   workflow_dispatch:
 
 # Merge beruntun: run yang lebih lama dibatalkan, cukup menguji isi main terbaru.
+# Token GitHub hanya boleh membaca isi repo (tidak ada job yang menulis ke repo).
+permissions:
+  contents: read
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
