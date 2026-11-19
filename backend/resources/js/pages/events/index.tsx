@@ -1,6 +1,10 @@
 import { Head, Link } from '@inertiajs/react';
 import { Plus } from 'lucide-react';
+import { useState } from 'react';
 import { DataTable } from '@/components/data-table';
+import { FilterBar } from '@/components/filter-bar';
+import { Input } from '@/components/ui/input';
+import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select';
 import { PageTabs } from '@/components/page-tabs';
 import { Pager } from '@/components/pager';
 import { StatusBadge } from '@/components/status-badge';
@@ -15,11 +19,34 @@ type Row = {
     starts_at: string; checkin_opens_at: string; late_after: string; checkin_closes_at: string; present_count: number;
 };
 
-export default function EventsIndex({ tab, events }: { tab: string; events: Paginated<Row> }) {
+type Filters = { q: string | null; division: string | null; type: string | null; from: string | null; to: string | null };
+
+export default function EventsIndex({ tab, events, filters, divisions, types }: {
+    tab: string; events: Paginated<Row>; filters: Filters; divisions: { id: number; name: string }[]; types: string[];
+}) {
+    const [f, setF] = useState({ q: filters.q ?? '', division: filters.division ?? '', type: filters.type ?? '', from: filters.from ?? '', to: filters.to ?? '' });
     return (
         <AppLayout title="Kegiatan" actions={<Button render={<Link href="/kegiatan/create" />}><Plus /> Buat Kegiatan</Button>}>
             <Head title="Kegiatan" />
             <PageTabs tabs={{ berlangsung: 'Berlangsung', 'akan-datang': 'Akan Datang', selesai: 'Selesai' }} current={tab} />
+            <FilterBar url="/kegiatan" keep={{ tab }} values={f} search={f.q} onSearch={(q) => setF({ ...f, q })} placeholder="Cari judul / lokasi">
+                {divisions.length > 0 && (
+                    <NativeSelect value={f.division} onChange={(e) => setF({ ...f, division: e.target.value })} aria-label="Divisi">
+                        <NativeSelectOption value="">Semua divisi</NativeSelectOption>
+                        <NativeSelectOption value="umum">Kegiatan umum</NativeSelectOption>
+                        {divisions.map((d) => <NativeSelectOption key={d.id} value={d.id}>{d.name}</NativeSelectOption>)}
+                    </NativeSelect>
+                )}
+                {types.length > 1 && (
+                    <NativeSelect value={f.type} onChange={(e) => setF({ ...f, type: e.target.value })} aria-label="Tipe">
+                        <NativeSelectOption value="">Semua tipe</NativeSelectOption>
+                        {types.map((t) => <NativeSelectOption key={t} value={t}>{t}</NativeSelectOption>)}
+                    </NativeSelect>
+                )}
+                <Input type="date" className="w-auto" aria-label="Dari tanggal" value={f.from} onChange={(e) => setF({ ...f, from: e.target.value })} />
+                <span className="text-muted-foreground">–</span>
+                <Input type="date" className="w-auto" aria-label="Sampai tanggal" value={f.to} onChange={(e) => setF({ ...f, to: e.target.value })} />
+            </FilterBar>
             <DataTable head={['Kegiatan', 'Mulai', 'Check-in', 'Lokasi', 'Hadir', 'Status']} count={events.data.length} empty="Tidak ada kegiatan.">
                 {events.data.map((e) => (
                     <TableRow key={e.id}>
