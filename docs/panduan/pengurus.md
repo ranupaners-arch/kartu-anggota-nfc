@@ -10,6 +10,12 @@ Bagian bertanda **(Super Admin)** hanya tersedia untuk Super Admin.
   cadangan** di tempat aman. Sangat disarankan untuk semua pengurus.
 - Lupa HP & kode cadangan? Super Admin lain bisa **Reset 2FA** di Pengguna & Peran.
 
+## Pencarian cepat
+
+- Tekan **Ctrl+K** (Mac: **⌘K**) atau tombol **Cari…** di kanan atas, di halaman mana pun.
+- Ketik nama halaman, nama/nomor anggota, atau judul/lokasi kegiatan; **↑/↓** memilih, **Enter**
+  membuka, **Esc** menutup. Admin Divisi hanya menemukan anggota & kegiatan divisinya.
+
 ## Menyiapkan data (Super Admin)
 
 ### Anggota

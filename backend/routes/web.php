@@ -13,6 +13,7 @@ Route::middleware('guest')->group(function () {
 Route::middleware(['auth:web', 'dashboard'])->group(function () {
     Route::post('keluar', [Dashboard\AuthController::class, 'logout'])->name('logout');
     Route::get('/', Dashboard\HomeController::class)->name('home');
+    Route::get('cari', Dashboard\SearchController::class)->middleware('throttle:60,1')->name('search');
     Route::get('akun', [Dashboard\AccountController::class, 'edit'])->name('account');
     Route::put('akun/password', [Dashboard\AccountController::class, 'password'])->name('account.password');
     Route::post('akun/2fa', [Dashboard\AccountController::class, 'startTwoFactor'])->name('account.2fa.start');
