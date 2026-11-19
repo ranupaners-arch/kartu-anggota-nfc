@@ -51,10 +51,7 @@ class MemberPhoto extends StatelessWidget {
     return GestureDetector(
       onTap: () => showDialog<void>(
         context: context,
-        builder: (_) => Dialog(
-          clipBehavior: Clip.antiAlias,
-          child: large(),
-        ),
+        builder: (_) => Dialog(clipBehavior: Clip.antiAlias, child: large()),
       ),
       child: ClipRRect(borderRadius: theme.radius, child: image),
     );

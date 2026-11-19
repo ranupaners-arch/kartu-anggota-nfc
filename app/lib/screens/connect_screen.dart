@@ -4,6 +4,7 @@ import 'package:shadcn_ui/shadcn_ui.dart';
 
 import '../app/server_config.dart';
 import 'login_screen.dart';
+import '../widgets/ui.dart';
 
 /// Hubungkan app ke server organisasi (model self-hosted): scan QR dari dashboard atau ketik alamat.
 class ConnectScreen extends StatefulWidget {
@@ -94,22 +95,30 @@ class _ConnectScreenState extends State<ConnectScreen> {
                     children: [
                       if (_error != null) ShadAlert.destructive(icon: const Icon(LucideIcons.circleAlert), description: Text(_error!)),
                       if (_scanning)
-                        ClipRRect(borderRadius: theme.radius, child: AspectRatio(aspectRatio: 1, child: MobileScanner(onDetect: _onQr)))
+                        ClipRRect(
+                          borderRadius: theme.radius,
+                          child: AspectRatio(aspectRatio: 1, child: MobileScanner(onDetect: _onQr)),
+                        )
                       else
-                        ShadButton(
+                        FlexButton(
                           enabled: !_busy,
-                          leading: const Icon(LucideIcons.scanQrCode, size: 16),
+                          icon: LucideIcons.scanQrCode,
                           onPressed: () => setState(() {
                             _scanning = true;
                             _error = null;
                           }),
-                          child: const Text('Scan QR dari dashboard'),
+                          label: 'Scan QR dari dashboard',
                         ),
-                      Row(children: [
-                        const Expanded(child: Divider()),
-                        Padding(padding: const EdgeInsets.symmetric(horizontal: 8), child: Text('atau', style: theme.textTheme.muted)),
-                        const Expanded(child: Divider()),
-                      ]),
+                      Row(
+                        children: [
+                          const Expanded(child: Divider()),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 8),
+                            child: Text('atau', style: theme.textTheme.muted),
+                          ),
+                          const Expanded(child: Divider()),
+                        ],
+                      ),
                       Text('Alamat server', style: theme.textTheme.small),
                       ShadInput(
                         controller: _address,
@@ -118,7 +127,7 @@ class _ConnectScreenState extends State<ConnectScreen> {
                         leading: const Icon(LucideIcons.server, size: 16),
                         onSubmitted: (v) => _busy ? null : _connect(v),
                       ),
-                      ShadButton.outline(enabled: !_busy, onPressed: () => _connect(_address.text), child: Text(_busy ? 'Memeriksa server…' : 'Hubungkan')),
+                      FlexButton(variant: ShadButtonVariant.outline, enabled: !_busy, onPressed: () => _connect(_address.text), label: _busy ? 'Memeriksa server…' : 'Hubungkan'),
                     ],
                   ),
                 ),

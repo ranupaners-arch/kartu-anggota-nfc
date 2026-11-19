@@ -28,8 +28,7 @@ class IssueCardScreen extends StatefulWidget {
 class _IssueCardScreenState extends State<IssueCardScreen> {
   late final ApiClient _api = widget.api ?? widget.session.client();
   late final NfcService _nfc = widget.nfc ?? NfcService();
-  late final CardIssuer _issuer = CardIssuer(_api, widget.writer ??
-      (init) => _nfc.write(payload: init.payload, pwdHex: init.pwd, packHex: init.pack, protect: true));
+  late final CardIssuer _issuer = CardIssuer(_api, widget.writer ?? (init) => _nfc.write(payload: init.payload, pwdHex: init.pwd, packHex: init.pack, protect: true));
   final _query = TextEditingController();
   Timer? _debounce;
   List<MemberHit> _hits = const [];
@@ -92,12 +91,12 @@ class _IssueCardScreenState extends State<IssueCardScreen> {
   }
 
   void _reset() => setState(() {
-        _selected = null;
-        _step = null;
-        _error = null;
-        _hits = const [];
-        _query.clear();
-      });
+    _selected = null;
+    _step = null;
+    _error = null;
+    _hits = const [];
+    _query.clear();
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -116,26 +115,29 @@ class _IssueCardScreenState extends State<IssueCardScreen> {
   }
 
   List<Widget> _searchView(ShadThemeData theme) => [
-        Text('Cari anggota (nama atau nomor anggota)', style: theme.textTheme.small),
-        const SizedBox(height: 6),
-        ShadInput(controller: _query, onChanged: _onQuery, placeholder: const Text('min. 2 huruf'), leading: const Icon(LucideIcons.search, size: 16)),
-        const SizedBox(height: 12),
-        if (_searching) const Center(child: Padding(padding: EdgeInsets.all(16), child: CircularProgressIndicator())),
-        for (final m in _hits)
-          Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: GestureDetector(
-              onTap: () => setState(() => _selected = m),
-              child: ShadCard(
-                padding: const EdgeInsets.all(12),
-                title: Text(m.name),
-                description: Text([m.memberNo, if (m.division != null) m.division!].join(' · ')),
-                trailing: m.hasActiveCard ? ShadBadge.secondary(child: const Text('Punya kartu')) : Icon(LucideIcons.chevronRight, color: theme.colorScheme.mutedForeground),
-              ),
-            ),
+    Text('Cari anggota (nama atau nomor anggota)', style: theme.textTheme.small),
+    const SizedBox(height: 6),
+    ShadInput(controller: _query, onChanged: _onQuery, placeholder: const Text('min. 2 huruf'), leading: const Icon(LucideIcons.search, size: 16)),
+    const SizedBox(height: 12),
+    if (_searching)
+      const Center(
+        child: Padding(padding: EdgeInsets.all(16), child: CircularProgressIndicator()),
+      ),
+    for (final m in _hits)
+      Padding(
+        padding: const EdgeInsets.only(bottom: 8),
+        child: GestureDetector(
+          onTap: () => setState(() => _selected = m),
+          child: ShadCard(
+            padding: const EdgeInsets.all(12),
+            title: Text(m.name),
+            description: Text([m.memberNo, if (m.division != null) m.division!].join(' · ')),
+            trailing: m.hasActiveCard ? ShadBadge.secondary(child: const Text('Punya kartu')) : Icon(LucideIcons.chevronRight, color: theme.colorScheme.mutedForeground),
           ),
-        if (!_searching && _query.text.trim().length >= 2 && _hits.isEmpty) Text('Tidak ada anggota yang cocok.', style: theme.textTheme.muted),
-      ];
+        ),
+      ),
+    if (!_searching && _query.text.trim().length >= 2 && _hits.isEmpty) Text('Tidak ada anggota yang cocok.', style: theme.textTheme.muted),
+  ];
 
   Widget _issueView(ShadThemeData theme, MemberHit m) {
     final step = _step;
@@ -148,28 +150,38 @@ class _IssueCardScreenState extends State<IssueCardScreen> {
       IssueStep.done => (LucideIcons.circleCheck, 'Kartu aktif', 'Kartu siap dipakai absen.'),
     };
 
-    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, spacing: 12, children: [
-      ShadCard(title: Text(m.name), description: Text([m.memberNo, if (m.division != null) m.division!].join(' · '))),
-      ShadCard(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          child: Column(spacing: 8, children: [
-            Icon(icon, size: 44, color: step == IssueStep.done ? const Color(0xFF047857) : theme.colorScheme.mutedForeground),
-            Text(title, style: theme.textTheme.large),
-            Text(desc, style: theme.textTheme.muted, textAlign: TextAlign.center),
-          ]),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      spacing: 12,
+      children: [
+        ShadCard(title: Text(m.name), description: Text([m.memberNo, if (m.division != null) m.division!].join(' · '))),
+        ShadCard(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            child: Column(
+              spacing: 8,
+              children: [
+                Icon(icon, size: 44, color: step == IssueStep.done ? const Color(0xFF047857) : theme.colorScheme.mutedForeground),
+                Text(title, style: theme.textTheme.large),
+                Text(desc, style: theme.textTheme.muted, textAlign: TextAlign.center),
+              ],
+            ),
+          ),
         ),
-      ),
-      if (step == null)
-        ShadButton(onPressed: () => _run(() => _issuer.issue(m, _setStep)), child: const Text('Terbitkan & tulis kartu'))
-      else if (_issuer.needsRelink && !busy)
-        ShadButton(onPressed: () => _run(() => _issuer.relink(m, _setStep)), child: const Text('Tautkan ulang'))
-      else if (step == IssueStep.waitingCard)
-        ShadButton.outline(onPressed: () {
-          _nfc.cancel();
-        }, child: const Text('Batal')),
-      if (step == IssueStep.done) ShadButton.outline(onPressed: _reset, child: const Text('Terbitkan kartu lain')),
-      if (step == null) ShadButton.ghost(onPressed: _reset, child: const Text('Pilih anggota lain')),
-    ]);
+        if (step == null)
+          FlexButton(onPressed: () => _run(() => _issuer.issue(m, _setStep)), label: 'Terbitkan & tulis kartu')
+        else if (_issuer.needsRelink && !busy)
+          ShadButton(onPressed: () => _run(() => _issuer.relink(m, _setStep)), child: const Text('Tautkan ulang'))
+        else if (step == IssueStep.waitingCard)
+          ShadButton.outline(
+            onPressed: () {
+              _nfc.cancel();
+            },
+            child: const Text('Batal'),
+          ),
+        if (step == IssueStep.done) ShadButton.outline(onPressed: _reset, child: const Text('Terbitkan kartu lain')),
+        if (step == null) ShadButton.ghost(onPressed: _reset, child: const Text('Pilih anggota lain')),
+      ],
+    );
   }
 }

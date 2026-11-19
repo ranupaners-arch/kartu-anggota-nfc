@@ -62,29 +62,41 @@ class _MyQrTabState extends State<MyQrTab> {
   Widget build(BuildContext context) {
     final theme = ShadTheme.of(context);
     final left = _nextAt.difference(DateTime.now()).inSeconds.clamp(0, 999);
-    return ListView(padding: const EdgeInsets.all(16), children: [
-      if (_error != null) ...[ErrorBanner(_error!), const SizedBox(height: 12)],
-      ShadCard(
-        child: Column(spacing: 12, children: [
-          Text(widget.name, style: theme.textTheme.large),
-          Container(
-            // Latar putih selalu (juga di mode gelap) agar mudah dipindai kamera.
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(color: Colors.white, borderRadius: theme.radius),
-            child: _payload == null
-                ? const SizedBox(width: 240, height: 240, child: Center(child: CircularProgressIndicator()))
-                : QrImageView(data: _payload!, size: 240, padding: EdgeInsets.zero, backgroundColor: Colors.white,
-                    errorCorrectionLevel: QrErrorCorrectLevel.M, semanticsLabel: 'QR absensi ${widget.name}'),
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        if (_error != null) ...[ErrorBanner(_error!), const SizedBox(height: 12)],
+        ShadCard(
+          child: Column(
+            spacing: 12,
+            children: [
+              Text(widget.name, style: theme.textTheme.large),
+              Container(
+                // Latar putih selalu (juga di mode gelap) agar mudah dipindai kamera.
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(color: Colors.white, borderRadius: theme.radius),
+                child: _payload == null
+                    ? const SizedBox(width: 240, height: 240, child: Center(child: CircularProgressIndicator()))
+                    : QrImageView(
+                        data: _payload!,
+                        size: 240,
+                        padding: EdgeInsets.zero,
+                        backgroundColor: Colors.white,
+                        errorCorrectionLevel: QrErrorCorrectLevel.M,
+                        semanticsLabel: 'QR absensi ${widget.name}',
+                      ),
+              ),
+              Text(_payload == null ? 'Memuat…' : 'Diperbarui otomatis dalam $left detik', style: theme.textTheme.muted),
+            ],
           ),
-          Text(_payload == null ? 'Memuat…' : 'Diperbarui otomatis dalam $left detik', style: theme.textTheme.muted),
-        ]),
-      ),
-      const SizedBox(height: 12),
-      ShadAlert(
-        icon: const Icon(LucideIcons.info),
-        title: const Text('Cadangan saat kartu tertinggal'),
-        description: const Text('Tunjukkan QR ini ke petugas. QR berganti tiap menit, jadi tangkapan layar tidak bisa dipakai. Butuh koneksi internet.'),
-      ),
-    ]);
+        ),
+        const SizedBox(height: 12),
+        ShadAlert(
+          icon: const Icon(LucideIcons.info),
+          title: const Text('Cadangan saat kartu tertinggal'),
+          description: const Text('Tunjukkan QR ini ke petugas. QR berganti tiap menit, jadi tangkapan layar tidak bisa dipakai. Butuh koneksi internet.'),
+        ),
+      ],
+    );
   }
 }

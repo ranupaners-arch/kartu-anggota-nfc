@@ -34,37 +34,55 @@ class _MyEventsTabState extends State<MyEventsTab> {
         builder: (context, snap) {
           final children = <Widget>[];
           if (snap.connectionState != ConnectionState.done) {
-            children.add(const Padding(padding: EdgeInsets.all(32), child: Center(child: CircularProgressIndicator())));
+            children.add(
+              const Padding(
+                padding: EdgeInsets.all(32),
+                child: Center(child: CircularProgressIndicator()),
+              ),
+            );
           } else if (snap.hasError) {
             children.add(ErrorBanner(snap.error is ApiException ? (snap.error as ApiException).message : 'Tidak bisa memuat kegiatan. Tarik untuk mencoba lagi.'));
           } else if (snap.data!.isEmpty) {
             children.add(const ShadCard(title: Text('Belum ada kegiatan'), description: Text('Kegiatan yang Anda ikuti akan muncul di sini.')));
           } else {
             for (final e in snap.data!) {
-              children.add(Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: ShadCard(
-                  title: Text(e.title),
-                  description: Text([fmtDateTime(e.startsAt), if (e.location != null) e.location!].join(' · ')),
-                  child: Padding(
-                    padding: const EdgeInsets.only(top: 10),
-                    child: Row(children: [
-                      ShadBadge.secondary(child: Text(MyEventsTabStatus.of(e))),
-                      if (e.excuseNote != null) ...[const SizedBox(width: 8), Expanded(child: Text(e.excuseNote!, style: theme.textTheme.muted, overflow: TextOverflow.ellipsis))],
-                      const Spacer(),
-                      if (e.canRequestExcuse)
-                        ShadButton.outline(
-                          size: ShadButtonSize.sm,
-                          onPressed: () async {
-                            final sent = await Navigator.of(context).push<bool>(MaterialPageRoute(builder: (_) => ExcuseScreen(api: widget.api, event: e)));
-                            if (sent == true) _refresh();
-                          },
-                          child: Text(e.excuseStatus == 'pending' ? 'Ubah izin' : 'Ajukan izin'),
-                        ),
-                    ]),
+              children.add(
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: ShadCard(
+                    title: Text(e.title),
+                    description: Text([fmtDateTime(e.startsAt), if (e.location != null) e.location!].join(' · ')),
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 10),
+                      child: Row(
+                        children: [
+                          ShadBadge.secondary(child: Text(MyEventsTabStatus.of(e))),
+                          if (e.excuseNote != null) ...[
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(e.excuseNote!, style: theme.textTheme.muted, overflow: TextOverflow.ellipsis),
+                            ),
+                          ],
+                          const Spacer(),
+                          if (e.canRequestExcuse)
+                            ShadButton.outline(
+                              size: ShadButtonSize.sm,
+                              onPressed: () async {
+                                final sent = await Navigator.of(context).push<bool>(
+                                  MaterialPageRoute(
+                                    builder: (_) => ExcuseScreen(api: widget.api, event: e),
+                                  ),
+                                );
+                                if (sent == true) _refresh();
+                              },
+                              child: Text(e.excuseStatus == 'pending' ? 'Ubah izin' : 'Ajukan izin'),
+                            ),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
-              ));
+              );
             }
           }
           return ListView(padding: const EdgeInsets.all(16), physics: const AlwaysScrollableScrollPhysics(), children: children);

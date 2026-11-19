@@ -7,6 +7,7 @@ import '../app/server_config.dart';
 import '../app/session.dart';
 import 'connect_screen.dart';
 import '../app/home.dart';
+import '../widgets/ui.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key, required this.server});
@@ -88,18 +89,26 @@ class _LoginScreenState extends State<LoginScreen> {
                     spacing: 12,
                     children: [
                       if (_error != null) ShadAlert.destructive(icon: const Icon(LucideIcons.circleAlert), description: Text(_error!)),
-                      _field('Email', ShadInput(controller: _email, keyboardType: TextInputType.emailAddress, placeholder: const Text('nama@organisasi.id'),
-                          leading: const Icon(LucideIcons.mail, size: 16))),
-                      _field('Password', ShadInput(controller: _password, obscureText: true, leading: const Icon(LucideIcons.lock, size: 16),
-                          onSubmitted: (_) => _busy ? null : _login())),
+                      _field(
+                        'Email',
+                        ShadInput(controller: _email, keyboardType: TextInputType.emailAddress, placeholder: const Text('nama@organisasi.id'), leading: const Icon(LucideIcons.mail, size: 16)),
+                      ),
+                      _field('Password', ShadInput(controller: _password, obscureText: true, leading: const Icon(LucideIcons.lock, size: 16), onSubmitted: (_) => _busy ? null : _login())),
                       if (_needOtp)
-                        _field('Kode 2FA', ShadInput(controller: _otp, keyboardType: TextInputType.visiblePassword, autofocus: true,
+                        _field(
+                          'Kode 2FA',
+                          ShadInput(
+                            controller: _otp,
+                            keyboardType: TextInputType.visiblePassword,
+                            autofocus: true,
                             placeholder: const Text('6 digit dari aplikasi authenticator, atau kode cadangan'),
-                            leading: const Icon(LucideIcons.shieldCheck, size: 16), onSubmitted: (_) => _busy ? null : _login())),
+                            leading: const Icon(LucideIcons.shieldCheck, size: 16),
+                            onSubmitted: (_) => _busy ? null : _login(),
+                          ),
+                        ),
                       const SizedBox(height: 4),
-                      ShadButton(onPressed: _busy ? null : _login, child: Text(_busy ? 'Memproses…' : 'Masuk')),
-                      if (serverMode == ServerMode.selectable)
-                        ShadButton.link(size: ShadButtonSize.sm, onPressed: _busy ? null : _changeServer, child: const Text('Ganti organisasi')),
+                      FlexButton(onPressed: _busy ? null : _login, label: _busy ? 'Memproses…' : 'Masuk'),
+                      if (serverMode == ServerMode.selectable) FlexButton(variant: ShadButtonVariant.link, small: true, onPressed: _busy ? null : _changeServer, label: 'Ganti organisasi'),
                     ],
                   ),
                 ),
@@ -112,8 +121,11 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Widget _field(String label, Widget input) => Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        spacing: 6,
-        children: [Text(label, style: ShadTheme.of(context).textTheme.small), input],
-      );
+    crossAxisAlignment: CrossAxisAlignment.start,
+    spacing: 6,
+    children: [
+      Text(label, style: ShadTheme.of(context).textTheme.small),
+      input,
+    ],
+  );
 }

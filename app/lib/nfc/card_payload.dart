@@ -8,12 +8,7 @@ import 'package:crypto/crypto.dart';
 /// HMAC tidak bisa diverifikasi di perangkat (secret hanya di server).
 /// Verifikasi offline memakai [fingerprint] yang dicocokkan dengan roster.
 class CardPayload {
-  const CardPayload({
-    required this.prefix,
-    required this.keyId,
-    required this.publicId,
-    required this.mac,
-  });
+  const CardPayload({required this.prefix, required this.keyId, required this.publicId, required this.mac});
 
   final String prefix;
   final String keyId;
@@ -38,8 +33,7 @@ class CardPayload {
   String encode() => '$prefix:v1:$keyId:$publicId:$mac';
 
   /// sha256 hex dari payload; sama dengan `payload_sha256` di roster.
-  static String fingerprint(String payload) =>
-      sha256.convert(utf8.encode(payload.trim())).toString();
+  static String fingerprint(String payload) => sha256.convert(utf8.encode(payload.trim())).toString();
 
   /// Token dari payload QR `<prefix>:qr:<token>`; null bila bukan QR.
   static String? qrToken(String raw, {String prefix = defaultPrefix}) {

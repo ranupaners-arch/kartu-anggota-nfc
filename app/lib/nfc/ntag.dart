@@ -51,23 +51,22 @@ const firstUserPage = 4;
 NdefMessage textMessage(String text) {
   final lang = ascii.encode('en');
   final body = utf8.encode(text);
-  return NdefMessage(records: [
-    NdefRecord(
-      typeNameFormat: TypeNameFormat.wellKnown,
-      type: Uint8List.fromList([0x54]), // "T"
-      identifier: Uint8List(0),
-      payload: Uint8List.fromList([lang.length, ...lang, ...body]),
-    ),
-  ]);
+  return NdefMessage(
+    records: [
+      NdefRecord(
+        typeNameFormat: TypeNameFormat.wellKnown,
+        type: Uint8List.fromList([0x54]), // "T"
+        identifier: Uint8List(0),
+        payload: Uint8List.fromList([lang.length, ...lang, ...body]),
+      ),
+    ],
+  );
 }
 
 /// Ambil teks dari Text record pertama; null bila tidak ada.
 String? firstText(NdefMessage? message) {
   for (final r in message?.records ?? const <NdefRecord>[]) {
-    if (r.typeNameFormat == TypeNameFormat.wellKnown &&
-        r.type.length == 1 &&
-        r.type[0] == 0x54 &&
-        r.payload.isNotEmpty) {
+    if (r.typeNameFormat == TypeNameFormat.wellKnown && r.type.length == 1 && r.type[0] == 0x54 && r.payload.isNotEmpty) {
       final langLen = r.payload[0] & 0x3F;
       if (r.payload.length < 1 + langLen) return null;
       return utf8.decode(r.payload.sublist(1 + langLen), allowMalformed: true);
@@ -91,9 +90,7 @@ List<Uint8List> ndefTlvPages(NdefMessage message, NtagModel model) {
   while (bytes.length % 4 != 0) {
     bytes.add(0x00);
   }
-  return [
-    for (var i = 0; i < bytes.length; i += 4) Uint8List.fromList(bytes.sublist(i, i + 4)),
-  ];
+  return [for (var i = 0; i < bytes.length; i += 4) Uint8List.fromList(bytes.sublist(i, i + 4))];
 }
 
 /// Apakah kartu sudah diproteksi password (AUTH0 menunjuk ke memori pengguna).
@@ -103,25 +100,20 @@ bool isProtected(Uint8List cfgPages, NtagModel model) {
 }
 
 /// CFG1 baru: bit PROT (7) = 0 → hanya TULIS yang butuh password; baca tetap bebas.
-Uint8List cfg1WriteProtectOnly(Uint8List cfg1) =>
-    Uint8List.fromList([cfg1[0] & 0x7F, cfg1[1], cfg1[2], cfg1[3]]);
+Uint8List cfg1WriteProtectOnly(Uint8List cfg1) => Uint8List.fromList([cfg1[0] & 0x7F, cfg1[1], cfg1[2], cfg1[3]]);
 
 /// CFG0 baru dengan AUTH0 = [fromPage] (proteksi mulai halaman itu).
-Uint8List cfg0WithAuth0(Uint8List cfg0, int fromPage) =>
-    Uint8List.fromList([cfg0[0], cfg0[1], cfg0[2], fromPage]);
+Uint8List cfg0WithAuth0(Uint8List cfg0, int fromPage) => Uint8List.fromList([cfg0[0], cfg0[1], cfg0[2], fromPage]);
 
 Uint8List hexToBytes(String hex, {required int length}) {
   final h = hex.trim().toLowerCase();
   if (h.length != length * 2 || !RegExp(r'^[0-9a-f]+$').hasMatch(h)) {
     throw FormatException('Harus $length byte hex (${length * 2} karakter).');
   }
-  return Uint8List.fromList([
-    for (var i = 0; i < h.length; i += 2) int.parse(h.substring(i, i + 2), radix: 16),
-  ]);
+  return Uint8List.fromList([for (var i = 0; i < h.length; i += 2) int.parse(h.substring(i, i + 2), radix: 16)]);
 }
 
 String bytesToHex(List<int> b) => b.map((x) => x.toRadixString(16).padLeft(2, '0')).join();
 
 /// UID disamarkan untuk log: hanya byte pertama + panjang.
-String maskUid(List<int> uid) =>
-    uid.isEmpty ? '-' : '${bytesToHex(uid.take(1).toList())}${'••' * (uid.length - 1)} (${uid.length} byte)';
+String maskUid(List<int> uid) => uid.isEmpty ? '-' : '${bytesToHex(uid.take(1).toList())}${'••' * (uid.length - 1)} (${uid.length} byte)';

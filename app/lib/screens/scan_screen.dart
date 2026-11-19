@@ -84,15 +84,13 @@ class _ScanScreenState extends State<ScanScreen> with WidgetsBindingObserver {
   SessionInfo? _defaultSession(List<SessionInfo> sessions) {
     if (sessions.isEmpty) return null;
     final now = _now();
-    return sessions.where((s) => s.id == widget.event.currentSessionId).firstOrNull
-        ?? sessions.where((s) => s.isOpenAt(now)).firstOrNull
-        ?? sessions.first;
+    return sessions.where((s) => s.id == widget.event.currentSessionId).firstOrNull ?? sessions.where((s) => s.isOpenAt(now)).firstOrNull ?? sessions.first;
   }
 
   void _selectSession(int id) => setState(() {
-        _sessionId = id;
-        _last = null;
-      });
+    _sessionId = id;
+    _last = null;
+  });
 
   /// Ambil roster terbaru bila online (simpan untuk offline), selain itu pakai yang tersimpan.
   Future<void> _initOffline() async {
@@ -169,9 +167,7 @@ class _ScanScreenState extends State<ScanScreen> with WidgetsBindingObserver {
     final status = await _nfc.availability();
     if (!mounted || gen != _loop) return;
     if (status != NfcAvailability.enabled) {
-      setState(() => _nfcProblem = status == NfcAvailability.disabled
-          ? 'NFC mati. Aktifkan NFC di pengaturan HP, lalu kembali ke sini.'
-          : 'HP ini tidak mendukung NFC. Gunakan mode QR.');
+      setState(() => _nfcProblem = status == NfcAvailability.disabled ? 'NFC mati. Aktifkan NFC di pengaturan HP, lalu kembali ke sini.' : 'HP ini tidak mendukung NFC. Gunakan mode QR.');
       return;
     }
     setState(() => _nfcProblem = null);
@@ -260,10 +256,8 @@ class _ScanScreenState extends State<ScanScreen> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     final theme = ShadTheme.of(context);
     Widget modeButton(ScanMode m, IconData icon, String label) => Expanded(
-          child: _mode == m
-              ? ShadButton(leading: Icon(icon, size: 16), onPressed: () {}, child: Text(label))
-              : ShadButton.outline(leading: Icon(icon, size: 16), onPressed: () => _switchMode(m), child: Text(label)),
-        );
+      child: _mode == m ? FlexButton(icon: icon, onPressed: () {}, label: label) : FlexButton(variant: ShadButtonVariant.outline, icon: icon, onPressed: () => _switchMode(m), label: label),
+    );
 
     return AppPage(
       title: widget.event.title,
@@ -277,66 +271,109 @@ class _ScanScreenState extends State<ScanScreen> with WidgetsBindingObserver {
           },
         ),
       ],
-      child: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          if (_sessions.length > 1) ...[
-            Text('Sesi', style: theme.textTheme.small),
-            const SizedBox(height: 6),
-            Wrap(spacing: 8, runSpacing: 8, children: [
-              for (final s in _sessions)
-                s.id == _sessionId
-                    ? ShadButton(size: ShadButtonSize.sm, onPressed: () {}, child: Text(s.title))
-                    : ShadButton.outline(size: ShadButtonSize.sm, onPressed: () => _selectSession(s.id), child: Text(s.title)),
-            ]),
-            if (_session != null && !_session!.isOpenAt(_now())) ...[
-              const SizedBox(height: 8),
-              Text('Check-in sesi ini ${_now().isBefore(_session!.opensAt) ? 'belum dibuka' : 'sudah ditutup'}. Pastikan sesi yang dipilih benar.',
-                  style: theme.textTheme.muted),
+      // Landscape/tablet lebar: dua panel (area scan | hasil). Potret: satu kolom.
+      maxContentWidth: 1100,
+      child: LayoutBuilder(
+        builder: (context, box) {
+          final twoPane = box.maxWidth >= 640 && box.maxWidth > box.maxHeight;
+          // Kotak kamera persegi, tidak lebih tinggi dari ~70% tinggi layar.
+          final cameraSide = twoPane ? (box.maxHeight * 0.7).clamp(200.0, 520.0) : double.infinity;
+          final controls = <Widget>[
+            if (_sessions.length > 1) ...[
+              Text('Sesi', style: theme.textTheme.small),
+              const SizedBox(height: 6),
+              // Grid dua kolom selebar layar: judul sesi panjang turun baris, tidak meluber.
+              LayoutBuilder(
+                builder: (context, c) {
+                  final w = (c.maxWidth - 8) / 2;
+                  return Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      for (final s in _sessions)
+                        SizedBox(
+                          width: w,
+                          child: FlexButton(
+                            small: true,
+                            variant: s.id == _sessionId ? ShadButtonVariant.primary : ShadButtonVariant.outline,
+                            onPressed: s.id == _sessionId ? () {} : () => _selectSession(s.id),
+                            label: s.title,
+                          ),
+                        ),
+                    ],
+                  );
+                },
+              ),
+              if (_session != null && !_session!.isOpenAt(_now())) ...[
+                const SizedBox(height: 8),
+                Text('Check-in sesi ini ${_now().isBefore(_session!.opensAt) ? 'belum dibuka' : 'sudah ditutup'}. Pastikan sesi yang dipilih benar.', style: theme.textTheme.muted),
+              ],
+              const SizedBox(height: 16),
             ],
+            Row(spacing: 8, children: [modeButton(ScanMode.nfc, LucideIcons.nfc, 'Kartu NFC'), modeButton(ScanMode.qr, LucideIcons.qrCode, 'QR')]),
             const SizedBox(height: 16),
-          ],
-          Row(spacing: 8, children: [modeButton(ScanMode.nfc, LucideIcons.nfc, 'Kartu NFC'), modeButton(ScanMode.qr, LucideIcons.qrCode, 'QR')]),
-          const SizedBox(height: 16),
-          if (_mode == ScanMode.nfc)
-            _nfcProblem != null
-                ? ShadAlert.destructive(icon: const Icon(LucideIcons.triangleAlert), title: const Text('NFC tidak siap'), description: Text(_nfcProblem!))
-                : ShadCard(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 24),
-                      child: Column(spacing: 8, children: [
-                        Icon(LucideIcons.smartphoneNfc, size: 48, color: theme.colorScheme.mutedForeground),
-                        Text(_busy ? 'Memproses…' : 'Tempelkan kartu ke belakang HP', style: theme.textTheme.large),
-                        Text('Siap membaca kartu berikutnya', style: theme.textTheme.muted),
-                      ]),
-                    ),
-                  )
-          else
-            ClipRRect(
-              borderRadius: theme.radius,
-              child: AspectRatio(aspectRatio: 1, child: MobileScanner(onDetect: _onQr)),
-            ),
-          const SizedBox(height: 16),
-          if (_pending > 0 || _syncNote != null) ...[
-            ShadCard(
-              padding: const EdgeInsets.all(12),
-              child: Row(spacing: 8, children: [
-                Icon(_pending > 0 ? LucideIcons.cloudOff : LucideIcons.cloudCheck, size: 18, color: theme.colorScheme.mutedForeground),
-                Expanded(child: Text(_pending > 0 ? '$_pending scan belum tersinkron${_syncNote != null ? '\n$_syncNote' : ''}' : _syncNote!, style: theme.textTheme.small)),
-                if (_pending > 0)
-                  ShadButton.outline(size: ShadButtonSize.sm, enabled: !_syncing, onPressed: _sync, child: Text(_syncing ? 'Mengirim…' : 'Sinkron')),
-              ]),
-            ),
+            if (_mode == ScanMode.nfc)
+              _nfcProblem != null
+                  ? ShadAlert.destructive(icon: const Icon(LucideIcons.triangleAlert), title: const Text('NFC tidak siap'), description: Text(_nfcProblem!))
+                  : ShadCard(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 24),
+                        child: Column(
+                          spacing: 8,
+                          children: [
+                            Icon(LucideIcons.smartphoneNfc, size: 48, color: theme.colorScheme.mutedForeground),
+                            Text(_busy ? 'Memproses…' : 'Tempelkan kartu ke belakang HP', style: theme.textTheme.large),
+                            Text('Siap membaca kartu berikutnya', style: theme.textTheme.muted),
+                          ],
+                        ),
+                      ),
+                    )
+            else
+              Center(
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(maxWidth: cameraSide),
+                  child: ClipRRect(
+                    borderRadius: theme.radius,
+                    child: AspectRatio(aspectRatio: 1, child: MobileScanner(onDetect: _onQr)),
+                  ),
+                ),
+              ),
+          ];
+          final info = <Widget>[
+            if (_pending > 0 || _syncNote != null) ...[
+              ShadCard(
+                padding: const EdgeInsets.all(12),
+                child: Row(
+                  spacing: 8,
+                  children: [
+                    Icon(_pending > 0 ? LucideIcons.cloudOff : LucideIcons.cloudCheck, size: 18, color: theme.colorScheme.mutedForeground),
+                    Expanded(child: Text(_pending > 0 ? '$_pending scan belum tersinkron${_syncNote != null ? '\n$_syncNote' : ''}' : _syncNote!, style: theme.textTheme.small)),
+                    if (_pending > 0) ShadButton.outline(size: ShadButtonSize.sm, enabled: !_syncing, onPressed: _sync, child: Text(_syncing ? 'Mengirim…' : 'Sinkron')),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+            ],
+            if (_last != null) ScanResultCard(result: _last!, token: widget.session.token, photoFile: _photos?.cached(_last!.memberId, _last!.photoUrl)),
+            if (_roster != null) ...[const SizedBox(height: 8), Center(child: Text('Data offline: ${_roster!.members.length} peserta', style: theme.textTheme.muted))],
             const SizedBox(height: 12),
-          ],
-          if (_last != null) ScanResultCard(result: _last!, token: widget.session.token, photoFile: _photos?.cached(_last!.memberId, _last!.photoUrl)),
-          if (_roster != null) ...[
-            const SizedBox(height: 8),
-            Center(child: Text('Data offline: ${_roster!.members.length} peserta', style: theme.textTheme.muted)),
-          ],
-          const SizedBox(height: 12),
-          Center(child: Text(_sessions.length > 1 ? '$_okCount berhasil tercatat sejak layar dibuka' : '$_okCount berhasil tercatat di sesi ini', style: theme.textTheme.muted)),
-        ],
+            Center(child: Text(_sessions.length > 1 ? '$_okCount berhasil tercatat sejak layar dibuka' : '$_okCount berhasil tercatat di sesi ini', style: theme.textTheme.muted)),
+          ];
+          if (!twoPane) {
+            return ListView(padding: const EdgeInsets.all(16), children: [...controls, const SizedBox(height: 16), ...info]);
+          }
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: ListView(padding: const EdgeInsets.fromLTRB(16, 16, 8, 16), children: controls),
+              ),
+              Expanded(
+                child: ListView(padding: const EdgeInsets.fromLTRB(8, 16, 16, 16), children: info),
+              ),
+            ],
+          );
+        },
       ),
     );
   }

@@ -14,9 +14,9 @@ class Roster {
     required this.generatedAt,
     this.sessions = const [],
   }) : _byFingerprint = {
-          for (final m in members)
-            for (final c in m.cards) c.fingerprint: (member: m, card: c),
-        };
+         for (final m in members)
+           for (final c in m.cards) c.fingerprint: (member: m, card: c),
+       };
 
   final int eventId;
   final String title;
@@ -49,30 +49,31 @@ class Roster {
 
   /// Bentuk penyimpanan lokal (sama dengan respons API agar satu parser).
   Map<String, dynamic> toApiJson() => {
-        'event': {
-          'id': eventId, 'title': title,
-          'checkin_opens_at': opensAt.toUtc().toIso8601String(),
-          'late_after': lateAfter.toUtc().toIso8601String(),
-          'checkin_closes_at': closesAt.toUtc().toIso8601String(),
-          'closed_at': closed ? generatedAt.toUtc().toIso8601String() : null,
-          'sessions': [for (final s in sessions) s.toJson()],
-        },
-        'members': [for (final m in members) m.toJson()],
-        'generated_at': generatedAt.toUtc().toIso8601String(),
-      };
+    'event': {
+      'id': eventId,
+      'title': title,
+      'checkin_opens_at': opensAt.toUtc().toIso8601String(),
+      'late_after': lateAfter.toUtc().toIso8601String(),
+      'checkin_closes_at': closesAt.toUtc().toIso8601String(),
+      'closed_at': closed ? generatedAt.toUtc().toIso8601String() : null,
+      'sessions': [for (final s in sessions) s.toJson()],
+    },
+    'members': [for (final m in members) m.toJson()],
+    'generated_at': generatedAt.toUtc().toIso8601String(),
+  };
 }
 
 class RosterMember {
   const RosterMember({required this.id, required this.memberNo, required this.name, this.division, this.photoUrl, this.cards = const []});
 
   factory RosterMember.fromJson(Map<String, dynamic> j) => RosterMember(
-        id: j['id'] as int,
-        memberNo: j['member_no'] as String,
-        name: j['name'] as String,
-        division: j['division'] as String?,
-        photoUrl: j['photo_url'] as String?,
-        cards: [for (final c in (j['cards'] as List? ?? const [])) RosterCard.fromJson(c as Map<String, dynamic>)],
-      );
+    id: j['id'] as int,
+    memberNo: j['member_no'] as String,
+    name: j['name'] as String,
+    division: j['division'] as String?,
+    photoUrl: j['photo_url'] as String?,
+    cards: [for (final c in (j['cards'] as List? ?? const [])) RosterCard.fromJson(c as Map<String, dynamic>)],
+  );
 
   final int id;
   final String memberNo, name;
@@ -80,16 +81,19 @@ class RosterMember {
   final List<RosterCard> cards;
 
   Map<String, dynamic> toJson() => {
-        'id': id, 'member_no': memberNo, 'name': name, 'division': division, 'photo_url': photoUrl,
-        'cards': [for (final c in cards) c.toJson()],
-      };
+    'id': id,
+    'member_no': memberNo,
+    'name': name,
+    'division': division,
+    'photo_url': photoUrl,
+    'cards': [for (final c in cards) c.toJson()],
+  };
 }
 
 class RosterCard {
   const RosterCard({required this.publicId, required this.status, required this.fingerprint});
 
-  factory RosterCard.fromJson(Map<String, dynamic> j) =>
-      RosterCard(publicId: j['public_id'] as String, status: j['status'] as String, fingerprint: j['payload_sha256'] as String);
+  factory RosterCard.fromJson(Map<String, dynamic> j) => RosterCard(publicId: j['public_id'] as String, status: j['status'] as String, fingerprint: j['payload_sha256'] as String);
 
   final String publicId, status, fingerprint;
   bool get active => status == 'active';

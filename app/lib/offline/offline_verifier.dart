@@ -10,10 +10,8 @@ abstract final class OfflineVerifier {
   /// [alreadyPresent] berisi anggota yang sudah absen di sesi itu.
   static ScanResult check(Roster roster, String payload, DateTime now, {Set<int> alreadyPresent = const {}, SessionInfo? session}) {
     final opensAt = session?.opensAt ?? roster.opensAt, lateAfter = session?.lateAfter ?? roster.lateAfter, closesAt = session?.closesAt ?? roster.closesAt;
-    ScanResult reject(String status, String message, [RosterMember? m]) => ScanResult(
-          status: status, message: message, offline: true,
-          memberId: m?.id, memberName: m?.name, memberNo: m?.memberNo, division: m?.division, photoUrl: m?.photoUrl,
-        );
+    ScanResult reject(String status, String message, [RosterMember? m]) =>
+        ScanResult(status: status, message: message, offline: true, memberId: m?.id, memberName: m?.name, memberNo: m?.memberNo, division: m?.division, photoUrl: m?.photoUrl);
 
     if (CardPayload.parse(payload) == null) return reject('invalid', 'Bukan kartu anggota.');
     final hit = roster.byFingerprint(CardPayload.fingerprint(payload));
@@ -30,7 +28,11 @@ abstract final class OfflineVerifier {
       attendanceStatus: now.isAfter(lateAfter) ? 'telat' : 'hadir',
       message: 'Tersimpan offline, akan disinkron.',
       offline: true,
-      memberId: m.id, memberName: m.name, memberNo: m.memberNo, division: m.division, photoUrl: m.photoUrl,
+      memberId: m.id,
+      memberName: m.name,
+      memberNo: m.memberNo,
+      division: m.division,
+      photoUrl: m.photoUrl,
     );
   }
 }

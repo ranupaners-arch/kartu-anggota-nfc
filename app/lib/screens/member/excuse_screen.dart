@@ -85,38 +85,35 @@ class _ExcuseScreenState extends State<ExcuseScreen> {
   Widget build(BuildContext context) {
     final theme = ShadTheme.of(context);
     Widget typeButton(String value, String label) => Expanded(
-          child: _type == value
-              ? ShadButton(onPressed: () {}, child: Text(label))
-              : ShadButton.outline(onPressed: () => setState(() => _type = value), child: Text(label)),
-        );
+      child: _type == value ? FlexButton(onPressed: () {}, label: label) : FlexButton(variant: ShadButtonVariant.outline, onPressed: () => setState(() => _type = value), label: label),
+    );
 
     return AppPage(
       title: 'Ajukan Izin',
       leading: const BackButton(),
-      child: ListView(padding: const EdgeInsets.all(16), children: [
-        ShadCard(title: Text(widget.event.title), description: Text(fmtDateTime(widget.event.startsAt))),
-        const SizedBox(height: 16),
-        if (_error != null) ...[ShadAlert.destructive(icon: const Icon(LucideIcons.circleAlert), description: Text(_error!)), const SizedBox(height: 12)],
-        Text('Jenis', style: theme.textTheme.small),
-        const SizedBox(height: 6),
-        Row(spacing: 8, children: [typeButton('izin', 'Izin'), typeButton('sakit', 'Sakit')]),
-        const SizedBox(height: 16),
-        Text('Alasan', style: theme.textTheme.small),
-        const SizedBox(height: 6),
-        ShadInput(controller: _reason, minLines: 3, maxLines: 6, placeholder: const Text('Tuliskan alasan singkat')),
-        const SizedBox(height: 16),
-        Text('Lampiran (opsional)', style: theme.textTheme.small),
-        const SizedBox(height: 6),
-        ShadButton.outline(
-          leading: const Icon(LucideIcons.paperclip, size: 16),
-          onPressed: _busy ? null : _pick,
-          child: Text(_file == null ? 'Pilih gambar atau PDF (maks. 5 MB)' : _file!.name, overflow: TextOverflow.ellipsis),
-        ),
-        const SizedBox(height: 24),
-        ShadButton(onPressed: _busy ? null : _submit, child: Text(_busy ? 'Mengirim…' : 'Kirim pengajuan')),
-        const SizedBox(height: 8),
-        Text('Pengurus akan menyetujui atau menolak. Statusnya terlihat di tab Kegiatan.', style: theme.textTheme.muted, textAlign: TextAlign.center),
-      ]),
+      child: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          ShadCard(title: Text(widget.event.title), description: Text(fmtDateTime(widget.event.startsAt))),
+          const SizedBox(height: 16),
+          if (_error != null) ...[ShadAlert.destructive(icon: const Icon(LucideIcons.circleAlert), description: Text(_error!)), const SizedBox(height: 12)],
+          Text('Jenis', style: theme.textTheme.small),
+          const SizedBox(height: 6),
+          Row(spacing: 8, children: [typeButton('izin', 'Izin'), typeButton('sakit', 'Sakit')]),
+          const SizedBox(height: 16),
+          Text('Alasan', style: theme.textTheme.small),
+          const SizedBox(height: 6),
+          ShadInput(controller: _reason, minLines: 3, maxLines: 6, placeholder: const Text('Tuliskan alasan singkat')),
+          const SizedBox(height: 16),
+          Text('Lampiran (opsional)', style: theme.textTheme.small),
+          const SizedBox(height: 6),
+          FlexButton(variant: ShadButtonVariant.outline, icon: LucideIcons.paperclip, onPressed: _busy ? null : _pick, label: _file == null ? 'Pilih gambar atau PDF (maks. 5 MB)' : _file!.name),
+          const SizedBox(height: 24),
+          FlexButton(onPressed: _busy ? null : _submit, label: _busy ? 'Mengirim…' : 'Kirim pengajuan'),
+          const SizedBox(height: 8),
+          Text('Pengurus akan menyetujui atau menolak. Statusnya terlihat di tab Kegiatan.', style: theme.textTheme.muted, textAlign: TextAlign.center),
+        ],
+      ),
     );
   }
 }
