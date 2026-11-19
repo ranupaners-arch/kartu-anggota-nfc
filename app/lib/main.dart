@@ -56,9 +56,20 @@ class _KartuAnggotaAppState extends State<KartuAnggotaApp> {
         // gelap ikut berwarna gelap (lihat test/dark_mode_test.dart).
         theme: () {
           final base = Theme.of(context);
-          final fg = ShadTheme.of(context).colorScheme.foreground;
+          final c = ShadTheme.of(context).colorScheme;
+          final fg = c.foreground;
+          WidgetStateProperty<T> bySelected<T>(T selected, T other) => WidgetStateProperty.resolveWith((s) => s.contains(WidgetState.selected) ? selected : other);
           return base.copyWith(
             textTheme: base.textTheme.apply(bodyColor: fg, displayColor: fg),
+            // Navigasi bawah mengikuti skema shadcn: aktif = foreground, lain = mutedForeground.
+            // Tanpa ini ikon & label memakai warna bawaan Material (abu gelap) yang hilang di mode gelap.
+            navigationBarTheme: NavigationBarThemeData(
+              backgroundColor: c.background,
+              surfaceTintColor: Colors.transparent,
+              indicatorColor: c.secondary,
+              iconTheme: bySelected(IconThemeData(color: c.foreground), IconThemeData(color: c.mutedForeground)),
+              labelTextStyle: bySelected(TextStyle(color: c.foreground, fontSize: 12, fontWeight: FontWeight.w600), TextStyle(color: c.mutedForeground, fontSize: 12)),
+            ),
           );
         }(),
         home: widget.home ?? const _StartGate(),
