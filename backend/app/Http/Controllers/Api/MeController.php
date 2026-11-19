@@ -47,6 +47,18 @@ class MeController extends Controller
         })];
     }
 
+    /** Pengumuman aktif untuk anggota ini (semua anggota + divisinya di periode berjalan); disematkan dulu. */
+    public function announcements(Request $r)
+    {
+        $memberId = $this->memberId($r);
+        $term = Term::where('is_current', true)->first();
+        $division = $term ? \App\Models\Membership::where('member_id', $memberId)->where('term_id', $term->id)->value('division_id') : null;
+
+        return ['data' => \App\Models\Announcement::active()->forDivision($division)->with('division:id,name')
+            ->orderByDesc('pinned')->latest()->limit(20)->get()
+            ->map(fn ($a) => $a->only('id', 'title', 'body', 'pinned', 'created_at') + ['division' => $a->division?->name])];
+    }
+
     /** Ringkasan kehadiran periode berjalan + riwayat terbaru. */
     public function history(Request $r)
     {
