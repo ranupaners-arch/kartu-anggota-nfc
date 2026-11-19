@@ -18,6 +18,9 @@ Bagian bertanda **(Super Admin)** hanya tersedia untuk Super Admin.
 - Detail anggota → **Unggah foto** (dipakai petugas untuk mencocokkan wajah saat scan).
 - Status keanggotaan per periode: Aktif, Tidak aktif, Alumni, Pendaftar. Hanya anggota **Aktif**
   yang bisa absen.
+- Anggota yang dihapus masuk tab **Arsip** dan bisa **Pulihkan** (kartu lamanya tetap diblokir).
+  Nomor anggota di arsip tidak bisa dipakai anggota baru — pulihkan saja.
+- Admin Divisi bisa melihat daftar & detail anggota divisinya (baca-saja).
 
 ### Kartu
 - Kartu diterbitkan lewat **app** (login Super Admin): ikon kartu di kanan atas → cari anggota →

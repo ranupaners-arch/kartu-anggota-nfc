@@ -12,8 +12,8 @@ Panduan singkat untuk dipakai saat uji lapangan (M4) dan sesudahnya. Pilih sesua
 Perbedaan pengurus:
 
 - **Super Admin**: semua fitur — anggota, kartu, pengguna, perangkat, log, pengaturan.
-- **Admin Divisi**: kegiatan divisinya + kegiatan umum, pengajuan izin, tinjauan, rekap divisinya.
-  Tidak bisa mengelola anggota, kartu, pengguna, atau pengaturan.
+- **Admin Divisi**: kegiatan divisinya + kegiatan umum, pengajuan izin, tinjauan, rekap divisinya,
+  dan **melihat** anggota divisinya. Tidak bisa mengubah anggota, kartu, pengguna, atau pengaturan.
 
 Akun dibuat oleh Super Admin di dashboard → **Pengguna & Peran** → **Tambah Pengguna**. Password
 sementara tampil sekali setelah akun dibuat; sampaikan langsung ke pemiliknya.
