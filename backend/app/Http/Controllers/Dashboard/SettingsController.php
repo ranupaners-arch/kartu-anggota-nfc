@@ -28,6 +28,11 @@ class SettingsController extends Controller
                 'exportDays' => (int) config('attendance.export_retention_days'),
                 'pending' => app(PrivacyService::class)->retention($r->user()->organization, dryRun: true),
             ] : null,
+            'health' => fn () => $r->query('tab') === 'sistem' ? app(\App\Services\HealthService::class)->check() + [
+                'sentry' => (bool) config('sentry.dsn'),
+                'healthTokenSet' => (bool) config('attendance.health_token'),
+                'healthUrl' => url('/api/health'),
+            ] : null,
         ]);
     }
 

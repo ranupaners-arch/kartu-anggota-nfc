@@ -18,9 +18,13 @@ return Application::configure(basePath: dirname(__DIR__))
             'dashboard' => \App\Http\Middleware\EnsureDashboardAccess::class,
         ]);
         $middleware->redirectUsersTo('/');
+        $middleware->prepend(\App\Http\Middleware\AssignRequestId::class);
         $middleware->web(append: [\App\Http\Middleware\HandleInertiaRequests::class]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
+        // Pelacakan error (Sentry): aktif hanya bila SENTRY_LARAVEL_DSN diisi.
+        \Sentry\Laravel\Integration::handles($exceptions);
+
         $exceptions->shouldRenderJsonWhen(
             fn (Request $request) => $request->is('api/*') || $request->expectsJson(),
         );
