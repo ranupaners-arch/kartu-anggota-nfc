@@ -23,15 +23,16 @@ class ScanService
      *
      * @param array{payload:string,source?:string,scanned_at?:string,client_uuid?:string,session_id?:int,override_reason?:string} $in
      */
-    public function process(Event $event, array $in, User $user, ?Device $device, bool $fromBatch = false): array
+    public function process(Event $event, array $in, User $user, ?Device $device, bool $fromBatch = false, ?ScanContext $ctx = null): array
     {
+        $ctx ??= new ScanContext($event);
         $source = $in['source'] ?? 'nfc';
         $now = now();
         $scannedAt = isset($in['scanned_at']) ? Carbon::parse($in['scanned_at']) : $now;
 
         // Idempotensi: client_uuid yang sama tidak membuat data ganda.
         if (! empty($in['client_uuid'])
-            && ($existing = Attendance::with('member')->where('client_uuid', $in['client_uuid'])->first())) {
+            && ($existing = $ctx->attendanceByClientUuid($in['client_uuid']))) {
             return $this->result('duplicate', $existing->member, $existing->status, 'Scan sudah tercatat.');
         }
 
@@ -48,7 +49,7 @@ class ScanService
             }
         } else {
             $parsed = CardPayload::verify($in['payload'] ?? '');
-            $card = $parsed ? Card::with('member')->where('public_id', $parsed['public_id'])->first() : null;
+            $card = $parsed ? $ctx->card($parsed['public_id']) : null;
             if (! $card || ! $card->member) {
                 return $this->result('invalid', null, null, 'Kartu tidak dikenali.');
             }
@@ -71,20 +72,20 @@ class ScanService
         }
 
         // 2. Target peserta
-        if (! $event->targetMembers()->whereKey($member->id)->exists()) {
+        if (! $ctx->isTarget($member)) {
             return $this->result('not_target', $member, null, 'Bukan peserta kegiatan ini.');
         }
 
         // 3. Sesi: yang dipilih petugas, atau yang jendelanya mencakup waktu scan, atau sesi utama.
         if (isset($in['session_id'])) {
-            $session = $event->sessions()->find($in['session_id']);
+            $session = $ctx->session((int) $in['session_id']);
             if (! $session) {
                 return $this->result('invalid', $member, null, 'Sesi tidak ditemukan di kegiatan ini.');
             }
         } else {
-            $session = $event->currentSession($scannedAt) ?? $event->defaultSession();
+            $session = $event->currentSession($scannedAt) ?? $ctx->sessions->first() ?? $event->defaultSession();
         }
-        $multi = $event->sessions()->count() > 1;
+        $multi = $ctx->multiSession();
 
         // 4. Jendela check-in sesi itu
         $override = false;
@@ -99,7 +100,7 @@ class ScanService
         $status = $scannedAt->lte($session->late_after) ? Attendance::HADIR : Attendance::TELAT;
 
         // 5. Satu absensi per sesi
-        $attendance = Attendance::where('session_id', $session->id)->where('member_id', $member->id)->first();
+        $attendance = $ctx->attendance($session, $member);
         if ($attendance && ! $attendance->voided_at && $attendance->status !== Attendance::ALPA
             && ! in_array($attendance->status, [Attendance::IZIN, Attendance::SAKIT], true)) {
             return $this->result('duplicate', $member, $attendance->status, $multi ? 'Sudah absen di sesi ini.' : 'Sudah absen.', session: $session);
@@ -121,9 +122,12 @@ class ScanService
         } catch (UniqueConstraintViolationException) {
             return $this->result('duplicate', $member, null, 'Sudah absen.', session: $session);
         }
+        $ctx->remember($attendance);
 
-        ExcuseRequest::where('event_id', $event->id)->where('member_id', $member->id)
-            ->where('status', 'approved')->update(['used' => false]);
+        if ($ctx->hasApprovedExcuse($member->id)) {
+            ExcuseRequest::where('event_id', $event->id)->where('member_id', $member->id)
+                ->where('status', 'approved')->update(['used' => false]);
+        }
 
         if ($override) {
             AuditLogger::log('scan.override', 'attendance', $attendance->id, ['reason' => $in['override_reason']], $user->id);
