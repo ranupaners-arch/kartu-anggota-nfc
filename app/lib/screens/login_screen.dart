@@ -118,6 +118,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         const SizedBox(height: 4),
                         FlexButton(onPressed: _busy ? null : _login, label: _busy ? 'Memproses…' : 'Masuk'),
+                        FlexButton(variant: ShadButtonVariant.link, small: true, onPressed: _busy ? null : () => showForgotPassword(context, ApiClient(baseUrl: widget.server.url), _email.text.trim()), label: 'Lupa password?'),
                         if (serverMode == ServerMode.selectable) FlexButton(variant: ShadButtonVariant.link, small: true, onPressed: _busy ? null : _changeServer, label: 'Ganti organisasi'),
                       ],
                     ),
@@ -139,4 +140,92 @@ class _LoginScreenState extends State<LoginScreen> {
       input,
     ],
   );
+}
+
+/// Dialog lupa password: kirim tautan atur ulang ke email. Bila email server belum diatur, pesan
+/// server meminta pengguna menghubungi pengurus.
+Future<void> showForgotPassword(BuildContext context, ApiClient api, String email) {
+  return showShadDialog<void>(context: context, builder: (_) => _ForgotDialog(api: api, email: email));
+}
+
+class _ForgotDialog extends StatefulWidget {
+  const _ForgotDialog({required this.api, required this.email});
+
+  final ApiClient api;
+  final String email;
+
+  @override
+  State<_ForgotDialog> createState() => _ForgotDialogState();
+}
+
+class _ForgotDialogState extends State<_ForgotDialog> {
+  late final _email = TextEditingController(text: widget.email);
+  String? _message;
+  bool _error = false;
+  bool _busy = false;
+
+  @override
+  void dispose() {
+    _email.dispose();
+    super.dispose();
+  }
+
+  Future<void> _send() async {
+    final email = _email.text.trim();
+    if (!email.contains('@')) {
+      setState(() {
+        _error = true;
+        _message = 'Isi email akun Anda.';
+      });
+      return;
+    }
+    setState(() => _busy = true);
+    try {
+      final msg = await widget.api.forgotPassword(email);
+      setState(() {
+        _error = false;
+        _message = msg;
+      });
+    } on ApiException catch (e) {
+      setState(() {
+        _error = true;
+        _message = e.message;
+      });
+    } catch (_) {
+      setState(() {
+        _error = true;
+        _message = 'Server tidak terjangkau. Periksa koneksi.';
+      });
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final sent = _message != null && !_error;
+    return ShadDialog(
+      title: const Text('Lupa password'),
+      description: const Text('Kami kirim tautan ke email Anda untuk membuat password baru.'),
+      actions: [
+        ShadButton.outline(onPressed: () => Navigator.of(context).pop(), child: Text(sent ? 'Selesai' : 'Batal')),
+        if (!sent) ShadButton(enabled: !_busy, onPressed: _busy ? null : _send, child: Text(_busy ? 'Mengirim…' : 'Kirim tautan')),
+      ],
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          spacing: 12,
+          children: [
+            if (_message != null)
+              _error
+                  ? ShadAlert.destructive(icon: const Icon(LucideIcons.circleAlert), description: Text(_message!))
+                  : ShadAlert(icon: const Icon(LucideIcons.mailCheck), description: Text(_message!)),
+            if (!sent) ShadInput(controller: _email, keyboardType: TextInputType.emailAddress, placeholder: const Text('nama@organisasi.id'), leading: const Icon(LucideIcons.mail, size: 16)),
+          ],
+        ),
+      ),
+    );
+  }
 }

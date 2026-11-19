@@ -21,6 +21,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('health', \App\Http\Controllers\Api\HealthController::class)->middleware('throttle:30,1');
 Route::get('instance', InstanceController::class)->middleware('throttle:60,1');
 Route::post('auth/login', [AuthController::class, 'login'])->middleware('throttle:10,1');
+Route::post('auth/forgot', [AuthController::class, 'forgot'])->middleware('throttle:5,1');
 
 Route::middleware(['auth:sanctum', 'password.changed'])->group(function () {
     Route::post('auth/logout', [AuthController::class, 'logout']);

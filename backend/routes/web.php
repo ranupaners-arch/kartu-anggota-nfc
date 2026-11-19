@@ -12,6 +12,10 @@ Route::middleware('guest')->group(function () {
     Route::post('masuk', [Dashboard\AuthController::class, 'login'])->middleware('throttle:10,1');
     Route::get('masuk/2fa', [Dashboard\AuthController::class, 'showTwoFactor'])->name('login.2fa');
     Route::post('masuk/2fa', [Dashboard\AuthController::class, 'twoFactor'])->middleware('throttle:6,1');
+    Route::get('lupa-password', [Dashboard\PasswordResetController::class, 'request'])->name('password.request');
+    Route::post('lupa-password', [Dashboard\PasswordResetController::class, 'email'])->middleware('throttle:5,1')->name('password.email');
+    Route::get('atur-password/{token}', [Dashboard\PasswordResetController::class, 'show'])->name('password.reset');
+    Route::post('atur-password', [Dashboard\PasswordResetController::class, 'update'])->middleware('throttle:10,1')->name('password.update');
 });
 
 Route::middleware(['auth:web', 'dashboard'])->group(function () {
@@ -19,6 +23,8 @@ Route::middleware(['auth:web', 'dashboard'])->group(function () {
     Route::get('/', Dashboard\HomeController::class)->name('home');
     Route::get('cari', Dashboard\SearchController::class)->middleware('throttle:60,1')->name('search');
     Route::get('akun', [Dashboard\AccountController::class, 'edit'])->name('account');
+    Route::put('akun/ringkasan', [Dashboard\AccountController::class, 'weeklySummary'])->name('account.weekly-summary');
+    Route::get('akun/ringkasan/contoh', [Dashboard\AccountController::class, 'weeklySummaryPreview'])->name('account.weekly-summary.preview');
     Route::post('akun/kalender', [App\Http\Controllers\CalendarFeedController::class, 'reset'])->name('account.calendar.reset');
     Route::put('akun/password', [Dashboard\AccountController::class, 'password'])->name('account.password');
     Route::post('akun/2fa', [Dashboard\AccountController::class, 'startTwoFactor'])->name('account.2fa.start');
@@ -78,6 +84,7 @@ Route::middleware(['auth:web', 'dashboard'])->group(function () {
         Route::post('perangkat/{device}/cabut', [Dashboard\DeviceController::class, 'revoke'])->name('devices.revoke');
         Route::get('log', [Dashboard\LogController::class, 'index'])->name('logs.index');
         Route::get('pengaturan', [Dashboard\SettingsController::class, 'index'])->name('settings.index');
+        Route::post('pengaturan/email-uji', [Dashboard\SettingsController::class, 'testMail'])->middleware('throttle:5,1')->name('settings.test-mail');
         Route::put('pengaturan/organisasi', [Dashboard\SettingsController::class, 'updateOrganization'])->name('settings.organization');
         Route::put('pengaturan/privasi', [Dashboard\SettingsController::class, 'updatePrivacy'])->name('settings.privacy');
         Route::post('pengaturan/periode', [Dashboard\SettingsController::class, 'storeTerm'])->name('settings.terms.store');

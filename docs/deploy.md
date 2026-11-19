@@ -90,6 +90,27 @@ docker compose exec db psql -U kartu_anggota -d restore_test -c "select count(*)
 docker compose exec db dropdb -U kartu_anggota restore_test
 ```
 
+## Email (lupa password & ringkasan mingguan)
+
+Tanpa pengaturan email (`MAIL_MAILER=log`, bawaan), **lupa password** dan **ringkasan mingguan**
+tidak aktif: reset password hanya lewat pengurus, dan tautan "Lupa password?" tidak muncul. Untuk
+mengaktifkan, isi di `.env` lalu `docker compose up -d`:
+
+```env
+MAIL_MAILER=smtp
+MAIL_HOST=smtp.contoh.id        # mis. smtp.gmail.com (pakai App Password), atau SMTP layanan email
+MAIL_PORT=587
+MAIL_USERNAME=akun@contoh.id
+MAIL_PASSWORD=rahasia
+MAIL_SCHEME=null                # null = STARTTLS di port 587; "smtps" untuk port 465
+MAIL_FROM_ADDRESS=noreply@contoh.id
+MAIL_FROM_NAME="Kartu Anggota"
+```
+
+Periksa di dashboard: **Pengaturan → Sistem → Email** harus *Aktif*, lalu **Kirim email uji**.
+Ringkasan dikirim Senin 07.00 WIB oleh scheduler (`php artisan ringkasan:mingguan` untuk mengirim
+manual); pengurus bisa mematikannya di **Akun → Ringkasan mingguan**.
+
 ## Pemantauan & masalah umum
 
 | Perlu | Perintah |

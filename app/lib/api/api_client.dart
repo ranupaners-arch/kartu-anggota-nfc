@@ -137,6 +137,13 @@ class ApiClient {
     return j['user'] as Map<String, dynamic>;
   }
 
+  /// Lupa password: server mengirim tautan atur ulang ke email (bila email server sudah diatur).
+  /// Mengembalikan pesan untuk ditampilkan; ApiException (mis. 503 belum aktif) berisi pesan server.
+  Future<String> forgotPassword(String email) async {
+    final j = await _send('POST', '/api/auth/forgot', {'email': email});
+    return j['message'] as String? ?? 'Tautan dikirim bila email terdaftar.';
+  }
+
   /// Ganti password (wajib bila akun masih memakai password sementara dari pengurus).
   Future<void> changePassword(String current, String next) async {
     await _send('PUT', '/api/me/password', {'current_password': current, 'password': next, 'password_confirmation': next});

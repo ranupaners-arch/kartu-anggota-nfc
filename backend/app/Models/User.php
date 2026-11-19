@@ -35,6 +35,12 @@ class User extends Authenticatable
         ];
     }
 
+    /** Email lupa password berbahasa Indonesia. */
+    public function sendPasswordResetNotification($token): void
+    {
+        $this->notify(new \App\Notifications\ResetPasswordNotification($token));
+    }
+
     public function member() { return $this->belongsTo(Member::class); }
     public function organization() { return $this->belongsTo(Organization::class); }
     public function division() { return $this->belongsTo(Division::class); }

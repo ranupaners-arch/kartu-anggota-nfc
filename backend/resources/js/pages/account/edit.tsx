@@ -1,5 +1,7 @@
 import { Head, router, useForm, usePage } from '@inertiajs/react';
-import { CalendarPlus, Check, Copy, ShieldCheck } from 'lucide-react';
+import { CalendarPlus, Check, Copy, ExternalLink, Mail, ShieldCheck } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
 import { QRCodeSVG } from 'qrcode.react';
 import { type FormEvent, useState } from 'react';
 import { ConfirmAction } from '@/components/confirm-action';
@@ -16,7 +18,27 @@ type TwoFactor = {
     enabled: boolean; confirmedAt: string | null; recoveryRemaining: number;
     setup: { otpauthUrl: string; secret: string } | null; recoveryCodes: string[] | null;
 };
-interface Props { user: { name: string; email: string; role: string; member: { member_no: string; name: string } | null }; twoFactor: TwoFactor; calendarUrl: string | null }
+interface Props { user: { name: string; email: string; role: string; member: { member_no: string; name: string } | null }; twoFactor: TwoFactor; calendarUrl: string | null; weeklySummary: { enabled: boolean; mailEnabled: boolean } }
+
+/** Ringkasan mingguan lewat email (Senin pagi): nyala/mati + contoh dengan data saat ini. */
+function WeeklySummaryCard({ ws }: { ws: { enabled: boolean; mailEnabled: boolean } }) {
+    const toggle = (v: boolean) => router.put('/akun/ringkasan', { enabled: v }, { preserveScroll: true });
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle className="flex items-center gap-2"><Mail className="size-4" /> Ringkasan mingguan</CardTitle>
+                <CardDescription>Tiap Senin 07.00: kehadiran 7 hari terakhir, izin & tinjauan yang menunggu, anggota yang perlu perhatian, dan kegiatan pekan ini.</CardDescription>
+            </CardHeader>
+            <CardContent className="grid gap-3 text-sm">
+                <Label className="flex items-center gap-2 font-normal">
+                    <Checkbox checked={ws.enabled} onCheckedChange={(v) => toggle(v === true)} /> Kirim ke email saya
+                </Label>
+                {!ws.mailEnabled && <p className="text-muted-foreground">Email server belum diatur, jadi ringkasan belum terkirim. Super Admin bisa mengaturnya (Pengaturan → Sistem).</p>}
+                <div><Button variant="outline" size="sm" render={<a href="/akun/ringkasan/contoh" target="_blank" rel="noreferrer" />}><ExternalLink /> Lihat contoh</Button></div>
+            </CardContent>
+        </Card>
+    );
+}
 
 /** Tautan langganan jadwal (.ics) untuk Google Calendar / kalender HP. */
 function CalendarCard({ url }: { url: string | null }) {
@@ -113,7 +135,7 @@ function TwoFactorCard({ tf }: { tf: TwoFactor }) {
     );
 }
 
-export default function Account({ user, twoFactor, calendarUrl }: Props) {
+export default function Account({ user, twoFactor, calendarUrl, weeklySummary }: Props) {
     const mustChange = usePage<SharedProps>().props.auth?.mustChangePassword ?? false;
     const form = useForm({ current_password: '', password: '', password_confirmation: '' });
     const submit = (e: FormEvent) => {
@@ -156,6 +178,7 @@ export default function Account({ user, twoFactor, calendarUrl }: Props) {
                 </Card>
                 <TwoFactorCard tf={twoFactor} />
                 <CalendarCard url={calendarUrl} />
+                <WeeklySummaryCard ws={weeklySummary} />
             </div>
         </AppLayout>
     );

@@ -13,3 +13,5 @@ Illuminate\Support\Facades\Schedule::call(fn () => Illuminate\Support\Facades\Ca
     ->everyMinute()->name('health:scheduler-beat');
 Illuminate\Support\Facades\Schedule::job(new App\Jobs\QueueHeartbeat)->everyMinute();
 Illuminate\Support\Facades\Schedule::command('app:retention')->dailyAt('02:30')->withoutOverlapping();
+// Ringkasan mingguan untuk pengurus: Senin 07.00 WIB (hanya bila email server sudah diatur).
+Illuminate\Support\Facades\Schedule::command('ringkasan:mingguan')->weeklyOn(1, '07:00')->timezone('Asia/Jakarta')->withoutOverlapping();
