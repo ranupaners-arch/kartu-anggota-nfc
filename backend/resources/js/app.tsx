@@ -1,5 +1,6 @@
 import '../css/app.css';
 import { createInertiaApp } from '@inertiajs/react';
+import { ThemeProvider } from 'next-themes';
 import { createRoot } from 'react-dom/client';
 
 createInertiaApp({
@@ -12,7 +13,12 @@ createInertiaApp({
         return load() as never;
     },
     setup({ el, App, props }) {
-        createRoot(el).render(<App {...props} />);
+        // Tema: Terang / Gelap / Ikuti sistem (bawaan), disimpan per perangkat (localStorage 'theme').
+        createRoot(el).render(
+            <ThemeProvider attribute="class" defaultTheme="system" enableSystem storageKey="theme" disableTransitionOnChange>
+                <App {...props} />
+            </ThemeProvider>,
+        );
     },
     progress: { color: '#6366f1' },
 });

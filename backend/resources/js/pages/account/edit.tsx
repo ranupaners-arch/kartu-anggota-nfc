@@ -24,7 +24,7 @@ function TwoFactorCard({ tf }: { tf: TwoFactor }) {
     return (
         <Card>
             <CardHeader>
-                <CardTitle className="flex items-center gap-2">Keamanan (2FA){tf.enabled && <ShieldCheck className="size-4 text-emerald-600" />}</CardTitle>
+                <CardTitle className="flex items-center gap-2">Keamanan (2FA){tf.enabled && <ShieldCheck className="size-4 text-emerald-600 dark:text-emerald-400" />}</CardTitle>
                 <CardDescription>Verifikasi dua langkah dengan aplikasi authenticator (Google Authenticator, Authy, 2FAS, dll.).</CardDescription>
             </CardHeader>
             <CardContent className="grid gap-4">
