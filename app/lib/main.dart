@@ -94,11 +94,34 @@ class _StartGate extends StatelessWidget {
   Widget build(BuildContext context) => FutureBuilder<(Session?, ServerConfig?)>(
     future: _load(),
     builder: (context, snap) {
-      if (snap.connectionState != ConnectionState.done) return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      if (snap.connectionState != ConnectionState.done) return const BrandSplash();
       final (session, server) = snap.data!;
       if (session != null) return homeFor(session);
       if (server != null) return LoginScreen(server: server);
       return const ConnectScreen();
     },
+  );
+}
+
+/// Layar pembuka saat memuat sesi: sama dengan splash sistem (latar indigo + logo 3D),
+/// sehingga peralihan dari splash Android ke app tidak berkedip.
+class BrandSplash extends StatelessWidget {
+  const BrandSplash({super.key});
+
+  static const indigo = Color(0xFF4F46E5);
+
+  @override
+  Widget build(BuildContext context) => const Scaffold(
+    backgroundColor: indigo,
+    body: Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Image(image: AssetImage('assets/brand/logo-3d.png'), width: 144, height: 144, semanticLabel: 'Logo Kartu Anggota'),
+          SizedBox(height: 16),
+          Text('Kartu Anggota', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w600)),
+        ],
+      ),
+    ),
   );
 }
