@@ -3,7 +3,7 @@
 # Pemakaian: scripts/qr-anggota.sh [URL] [email] [password]
 # QR dirotasi tiap 60 detik (berlaku 90 detik), sesuai config/attendance.php.
 set -euo pipefail
-URL=${1:-http://100.84.251.14:8000}
+URL=${1:-http://127.0.0.1:8000}
 EMAIL=${2:-anggota@hmps.test}
 PASS=${3:-password}
 command -v qrencode >/dev/null || { echo "Perlu qrencode: sudo pacman -S qrencode"; exit 1; }
