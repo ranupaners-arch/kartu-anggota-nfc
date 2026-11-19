@@ -1,12 +1,14 @@
 import { Link, router, usePage } from '@inertiajs/react';
-import { ChevronsUpDown, LogOut, UserRound } from 'lucide-react';
+import { ChevronsUpDown, LogOut, Monitor, Moon, Sun, UserRound } from 'lucide-react';
+import { useTheme } from 'next-themes';
 import { type ReactNode, useEffect } from 'react';
 import { toast } from 'sonner';
 import { AppSidebar } from '@/components/app-sidebar';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
-    DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
+    DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuRadioGroup, DropdownMenuRadioItem,
+    DropdownMenuSeparator, DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Separator } from '@/components/ui/separator';
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
@@ -30,6 +32,7 @@ function FlashToaster() {
 
 function UserMenu() {
     const user = usePage<SharedProps>().props.auth?.user;
+    const { theme, setTheme } = useTheme();
     if (!user) return null;
     const initials = user.name.split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase();
 
@@ -50,6 +53,14 @@ function UserMenu() {
                 </DropdownMenuGroup>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem render={<Link href="/akun" />}><UserRound /> Akun Saya</DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuRadioGroup value={theme ?? 'system'} onValueChange={(v) => setTheme(String(v))}>
+                    <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">Tampilan</DropdownMenuLabel>
+                    <DropdownMenuRadioItem value="light"><Sun /> Terang</DropdownMenuRadioItem>
+                    <DropdownMenuRadioItem value="dark"><Moon /> Gelap</DropdownMenuRadioItem>
+                    <DropdownMenuRadioItem value="system"><Monitor /> Ikuti sistem</DropdownMenuRadioItem>
+                </DropdownMenuRadioGroup>
+                <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => router.post('/keluar')}><LogOut /> Keluar</DropdownMenuItem>
             </DropdownMenuContent>
         </DropdownMenu>
