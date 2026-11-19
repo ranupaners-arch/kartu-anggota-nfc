@@ -184,7 +184,65 @@ export function DivisionBars({ rows }: { rows: DivisionRate[] }) {
     );
 }
 
-export function StatsSection({ trend, divisions, atRisk, rules }: { trend: TrendPoint[]; divisions: DivisionRate[]; atRisk: AtRisk[]; rules: { streak: number; minRate: number; minRecords: number } }) {
+export type Comparison = {
+    current: { name: string; total: number; present: number; rate: number | null };
+    previous: { name: string; total: number; present: number; rate: number | null };
+    divisions: { division: string; current: number | null; previous: number | null }[];
+} | null;
+
+/** Selisih dalam poin persen, dengan panah sebagai penanda arah (bukan warna). */
+function Delta({ now, before }: { now: number | null; before: number | null }) {
+    if (now === null || before === null) return <span className="text-muted-foreground">–</span>;
+    const d = Math.round((now - before) * 10) / 10;
+    const label = `${d > 0 ? '+' : ''}${d.toLocaleString('id-ID', { maximumFractionDigits: 1 })} poin`;
+    return <span className="whitespace-nowrap tabular-nums text-foreground">{d > 0 ? '▲' : d < 0 ? '▼' : '='} {label}</span>;
+}
+
+/**
+ * Periode ini vs periode lalu. Dua seri → legenda: batang = periode ini (warna grafik), garis tegak
+ * = periode lalu (tinta teks). Nilai dan selisih selalu ditulis sebagai teks.
+ */
+export function TermComparison({ data }: { data: NonNullable<Comparison> }) {
+    const { current: c, previous: p } = data;
+    return (
+        <div className="grid gap-6 md:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
+            <div className="grid content-start gap-1">
+                <div className="text-sm text-muted-foreground">% hadir keseluruhan</div>
+                <div className="flex flex-wrap items-baseline gap-x-2 text-3xl font-semibold tabular-nums">
+                    {pct(c.rate)}<span className="text-base font-normal text-muted-foreground">vs {pct(p.rate)}</span>
+                </div>
+                <div className="text-sm"><Delta now={c.rate} before={p.rate} /></div>
+                <div className="text-xs text-muted-foreground">{c.name}: {c.present}/{c.total} catatan · {p.name}: {p.present}/{p.total}</div>
+            </div>
+            <div className="grid content-start gap-3">
+                <ul className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground" aria-label="Keterangan">
+                    <li className="flex items-center gap-1.5"><span className="h-2 w-4 rounded-full bg-[var(--chart-bar)]" />{c.name}</li>
+                    <li className="flex items-center gap-1.5"><span className="h-3 w-0.5 bg-foreground/70" />{p.name}</li>
+                </ul>
+                {data.divisions.length === 0 && <p className="text-sm text-muted-foreground">Belum ada data divisi.</p>}
+                <ul className="grid gap-3">
+                    {data.divisions.map((r) => (
+                        <li key={r.division} className="grid gap-1">
+                            <div className="flex flex-wrap justify-between gap-x-3 text-sm">
+                                <span>{r.division}</span>
+                                <span className="text-muted-foreground tabular-nums">{pct(r.current)} <span className="text-xs">(lalu {pct(r.previous)})</span> · <Delta now={r.current} before={r.previous} /></span>
+                            </div>
+                            <div className="relative h-2 rounded-full bg-muted" role="img" aria-label={`${r.division}: ${c.name} ${pct(r.current)}, ${p.name} ${pct(r.previous)}`}>
+                                <div className="h-2 rounded-full bg-[var(--chart-bar)]" style={{ width: `${r.current ?? 0}%` }} />
+                                {r.previous !== null && (
+                                    // Penanda periode lalu: garis 2px dengan cincin latar agar terlihat di atas batang.
+                                    <span className="absolute -top-1 h-4 w-0.5 -translate-x-1/2 bg-foreground/70 ring-2 ring-card" style={{ left: `${r.previous}%` }} />
+                                )}
+                            </div>
+                        </li>
+                    ))}
+                </ul>
+            </div>
+        </div>
+    );
+}
+
+export function StatsSection({ trend, divisions, atRisk, rules, comparison }: { trend: TrendPoint[]; divisions: DivisionRate[]; atRisk: AtRisk[]; rules: { streak: number; minRate: number; minRecords: number }; comparison?: Comparison }) {
     return (
         <>
             <div className="grid gap-4 lg:grid-cols-[2fr_1fr]">
@@ -197,6 +255,12 @@ export function StatsSection({ trend, divisions, atRisk, rules }: { trend: Trend
                     <CardContent><DivisionBars rows={divisions} /></CardContent>
                 </Card>
             </div>
+            {comparison && (
+                <Card>
+                    <CardHeader><CardTitle>Dibanding periode lalu</CardTitle><CardDescription>% hadir (termasuk telat) {comparison.current.name} dibanding {comparison.previous.name}.</CardDescription></CardHeader>
+                    <CardContent><TermComparison data={comparison} /></CardContent>
+                </Card>
+            )}
             <Card>
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2"><AlertTriangle className="size-4 text-amber-600 dark:text-amber-400" /> Perlu perhatian</CardTitle>
