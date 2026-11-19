@@ -33,6 +33,7 @@ dalam 24 jam ke depan (bila Anda belum tercatat hadir atau belum mengajukan izin
 
 Tab **Riwayat** menampilkan persentase kehadiran periode berjalan dan daftar kehadiran Anda. Bila
 Anda Alpa beberapa kali berturut-turut atau kehadirannya rendah, muncul peringatan di sini.
+Tombol **Unduh rapor PDF** membuka rapor kehadiran periode berjalan (mis. untuk syarat sertifikat).
 
 ## Data pribadi
 

@@ -88,6 +88,11 @@ untuk divisinya.
 **Beranda** menampilkan tren % hadir per kegiatan, % hadir per divisi, dan **Perlu perhatian**:
 anggota aktif yang Alpa 3× berturut-turut atau kehadirannya di bawah 60%. Klik nama untuk detail.
 
+## Rapor kehadiran
+
+Detail anggota → **Rapor PDF** (periode berjalan) atau tautan **rapor** di tiap periode pada tabel
+keanggotaan: identitas, ringkasan Hadir/Telat/Izin/Sakit/Alpa, % kehadiran, dan daftar kegiatan.
+
 ## Rekap & ekspor
 
 **Rekap & Ekspor**: rekap per periode (Super Admin) atau per divisi → **Tampilkan** →
