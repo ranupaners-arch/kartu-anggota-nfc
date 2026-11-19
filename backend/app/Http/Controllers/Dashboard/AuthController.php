@@ -14,7 +14,7 @@ class AuthController extends Controller
 {
     public function show()
     {
-        return \Inertia\Inertia::render('auth/login');
+        return \Inertia\Inertia::render('auth/login', ['canResetPassword' => \App\Services\MailStatus::enabled()]);
     }
 
     public function login(Request $r)

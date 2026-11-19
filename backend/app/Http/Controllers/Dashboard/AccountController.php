@@ -19,6 +19,7 @@ class AccountController extends Controller
         return \Inertia\Inertia::render('account/edit', [
             'user' => $user->only('name', 'email', 'role') + ['member' => $user->member?->only('member_no', 'name')],
             // Tautan langganan jadwal (.ics); null = belum dibuat.
+            'weeklySummary' => ['enabled' => (bool) ($user->weekly_summary ?? true), 'mailEnabled' => \App\Services\MailStatus::enabled()],
             'calendarUrl' => $user->calendar_token ? route('calendar.feed', ['token' => $user->calendar_token]) : null,
             'twoFactor' => [
                 'enabled' => $twoFactor->enabled($user),
@@ -55,6 +56,20 @@ class AccountController extends Controller
         $twoFactor->disable($r->user());
 
         return back()->with('status', '2FA dinonaktifkan.');
+    }
+
+    public function weeklySummary(Request $r)
+    {
+        $r->validate(['enabled' => 'required|boolean']);
+        $r->user()->update(['weekly_summary' => $r->boolean('enabled')]);
+
+        return back()->with('status', $r->boolean('enabled') ? 'Ringkasan mingguan akan dikirim tiap Senin pagi.' : 'Ringkasan mingguan dimatikan.');
+    }
+
+    /** Contoh email ringkasan dengan data saat ini (bisa dilihat walau email server belum diatur). */
+    public function weeklySummaryPreview(Request $r, \App\Services\WeeklySummaryService $summaries)
+    {
+        return (new \App\Mail\WeeklySummaryMail($summaries->build($r->user())))->render();
     }
 
     public function password(Request $r)

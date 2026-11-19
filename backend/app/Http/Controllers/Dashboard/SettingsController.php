@@ -36,6 +36,7 @@ class SettingsController extends Controller
                 'sentry' => (bool) config('sentry.dsn'),
                 'healthTokenSet' => (bool) config('attendance.health_token'),
                 'healthUrl' => url('/api/health'),
+                'mail' => ['enabled' => \App\Services\MailStatus::enabled(), 'mailer' => \App\Services\MailStatus::mailer(), 'from' => config('mail.from.address')],
             ] : null,
         ]);
     }
@@ -55,6 +56,22 @@ class SettingsController extends Controller
             'payload' => 'kartuanggota://connect?'.http_build_query(['server' => $server, 'name' => $name]),
             'https' => str_starts_with($server, 'https://'),
         ];
+    }
+
+    /** Kirim email uji ke akun sendiri untuk memastikan pengaturan SMTP benar. */
+    public function testMail(Request $r)
+    {
+        abort_unless(\App\Services\MailStatus::enabled(), 422, 'Email server belum diatur.');
+        try {
+            \Illuminate\Support\Facades\Mail::raw('Email uji dari Kartu Anggota. Bila Anda menerima ini, pengaturan email server sudah benar.', fn ($m) => $m
+                ->to($r->user()->email)->subject('Email uji Kartu Anggota'));
+        } catch (\Throwable $e) {
+            report($e);
+
+            return back()->with('status', 'Gagal mengirim email uji: '.str($e->getMessage())->limit(160));
+        }
+
+        return back()->with('status', "Email uji dikirim ke {$r->user()->email}.");
     }
 
     public function updateOrganization(Request $r)

@@ -67,6 +67,15 @@ class AuthController extends Controller
         return $this->userData($r->user());
     }
 
+    /** Lupa password dari app: kirim tautan ke email (halaman atur ulang di web). 503 bila email belum diatur. */
+    public function forgot(Request $r, \App\Services\PasswordResetService $resets)
+    {
+        $r->validate(['email' => 'required|email']);
+        $resets->sendLink($r->input('email'));
+
+        return ['message' => \App\Services\PasswordResetService::SENT];
+    }
+
     /** Ganti password dari app (wajib bila password masih sementara). Sesi perangkat lain dikeluarkan. */
     public function changePassword(Request $r)
     {
