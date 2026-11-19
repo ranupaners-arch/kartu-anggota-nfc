@@ -119,6 +119,17 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
                   ),
                 ),
               ),
+              const SizedBox(height: 12),
+              // Pemberitahuan hak cipta & lisensi (GPL-3.0-or-later): wajib dipertahankan pada versi turunan.
+              _enter(
+                0.7,
+                1,
+                Text(
+                  '© 2026 Ranupane Rimba · GPL-3.0',
+                  textAlign: TextAlign.center,
+                  style: text.muted.copyWith(color: Colors.white38, fontSize: 11),
+                ),
+              ),
             ],
           ),
         ),
