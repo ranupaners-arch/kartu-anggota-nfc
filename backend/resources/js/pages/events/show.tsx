@@ -1,5 +1,5 @@
 import { Head, Link, router, useForm } from '@inertiajs/react';
-import { FileSpreadsheet, FileText, MonitorPlay, Pencil } from 'lucide-react';
+import { Copy, FileSpreadsheet, FileText, MonitorPlay, Pencil } from 'lucide-react';
 import { type FormEvent, useState } from 'react';
 import { ConfirmAction } from '@/components/confirm-action';
 import { DataTable } from '@/components/data-table';
@@ -92,6 +92,48 @@ function Summary({ event, report, canDelete }: Pick<Props, 'event' | 'report' | 
                 </CardContent>
             </Card>
         </>
+    );
+}
+
+const repeats: Record<string, string> = { none: 'Sekali saja', weekly: 'Tiap minggu', biweekly: 'Tiap 2 minggu', monthly: 'Tiap bulan' };
+
+/** Duplikat ke tanggal baru (opsional berulang); pengaturan, target & sesi ikut, waktu ikut bergeser. */
+function DuplicateEvent({ event, sessions }: { event: Ev; sessions: Session[] }) {
+    const [open, setOpen] = useState(false);
+    const nextWeek = new Date(new Date(event.starts_at).getTime() + 7 * 864e5).toISOString();
+    const form = useForm({ starts_at: toLocalInput(nextWeek), repeat: 'none', count: '4' });
+    const submit = (e: FormEvent) => { e.preventDefault(); form.post(`/kegiatan/${event.id}/duplikat`, { onSuccess: () => setOpen(false) }); };
+    return (
+        <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger render={<Button variant="outline" />}><Copy /> Duplikat</DialogTrigger>
+            <DialogContent>
+                <form onSubmit={submit} className="grid gap-4">
+                    <DialogHeader>
+                        <DialogTitle>Duplikat kegiatan</DialogTitle>
+                        <DialogDescription>
+                            Judul, tipe, lokasi, wajib hadir, target peserta{sessions.length > 1 ? `, dan ${sessions.length - 1} sesi tambahan` : ''} ikut disalin.
+                            Jendela check-in bergeser sesuai jam mulai baru. Absensi tidak disalin.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <FormField label="Mulai" error={form.errors.starts_at}>
+                        <Input type="datetime-local" required value={form.data.starts_at} onChange={(e) => form.setData('starts_at', e.target.value)} />
+                    </FormField>
+                    <div className="grid gap-4 sm:grid-cols-2">
+                        <FormField label="Ulangi" error={form.errors.repeat}>
+                            <NativeSelect className="w-full" value={form.data.repeat} onChange={(e) => form.setData('repeat', e.target.value)}>
+                                {Object.entries(repeats).map(([v, l]) => <NativeSelectOption key={v} value={v}>{l}</NativeSelectOption>)}
+                            </NativeSelect>
+                        </FormField>
+                        {form.data.repeat !== 'none' && (
+                            <FormField label="Berapa kali" hint="Maksimal 12." error={form.errors.count}>
+                                <Input type="number" min={1} max={12} required value={form.data.count} onChange={(e) => form.setData('count', e.target.value)} />
+                            </FormField>
+                        )}
+                    </div>
+                    <DialogFooter><Button type="submit" disabled={form.processing}>{form.data.repeat === 'none' ? 'Duplikat' : `Buat ${form.data.count} kegiatan`}</Button></DialogFooter>
+                </form>
+            </DialogContent>
+        </Dialog>
     );
 }
 
@@ -215,6 +257,7 @@ export default function EventShow(props: Props) {
             <>
                 <Button variant="outline" render={<a href={`/kegiatan/${event.id}/monitor`} target="_blank" rel="noreferrer" />}><MonitorPlay /> Monitor langsung</Button>
                 <Button variant="outline" render={<Link href={`/kegiatan/${event.id}/edit`} />}><Pencil /> Ubah</Button>
+                <DuplicateEvent event={event} sessions={props.sessions} />
                 {!event.closed_at && (
                     <ConfirmAction title="Tutup kegiatan?" description={props.sessions.length > 1
                         ? 'Per sesi yang sudah dibuka, anggota wajib yang tidak scan ditandai Alpa, atau Izin/Sakit bila izinnya disetujui. Sesi yang belum dibuka tidak ditandai.'
