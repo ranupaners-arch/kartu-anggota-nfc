@@ -143,6 +143,22 @@ class EventController extends Controller
         return back()->with('status', 'Sesi ditambahkan. Check-in dibuka '.$session->checkin_opens_at->timezone(config('app.timezone'))->format('d/m H:i').'.');
     }
 
+    /** Duplikat kegiatan ke tanggal baru, opsional berulang (mingguan / dua mingguan / bulanan). */
+    public function duplicate(Request $r, Event $event)
+    {
+        $d = $r->validate([
+            'starts_at' => 'required|date',
+            'repeat' => 'required|in:'.implode(',', EventService::REPEATS),
+            'count' => 'required_unless:repeat,none|integer|min:1|max:'.EventService::MAX_REPEAT,
+        ]);
+        $created = $this->events->duplicate($r->user(), $event, Carbon::parse($d['starts_at']), $d['repeat'], (int) ($d['count'] ?? 1));
+        $first = $created->first();
+
+        return redirect()->route('events.show', $first)->with('status', $created->count() > 1
+            ? "{$created->count()} kegiatan dibuat (".$first->starts_at->timezone(config('app.timezone'))->format('d/m').' – '.$created->last()->starts_at->timezone(config('app.timezone'))->format('d/m').').'
+            : 'Kegiatan diduplikat. Periksa jadwal & target sebelum check-in dibuka.');
+    }
+
     public function updateSession(Request $r, Event $event, EventSession $session)
     {
         $this->events->authorize($r->user(), $event);
