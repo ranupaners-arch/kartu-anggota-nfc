@@ -6,7 +6,7 @@ import { AppSidebar } from '@/components/app-sidebar';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
-    DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
+    DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Separator } from '@/components/ui/separator';
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
@@ -41,10 +41,13 @@ function UserMenu() {
                 <ChevronsUpDown className="size-4 text-muted-foreground" />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuLabel>
-                    <div className="text-sm font-medium">{user.name}</div>
-                    <div className="text-xs font-normal text-muted-foreground">{roleLabel[user.role]}</div>
-                </DropdownMenuLabel>
+                {/* GroupLabel Base UI wajib di dalam grup; tanpa grup menu gagal dirender. */}
+                <DropdownMenuGroup>
+                    <DropdownMenuLabel>
+                        <div className="text-sm font-medium text-foreground">{user.name}</div>
+                        <div className="text-xs font-normal text-muted-foreground">{roleLabel[user.role]}</div>
+                    </DropdownMenuLabel>
+                </DropdownMenuGroup>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem render={<Link href="/akun" />}><UserRound /> Akun Saya</DropdownMenuItem>
                 <DropdownMenuItem onClick={() => router.post('/keluar')}><LogOut /> Keluar</DropdownMenuItem>
