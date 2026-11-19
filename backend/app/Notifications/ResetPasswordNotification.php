@@ -26,7 +26,7 @@ class ResetPasswordNotification extends Notification
             ->line('Kami menerima permintaan untuk mengatur ulang password akun Kartu Anggota Anda.')
             ->action('Buat password baru', $url)
             ->line("Tautan ini berlaku $minutes menit dan hanya bisa dipakai sekali.")
-            ->line('Bila Anda tidak memintanya, abaikan email ini — password Anda tidak berubah.')
+            ->line('Bila Anda tidak memintanya, abaikan email ini.')
             ->salutation('Salam, '.config('attendance.instance_name', 'Kartu Anggota'));
     }
 }
