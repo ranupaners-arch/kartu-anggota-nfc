@@ -54,6 +54,15 @@ Setelah dibuat, buka kegiatan:
   mengikuti jam mulainya. Tiap sesi dihitung sebagai satu kehadiran di rekap.
 - Mengubah jendela check-in kegiatan yang sudah berjalan wajib disertai **alasan** (tercatat).
 
+- **Duplikat** (halaman kegiatan): salin kegiatan ke tanggal baru — target, sesi, dan jendela
+  check-in ikut. Bisa **berulang** tiap minggu / 2 minggu / bulan (maks. 12), cocok untuk rapat rutin.
+
+## Pengumuman
+
+**Pengumuman** → **Pengumuman Baru**: judul, isi, untuk semua anggota atau satu divisi, opsional
+disematkan dan diberi tanggal kedaluwarsa. Tampil di app anggota (tab Kegiatan). Admin Divisi hanya
+untuk divisinya.
+
 ## Selama kegiatan
 
 - **Monitor langsung** (tombol di halaman kegiatan, buka di laptop/proyektor): jumlah hadir,
@@ -73,6 +82,11 @@ Setelah dibuat, buka kegiatan:
 - **Perlu Ditinjau**: scan yang perlu keputusan —
   *Konflik Offline* (mis. kartu diblokir setelah scan offline), *Override*, *Anomali* (kartu sama
   di dua tempat dalam satu menit). **Terima** atau **Batalkan**.
+
+## Statistik & peringatan
+
+**Beranda** menampilkan tren % hadir per kegiatan, % hadir per divisi, dan **Perlu perhatian**:
+anggota aktif yang Alpa 3× berturut-turut atau kehadirannya di bawah 60%. Klik nama untuk detail.
 
 ## Rekap & ekspor
 
