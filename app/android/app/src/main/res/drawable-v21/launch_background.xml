@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Splash (Android < 12): latar indigo + logo 3D di tengah. -->
+<!-- Splash (Android < 12): latar hitam + logo 3D di tengah. -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:drawable="@color/brand_indigo" />
+    <item android:drawable="@color/splash_black" />
     <item>
         <bitmap android:gravity="center" android:src="@drawable/splash_logo" />
     </item>

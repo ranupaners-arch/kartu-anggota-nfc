@@ -5,8 +5,8 @@ import 'app/deep_links.dart';
 import 'app/home.dart';
 import 'app/server_config.dart';
 import 'app/session.dart';
-import 'screens/connect_screen.dart';
-import 'screens/login_screen.dart';
+import 'screens/splash_screen.dart';
+import 'screens/welcome_screen.dart';
 
 void main() => runApp(const KartuAnggotaApp());
 
@@ -84,44 +84,19 @@ ShadThemeData appTheme(Brightness brightness, ShadColorScheme c) {
   );
 }
 
-/// Urutan awal: sudah login → kegiatan; server diketahui → login; selain itu → hubungkan organisasi.
+/// Urutan awal: splash (logo berputar 3D) sambil memuat sesi, lalu
+/// sudah login → beranda sesuai peran; belum → layar sambutan (tombol Masuk).
 class _StartGate extends StatelessWidget {
   const _StartGate();
 
   static Future<(Session?, ServerConfig?)> _load() async => (await Session.load(), await ServerConfig.load());
 
   @override
-  Widget build(BuildContext context) => FutureBuilder<(Session?, ServerConfig?)>(
-    future: _load(),
-    builder: (context, snap) {
-      if (snap.connectionState != ConnectionState.done) return const BrandSplash();
-      final (session, server) = snap.data!;
-      if (session != null) return homeFor(session);
-      if (server != null) return LoginScreen(server: server);
-      return const ConnectScreen();
+  Widget build(BuildContext context) => SplashScreen(
+    load: _load,
+    next: (data) {
+      final (session, server) = data;
+      return session != null ? homeFor(session) : WelcomeScreen(server: server);
     },
-  );
-}
-
-/// Layar pembuka saat memuat sesi: sama dengan splash sistem (latar indigo + logo 3D),
-/// sehingga peralihan dari splash Android ke app tidak berkedip.
-class BrandSplash extends StatelessWidget {
-  const BrandSplash({super.key});
-
-  static const indigo = Color(0xFF4F46E5);
-
-  @override
-  Widget build(BuildContext context) => const Scaffold(
-    backgroundColor: indigo,
-    body: Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Image(image: AssetImage('assets/brand/logo-3d.png'), width: 144, height: 144, semanticLabel: 'Logo Kartu Anggota'),
-          SizedBox(height: 16),
-          Text('Kartu Anggota', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w600)),
-        ],
-      ),
-    ),
   );
 }
