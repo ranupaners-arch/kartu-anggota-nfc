@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import PortalLayout from '@/layouts/portal-layout';
+import { Copyright } from '@/components/copyright';
 
 type Profile = { name: string; member_no: string; division: string | null; organization: string | null; email: string };
 
@@ -81,6 +82,7 @@ export default function PortalAccount({ profile, mustChangePassword, calendarUrl
             </Card>
             {!mustChangePassword && <CalendarLink url={calendarUrl} />}
             <Button variant="outline" onClick={() => router.post('/keluar')}><LogOut /> Keluar</Button>
+            <Copyright className="text-center" />
         </PortalLayout>
     );
 }

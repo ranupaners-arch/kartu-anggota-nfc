@@ -5,9 +5,10 @@ import {
 } from 'lucide-react';
 import {
     Sidebar, SidebarContent, SidebarGroup, SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuBadge, SidebarMenuButton,
-    SidebarMenuItem, SidebarRail,
+    SidebarFooter, SidebarMenuItem, SidebarRail,
 } from '@/components/ui/sidebar';
 import type { SharedProps } from '@/types';
+import { Copyright } from '@/components/copyright';
 
 type Item = { label: string; href: string; icon: LucideIcon; badge?: number };
 type Group = { label?: string; items: Item[] };
@@ -91,6 +92,7 @@ export function AppSidebar() {
                     </SidebarGroup>
                 ))}
             </SidebarContent>
+            <SidebarFooter className="group-data-[collapsible=icon]:hidden"><Copyright className="px-2" /></SidebarFooter>
             <SidebarRail />
         </Sidebar>
     );

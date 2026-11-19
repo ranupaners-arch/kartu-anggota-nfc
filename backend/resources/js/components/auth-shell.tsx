@@ -1,4 +1,5 @@
 import { type ReactNode } from 'react';
+import { Copyright } from '@/components/copyright';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 /** Kerangka halaman tamu (masuk, lupa password, atur ulang): logo + satu kartu di tengah. */
@@ -17,6 +18,7 @@ export function AuthShell({ title, description, children }: { title: string; des
                     </CardHeader>
                     <CardContent>{children}</CardContent>
                 </Card>
+                <Copyright className="text-center" />
             </div>
         </div>
     );
