@@ -52,6 +52,8 @@ app lama di-uninstall sekali; APK berikutnya cukup "Perbarui".
   **Riwayat** (persentase + daftar). Lalu setujui/tolak izinnya di dashboard → Pengajuan Izin.
 - **2FA admin:** dashboard → Akun Saya → Aktifkan 2FA → scan QR dengan aplikasi authenticator → simpan
   kode cadangan. Keluar lalu masuk lagi → diminta kode. Di app: login akun itu → muncul kolom Kode 2FA.
+- **Status sistem:** dashboard → Pengaturan → Sistem → semua "Normal" bila `php artisan queue:work` dan
+  `php artisan schedule:work` jalan; hentikan worker > 5 menit → Queue worker "Gagal".
 - **Privasi:** Tambah anggota → wajib centang persetujuan (juga saat impor CSV). Detail anggota alumni →
   Privasi → Hapus data pribadi (ketik nomor anggota) → nama jadi "Anggota terhapus", rekap tetap.
   Pengaturan → Privasi: atur masa retensi & lihat jumlah data yang akan dihapus.

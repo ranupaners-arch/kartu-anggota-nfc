@@ -13,6 +13,9 @@
 	@build path /build/*
 	header @build Cache-Control "public, max-age=31536000, immutable"
 
+	# ID unik tiap request (dibuat Caddy, menimpa kiriman klien) → tercatat di log aplikasi.
+	request_header X-Request-Id {http.request.uuid}
+
 	php_fastcgi app:9000
 	file_server
 }

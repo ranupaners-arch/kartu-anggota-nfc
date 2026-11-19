@@ -24,4 +24,6 @@ return [
     'auto_close_grace_minutes' => 5,
     // Berkas ekspor (berisi nama anggota) dihapus setelah sekian hari.
     'export_retention_days' => (int) env('EXPORT_RETENTION_DAYS', 7),
+    // Token opsional untuk melihat detail GET /api/health (pesan & waktu tiap pemeriksaan).
+    'health_token' => env('HEALTH_TOKEN'),
 ];

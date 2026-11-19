@@ -59,6 +59,7 @@ return [
         ],
 
         'single' => [
+            'tap' => [App\Logging\AddUserContext::class],
             'driver' => 'single',
             'path' => storage_path('logs/laravel.log'),
             'level' => env('LOG_LEVEL', 'debug'),
@@ -66,6 +67,7 @@ return [
         ],
 
         'daily' => [
+            'tap' => [App\Logging\AddUserContext::class],
             'driver' => 'daily',
             'path' => storage_path('logs/laravel.log'),
             'level' => env('LOG_LEVEL', 'debug'),
@@ -103,6 +105,7 @@ return [
         ],
 
         'stderr' => [
+            'tap' => [App\Logging\AddUserContext::class],
             'driver' => 'monolog',
             'level' => env('LOG_LEVEL', 'debug'),
             'handler' => StreamHandler::class,
