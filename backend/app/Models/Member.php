@@ -19,6 +19,9 @@ class Member extends Model
 
     public function memberships() { return $this->hasMany(Membership::class); }
     public function cards() { return $this->hasMany(Card::class); }
+    /** Akun login app (peran Anggota) yang tertaut ke anggota ini, bila ada. */
+    public function user() { return $this->hasOne(User::class); }
+
     public function activeCard() { return $this->hasOne(Card::class)->where('status', 'active'); }
     public function qr() { return $this->hasOne(MemberQr::class); }
 

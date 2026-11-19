@@ -16,6 +16,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'role' => \App\Http\Middleware\EnsureRole::class,
             'dashboard' => \App\Http\Middleware\EnsureDashboardAccess::class,
+            'password.changed' => \App\Http\Middleware\EnsurePasswordChanged::class,
         ]);
         $middleware->redirectUsersTo('/');
         $middleware->prepend(\App\Http\Middleware\AssignRequestId::class);

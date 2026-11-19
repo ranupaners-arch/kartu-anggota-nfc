@@ -33,7 +33,7 @@ class UserService
         $this->assertRefs($d);
         $password = Str::password(12, symbols: false);
         $user = User::create(array_intersect_key($d, array_flip(['name', 'email', 'role', 'division_id', 'member_id'])) + [
-            'organization_id' => $actor->organization_id, 'password' => $password,
+            'organization_id' => $actor->organization_id, 'password' => $password, 'must_change_password' => true,
         ]);
         AuditLogger::log('user.created', 'user', $user->id, ['role' => $user->role]);
 
@@ -57,7 +57,7 @@ class UserService
     {
         $this->assertSameOrg($actor, $user);
         $password = Str::password(12, symbols: false);
-        $user->update(['password' => $password]);
+        $user->update(['password' => $password, 'must_change_password' => true]);
         $user->tokens()->delete(); // keluarkan dari semua perangkat
         AuditLogger::log('user.password_reset', 'user', $user->id);
 
