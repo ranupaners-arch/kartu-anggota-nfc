@@ -9,6 +9,7 @@ import { PageTabs } from '@/components/page-tabs';
 import { StatusBadge } from '@/components/status-badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { TableCell, TableRow } from '@/components/ui/table';
@@ -68,6 +69,27 @@ function Organization({ org }: { org: { name: string; slug: string } }) {
     );
 }
 
+function EditTerm({ term }: { term: Term }) {
+    const [open, setOpen] = useState(false);
+    const form = useForm({ name: term.name, starts_on: term.starts_on.slice(0, 10), ends_on: term.ends_on.slice(0, 10) });
+    return (
+        <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger render={<Button size="sm" variant="outline" />}>Ubah</DialogTrigger>
+            <DialogContent>
+                <form onSubmit={(e) => { e.preventDefault(); form.put(`/pengaturan/periode/${term.id}`, { preserveScroll: true, onSuccess: () => setOpen(false) }); }} className="grid gap-4">
+                    <DialogHeader><DialogTitle>Ubah periode</DialogTitle></DialogHeader>
+                    <FormField label="Nama periode" error={form.errors.name}><Input required value={form.data.name} onChange={(e) => form.setData('name', e.target.value)} /></FormField>
+                    <div className="grid gap-4 sm:grid-cols-2">
+                        <FormField label="Mulai" error={form.errors.starts_on}><Input type="date" required value={form.data.starts_on} onChange={(e) => form.setData('starts_on', e.target.value)} /></FormField>
+                        <FormField label="Selesai" error={form.errors.ends_on}><Input type="date" required value={form.data.ends_on} onChange={(e) => form.setData('ends_on', e.target.value)} /></FormField>
+                    </div>
+                    <DialogFooter><Button type="submit" disabled={form.processing}>Simpan</Button></DialogFooter>
+                </form>
+            </DialogContent>
+        </Dialog>
+    );
+}
+
 function Terms({ terms }: { terms: Term[] }) {
     const form = useForm({ name: '', starts_on: '', ends_on: '' });
     const submit = (e: FormEvent) => { e.preventDefault(); form.post('/pengaturan/periode', { preserveScroll: true, onSuccess: () => form.reset() }); };
@@ -78,11 +100,19 @@ function Terms({ terms }: { terms: Term[] }) {
                     <TableRow key={t.id}>
                         <TableCell className="font-medium">{t.name}</TableCell><TableCell>{fmtDate(t.starts_on)}</TableCell><TableCell>{fmtDate(t.ends_on)}</TableCell>
                         <TableCell>{t.is_current && <StatusBadge status="active" label="Berjalan" />}</TableCell>
-                        <TableCell className="text-right">{!t.is_current && (
-                            <ConfirmAction size="sm" title={`Jadikan ${t.name} periode berjalan?`} description="Keanggotaan dan rekap baru mengikuti periode ini. Data periode lama tidak diubah." href={`/pengaturan/periode/${t.id}/berjalan`} confirmLabel="Jadikan berjalan">
-                                Jadikan berjalan
-                            </ConfirmAction>
-                        )}</TableCell>
+                        <TableCell className="text-right">
+                            <div className="flex flex-wrap justify-end gap-1.5">
+                                <EditTerm term={t} />
+                                {!t.is_current && (
+                                    <>
+                                        <ConfirmAction size="sm" title={`Jadikan ${t.name} periode berjalan?`} description="Keanggotaan dan rekap baru mengikuti periode ini. Data periode lama tidak diubah." href={`/pengaturan/periode/${t.id}/berjalan`} confirmLabel="Jadikan berjalan">
+                                            Jadikan berjalan
+                                        </ConfirmAction>
+                                        <ConfirmAction size="sm" destructive title={`Hapus periode ${t.name}?`} description="Hanya periode yang belum punya keanggotaan maupun kegiatan yang bisa dihapus." href={`/pengaturan/periode/${t.id}`} method="delete" confirmLabel="Hapus">Hapus</ConfirmAction>
+                                    </>
+                                )}
+                            </div>
+                        </TableCell>
                     </TableRow>
                 ))}
             </DataTable>
@@ -108,7 +138,10 @@ function DivisionRow({ d }: { d: Div }) {
             <TableCell><Input className="h-8 max-w-xs" value={name} onChange={(e) => setName(e.target.value)} /></TableCell>
             <TableCell className="tabular-nums">{d.memberships_count}</TableCell>
             <TableCell className="text-right">
-                <Button size="sm" variant="outline" disabled={name === d.name || !name} onClick={() => router.put(`/pengaturan/divisi/${d.id}`, { name }, { preserveScroll: true })}>Simpan nama</Button>
+                <div className="flex flex-wrap justify-end gap-1.5">
+                    <Button size="sm" variant="outline" disabled={name === d.name || !name} onClick={() => router.put(`/pengaturan/divisi/${d.id}`, { name }, { preserveScroll: true })}>Simpan nama</Button>
+                    <ConfirmAction size="sm" destructive title={`Hapus divisi ${d.name}?`} description="Hanya divisi yang tidak dipakai keanggotaan, kegiatan, target kegiatan, atau akun admin yang bisa dihapus." href={`/pengaturan/divisi/${d.id}`} method="delete" confirmLabel="Hapus">Hapus</ConfirmAction>
+                </div>
             </TableCell>
         </TableRow>
     );
