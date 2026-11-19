@@ -13,6 +13,7 @@ import 'package:kartuanggota/screens/member/member_home_screen.dart';
 import 'package:kartuanggota/screens/member/my_events_tab.dart';
 import 'package:kartuanggota/screens/member/my_history_tab.dart';
 import 'package:kartuanggota/screens/member/my_qr_tab.dart';
+import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
@@ -68,6 +69,10 @@ MockClient server({List<http.Request>? seen, int qrCalls = 0, void Function()? o
       );
     case '/api/excuses':
       return http.Response(jsonEncode({'id': 1}), 201);
+    case '/api/me/calendar':
+      return http.Response(jsonEncode({'url': 'http://srv/jadwal/${'a' * 48}.ics'}), 200);
+    case '/api/me/calendar/reset':
+      return http.Response(jsonEncode({'url': 'http://srv/jadwal/${'b' * 48}.ics'}), 200);
   }
   return http.Response('{}', 404);
 });
@@ -242,6 +247,36 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Sekre tutup Jumat'), findsOneWidget);
     expect(find.text('Rapat Pleno'), findsOneWidget); // kegiatan tetap tampil
+  });
+
+  testWidgets('Kegiatan: langganan jadwal — tampilkan, salin, buat tautan baru', (tester) async {
+    final seen = <http.Request>[];
+    String? copied;
+    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(SystemChannels.platform, (call) async {
+      if (call.method == 'Clipboard.setData') copied = (call.arguments as Map)['text'] as String;
+      return null;
+    });
+    addTearDown(() => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(SystemChannels.platform, null));
+    await tester.pumpWidget(
+      KartuAnggotaApp(
+        home: Scaffold(body: MyEventsTab(api: api(server(seen: seen)))),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Langganan jadwal ke kalender'));
+    await tester.tap(find.text('Langganan jadwal ke kalender'));
+    await tester.pumpAndSettle();
+    expect(find.text('http://srv/jadwal/${'a' * 48}.ics'), findsOneWidget);
+
+    await tester.tap(find.text('Salin tautan'));
+    await tester.pumpAndSettle();
+    expect(copied, 'http://srv/jadwal/${'a' * 48}.ics');
+    expect(find.text('Tersalin'), findsOneWidget);
+
+    await tester.tap(find.text('Buat tautan baru'));
+    await tester.pumpAndSettle();
+    expect(find.text('http://srv/jadwal/${'b' * 48}.ics'), findsOneWidget);
+    expect(seen.where((r) => r.url.path == '/api/me/calendar/reset' && r.method == 'POST'), hasLength(1));
   });
 
   testWidgets('Riwayat: unduh rapor PDF', (tester) async {
