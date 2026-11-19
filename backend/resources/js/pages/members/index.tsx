@@ -19,7 +19,7 @@ type Row = { id: number; member_no: string; name: string; cohort: string | null;
 
 interface Props {
     tab: string; members: Paginated<Row>; divisions: { id: number; name: string }[]; term: { name: string };
-    filters: { q: string | null; division_id: string | null }; canManage: boolean;
+    filters: { q: string | null; division_id: string | null; siap?: string | null }; canManage: boolean;
 }
 
 const statusLabels: Record<string, string> = { active: 'Aktif', inactive: 'Tidak aktif', alumni: 'Alumni', applicant: 'Pendaftar' };
@@ -59,11 +59,12 @@ function MemberBulkActions({ sel, divisions }: { sel: Selection; divisions: { id
 export default function Members({ tab, members, divisions, term, filters, canManage }: Props) {
     const [q, setQ] = useState(filters.q ?? '');
     const [division, setDivision] = useState(filters.division_id ?? '');
+    const [ready, setReady] = useState(filters.siap ?? '');
     const bulk = canManage && tab !== 'arsip';
     const sel = useSelection(bulk ? members.data.map((m) => m.id) : []);
     const apply = (e: FormEvent) => {
         e.preventDefault();
-        router.get('/anggota', { tab, q: q || undefined, division_id: division || undefined }, { preserveState: true });
+        router.get('/anggota', { tab, q: q || undefined, division_id: division || undefined, siap: ready || undefined }, { preserveState: true });
     };
 
     return (
@@ -85,6 +86,13 @@ export default function Members({ tab, members, divisions, term, filters, canMan
                     <NativeSelect value={division} onChange={(e) => setDivision(e.target.value)}>
                         <NativeSelectOption value="">Semua divisi</NativeSelectOption>
                         {divisions.map((d) => <NativeSelectOption key={d.id} value={d.id}>{d.name}</NativeSelectOption>)}
+                    </NativeSelect>
+                )}
+                {canManage && tab !== 'arsip' && (
+                    <NativeSelect value={ready} onChange={(e) => setReady(e.target.value)} aria-label="Kesiapan">
+                        <NativeSelectOption value="">Semua kesiapan</NativeSelectOption>
+                        <NativeSelectOption value="tanpa-akun">Belum punya akun app</NativeSelectOption>
+                        <NativeSelectOption value="tanpa-kartu">Belum punya kartu</NativeSelectOption>
                     </NativeSelect>
                 )}
                 <Button type="submit" variant="secondary">Terapkan</Button>
