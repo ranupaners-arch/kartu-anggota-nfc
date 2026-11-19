@@ -47,19 +47,64 @@ class StatsService
     /** Persentase hadir per divisi (keanggotaan periode berjalan). */
     public function divisions(User $user, Term $term): array
     {
-        $rows = Attendance::query()->whereNull('voided_at')
+        $rows = $this->divisionRows($user, $term);
+        $names = Division::whereIn('id', array_column($rows, 'division_id'))->pluck('name', 'id');
+
+        return collect($rows)->map(fn ($r) => [
+            'division' => $names[$r['division_id']] ?? '—', 'total' => $r['total'], 'present' => $r['present'],
+            'rate' => $r['total'] ? round($r['present'] / $r['total'] * 100, 1) : null,
+        ])->sortBy('rate')->values()->all();
+    }
+
+    /** Hadir & total per divisi (menurut keanggotaan di periode itu). */
+    private function divisionRows(User $user, Term $term): array
+    {
+        return Attendance::query()->whereNull('voided_at')
             ->join('events', 'events.id', '=', 'attendances.event_id')->where('events.term_id', $term->id)
             ->join('memberships', fn ($j) => $j->on('memberships.member_id', '=', 'attendances.member_id')->where('memberships.term_id', $term->id))
             ->when($user->role === User::DIVISION_ADMIN, fn ($q) => $q->where('memberships.division_id', $user->division_id))
             ->whereNotNull('memberships.division_id')
             ->selectRaw("memberships.division_id, count(*) as total, sum(case when attendances.status in ('hadir','telat') then 1 else 0 end) as present")
-            ->groupBy('memberships.division_id')->get();
-        $names = Division::whereIn('id', $rows->pluck('division_id'))->pluck('name', 'id');
+            ->groupBy('memberships.division_id')->get()
+            ->map(fn ($r) => ['division_id' => $r->division_id, 'total' => (int) $r->total, 'present' => (int) $r->present])->all();
+    }
 
-        return $rows->map(fn ($r) => [
-            'division' => $names[$r->division_id] ?? '—', 'total' => (int) $r->total, 'present' => (int) $r->present,
-            'rate' => $r->total ? round($r->present / $r->total * 100, 1) : null,
-        ])->sortBy('rate')->values()->all();
+    /**
+     * Bandingkan periode ini dengan periode sebelumnya (periode terakhir yang mulai lebih awal):
+     * % hadir keseluruhan dan per divisi. null bila belum ada periode sebelumnya.
+     */
+    public function comparison(User $user, Term $term): ?array
+    {
+        $previous = Term::where('starts_on', '<', $term->starts_on)->orderByDesc('starts_on')->first();
+        if (! $previous) {
+            return null;
+        }
+        $now = collect($this->divisionRows($user, $term))->keyBy('division_id');
+        $before = collect($this->divisionRows($user, $previous))->keyBy('division_id');
+        $names = Division::whereIn('id', $now->keys()->merge($before->keys()))->pluck('name', 'id');
+        $rate = fn ($r) => $r && $r['total'] ? round($r['present'] / $r['total'] * 100, 1) : null;
+
+        return [
+            'current' => ['name' => $term->name] + $this->overall($user, $term),
+            'previous' => ['name' => $previous->name] + $this->overall($user, $previous),
+            'divisions' => $names->map(fn ($name, $id) => [
+                'division' => $name, 'current' => $rate($now->get($id)), 'previous' => $rate($before->get($id)),
+            ])->sortBy('division')->values()->all(),
+        ];
+    }
+
+    /** Hadir/total seluruh catatan kehadiran periode (admin divisi: anggota divisinya saja). */
+    private function overall(User $user, Term $term): array
+    {
+        $r = Attendance::query()->whereNull('voided_at')
+            ->join('events', 'events.id', '=', 'attendances.event_id')->where('events.term_id', $term->id)
+            ->when($user->role === User::DIVISION_ADMIN, fn ($q) => $q->whereExists(fn ($e) => $e->from('memberships')
+                ->whereColumn('memberships.member_id', 'attendances.member_id')->where('memberships.term_id', $term->id)
+                ->where('memberships.division_id', $user->division_id)))
+            ->selectRaw("count(*) as total, sum(case when attendances.status in ('hadir','telat') then 1 else 0 end) as present")->first();
+        $total = (int) $r->total;
+
+        return ['total' => $total, 'present' => (int) $r->present, 'rate' => $total ? round($r->present / $total * 100, 1) : null];
     }
 
     /** Anggota aktif yang perlu perhatian: Alpa berturut-turut, atau persentase hadir rendah. */
