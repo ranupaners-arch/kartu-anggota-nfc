@@ -22,8 +22,12 @@ class MemberController extends Controller
     public function index(Request $r)
     {
         $term = $this->members->currentTerm();
+        $superAdmin = $r->user()->isSuperAdmin();
         $tab = $r->query('tab', 'aktif');
-        $q = Member::query()
+        if ($tab === 'arsip' && $superAdmin) {
+            return $this->archive($r, $term);
+        }
+        $q = $this->members->visibleTo($r->user())
             ->with(['memberships' => fn ($m) => $m->where('term_id', $term->id)->with('division:id,name'), 'activeCard:id,member_id,status'])
             ->when($tab !== 'semua', fn ($q) => $q->whereHas('memberships', fn ($m) => $m->where('term_id', $term->id)
                 ->where('status', $tab === 'alumni' ? 'alumni' : 'active')))
@@ -38,9 +42,34 @@ class MemberController extends Controller
                 'division' => $m->memberships->first()?->division?->name, 'status' => $m->memberships->first()?->status,
                 'has_card' => (bool) $m->activeCard,
             ]),
-            'divisions' => Division::orderBy('name')->get(['id', 'name']),
+            'divisions' => $superAdmin ? Division::orderBy('name')->get(['id', 'name']) : [],
             'filters' => ['q' => $r->query('q'), 'division_id' => $r->query('division_id')],
+            'canManage' => $superAdmin,
         ]);
+    }
+
+    /** Anggota yang dihapus (soft delete), bisa dipulihkan. Yang data pribadinya dihapus tidak tampil. */
+    private function archive(Request $r, \App\Models\Term $term)
+    {
+        $q = Member::onlyTrashed()->whereNull('anonymized_at')
+            ->when($r->query('q'), fn ($q, $s) => $q->where(fn ($w) => $w->where('name', 'ilike', "%$s%")->orWhere('member_no', 'ilike', "%$s%")))
+            ->latest('deleted_at');
+
+        return Inertia::render('members/index', [
+            'tab' => 'arsip', 'term' => $term->only('id', 'name'),
+            'members' => $q->paginate(30)->withQueryString()->through(fn (Member $m) => [
+                'id' => $m->id, 'member_no' => $m->member_no, 'name' => $m->name, 'cohort' => $m->cohort,
+                'division' => null, 'status' => null, 'has_card' => false, 'deleted_at' => $m->deleted_at,
+            ]),
+            'divisions' => [], 'filters' => ['q' => $r->query('q'), 'division_id' => null], 'canManage' => true,
+        ]);
+    }
+
+    public function restore(Member $member)
+    {
+        $this->members->restore($member);
+
+        return redirect()->route('members.show', $member)->with('status', 'Anggota dipulihkan. Kartu lamanya tetap diblokir; terbitkan kartu baru bila perlu.');
     }
 
     public function create()
@@ -57,12 +86,14 @@ class MemberController extends Controller
 
     public function show(Request $r, Member $member)
     {
+        $this->members->authorizeView($r->user(), $member);
         $tab = $r->query('tab', 'profil');
         $member->load(['memberships.term:id,name', 'memberships.division:id,name', 'cards']);
 
         return Inertia::render('members/show', [
             'member' => $member->only('id', 'member_no', 'name', 'email', 'phone', 'cohort')
                 + ['photo_url' => $member->photoUrl('members.photo')],
+            'canManage' => $r->user()->isSuperAdmin(),
             'privacy' => [
                 'consentedAt' => $member->consented_at,
                 'consentedBy' => $member->consented_by ? User::find($member->consented_by)?->name : null,
@@ -132,8 +163,9 @@ class MemberController extends Controller
         return back()->with('status', 'Foto diperbarui.');
     }
 
-    public function photo(Member $member)
+    public function photo(Request $r, Member $member)
     {
+        $this->members->authorizeView($r->user(), $member);
         abort_unless($member->photo_path && Storage::disk('local')->exists($member->photo_path), 404);
 
         return Storage::disk('local')->response($member->photo_path, headers: ['Cache-Control' => 'private, max-age=3600']);

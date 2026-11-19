@@ -113,7 +113,8 @@ class DashboardTest extends TestCase
 
         $this->get(route('events.index'))->assertOk()->assertSee('Rapat Umum')->assertDontSee('Rapat Inti');
         $this->get(route('events.show', $intiEvent))->assertForbidden();
-        foreach ([route('members.index'), route('cards.index'), route('users.index'), route('logs.index'), route('settings.index')] as $url) {
+        // Anggota: boleh dilihat (divisinya saja, lihat MemberAccessTest); kelola tetap Super Admin.
+        foreach ([route('members.create'), route('cards.index'), route('users.index'), route('logs.index'), route('settings.index')] as $url) {
             $this->get($url)->assertForbidden();
         }
         $this->get('/')->assertOk()->assertInertia(fn (Assert $page) => $page->where('auth.isSuperAdmin', false));
