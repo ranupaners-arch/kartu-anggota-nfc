@@ -1,6 +1,6 @@
 import { Head, Link } from '@inertiajs/react';
 import { CalendarDays, ClipboardCheck, ScanLine, ShieldAlert, Users } from 'lucide-react';
-import { type AtRisk, type DivisionRate, StatsSection, type TrendPoint } from '@/components/attendance-charts';
+import { type AtRisk, type Comparison, type DivisionRate, StatsSection, type TrendPoint } from '@/components/attendance-charts';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -17,7 +17,7 @@ interface Props {
     pendingExcuses: number;
     needsReview: number;
     scans7d: number;
-    stats: { trend: TrendPoint[]; divisions: DivisionRate[]; atRisk: AtRisk[]; rules: { streak: number; minRate: number; minRecords: number } } | null;
+    stats: { trend: TrendPoint[]; divisions: DivisionRate[]; atRisk: AtRisk[]; rules: { streak: number; minRate: number; minRecords: number }; comparison: Comparison } | null;
 }
 
 function Stat({ label, value, icon: Icon, href }: { label: string; value: number; icon: typeof Users; href?: string }) {

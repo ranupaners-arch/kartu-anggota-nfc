@@ -31,6 +31,7 @@ class HomeController extends Controller
             'stats' => fn () => $term ? [
                 'trend' => app(\App\Services\StatsService::class)->trend($user, $term),
                 'divisions' => app(\App\Services\StatsService::class)->divisions($user, $term),
+                'comparison' => app(\App\Services\StatsService::class)->comparison($user, $term),
                 'atRisk' => array_slice(app(\App\Services\StatsService::class)->atRisk($user, $term), 0, 20),
                 'rules' => ['streak' => \App\Services\StatsService::ALPA_STREAK, 'minRate' => \App\Services\StatsService::MIN_RATE, 'minRecords' => \App\Services\StatsService::MIN_RECORDS],
             ] : null,

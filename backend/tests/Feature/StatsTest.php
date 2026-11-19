@@ -71,6 +71,38 @@ class StatsTest extends TestCase
             ->where('stats.atRisk', fn ($rows) => collect($rows)->pluck('name')->sort()->values()->all() === ['Bolos', 'Jarang', 'Pulih']));
     }
 
+    public function test_compares_with_previous_term_overall_and_per_division(): void
+    {
+        $this->member('Rajin', $this->humas, ['hadir', 'hadir', 'hadir', 'hadir', 'hadir']); // Humas 100%
+        $this->member('Jarang', $this->inti, ['hadir', 'alpa', 'alpa', 'alpa', 'hadir']);   // Inti 40%
+
+        // Belum ada periode sebelumnya → tidak ada perbandingan.
+        $this->actingAs($this->admin)->get('/')->assertInertia(fn (Assert $p) => $p->where('stats.comparison', null));
+
+        $old = Term::create(['organization_id' => $this->org->id, 'name' => '2025', 'starts_on' => '2025-01-01', 'ends_on' => '2025-12-31', 'is_current' => false]);
+        $s = now()->subYear();
+        $e = Event::create(['organization_id' => $this->org->id, 'term_id' => $old->id, 'title' => 'Rapat lama', 'starts_at' => $s, 'ends_at' => $s->copy()->addHour(),
+            'checkin_opens_at' => $s->copy()->subMinutes(30), 'late_after' => $s->copy()->addMinutes(10), 'checkin_closes_at' => $s->copy()->addHour(), 'closed_at' => $s->copy()->addHours(2)]);
+        foreach (['Rajin' => [$this->humas, 'alpa'], 'Jarang' => [$this->inti, 'hadir']] as $no => [$d, $st]) {
+            $m = Member::where('member_no', $no)->first();
+            Membership::create(['member_id' => $m->id, 'term_id' => $old->id, 'division_id' => $d->id, 'status' => 'active']);
+            Attendance::create(['event_id' => $e->id, 'session_id' => $e->defaultSession()->id, 'member_id' => $m->id, 'status' => $st]);
+        }
+
+        $this->actingAs($this->admin)->get('/')->assertInertia(fn (Assert $p) => $p
+            ->where('stats.comparison.current.name', '2026')->where('stats.comparison.current.rate', fn ($v) => (float) $v === 70.0) // 7/10
+            ->where('stats.comparison.previous.name', '2025')->where('stats.comparison.previous.rate', fn ($v) => (float) $v === 50.0) // 1/2
+            ->where('stats.comparison.divisions.0.division', 'Humas')
+            ->where('stats.comparison.divisions.0.current', fn ($v) => (float) $v === 100.0)->where('stats.comparison.divisions.0.previous', fn ($v) => (float) $v === 0.0)
+            ->where('stats.comparison.divisions.1.current', fn ($v) => (float) $v === 40.0)->where('stats.comparison.divisions.1.previous', fn ($v) => (float) $v === 100.0));
+
+        // Admin divisi hanya melihat divisinya.
+        $da = User::factory()->create(['organization_id' => $this->org->id, 'role' => 'division_admin', 'division_id' => $this->inti->id]);
+        $this->actingAs($da)->get('/')->assertInertia(fn (Assert $p) => $p
+            ->has('stats.comparison.divisions', 1)->where('stats.comparison.divisions.0.division', 'Inti')
+            ->where('stats.comparison.current.rate', fn ($v) => (float) $v === 40.0)->where('stats.comparison.previous.rate', fn ($v) => (float) $v === 100.0));
+    }
+
     public function test_division_admin_sees_only_own_division(): void
     {
         $this->member('Bolos', $this->humas, ['alpa', 'alpa', 'alpa', 'alpa', 'alpa']);
