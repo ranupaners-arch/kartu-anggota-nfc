@@ -199,6 +199,9 @@ class ApiClient {
     return j['url'] as String;
   }
 
+  /// Tampilan kartu anggota: status e-profil/pengesahan + data kartu.
+  Future<MemberCardInfo> myCard() async => MemberCardInfo.fromJson(await _send('GET', '/api/me/card'));
+
   Future<MemberHistory> myHistory() async => MemberHistory.fromJson(await _send('GET', '/api/me/history'));
 
   /// Ajukan izin/sakit; lampiran opsional (gambar/PDF, maks. 5 MB).
@@ -396,4 +399,33 @@ class Announcement {
   final bool pinned;
   final DateTime? createdAt;
   final String? division;
+}
+
+/// Status kartu anggota di app: belum e-profil, menunggu pengesahan, aktif, atau tidak aktif.
+enum CardState { none, pending, active, inactive }
+
+class MemberCardInfo {
+  MemberCardInfo({required this.state, this.status, this.organization, this.term, this.validUntil, this.name, this.memberNo, this.division, this.cohort, this.photoUrl, this.cardLast4});
+
+  final CardState state;
+  final String? status, organization, term, name, memberNo, division, cohort, photoUrl, cardLast4;
+  final DateTime? validUntil;
+
+  factory MemberCardInfo.fromJson(Map<String, dynamic> j) {
+    final m = j['member'] as Map<String, dynamic>?;
+    final c = j['card'] as Map<String, dynamic>?;
+    return MemberCardInfo(
+      state: CardState.values.firstWhere((s) => s.name == j['state'], orElse: () => CardState.none),
+      status: j['status'] as String?,
+      organization: j['organization'] as String?,
+      term: j['term'] as String?,
+      validUntil: j['valid_until'] == null ? null : DateTime.tryParse(j['valid_until'] as String),
+      name: m?['name'] as String?,
+      memberNo: m?['member_no'] as String?,
+      division: m?['division'] as String?,
+      cohort: m?['cohort'] as String?,
+      photoUrl: m?['photo_url'] as String?,
+      cardLast4: c?['last4'] as String?,
+    );
+  }
 }
