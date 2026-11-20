@@ -165,6 +165,23 @@ class MemberController extends Controller
         return back()->with('status', "$n anggota $what.");
     }
 
+    /** Desain kartu siap cetak (PDF) untuk anggota terpilih; ?format=a4 (bawaan) atau kartu (printer PVC). */
+    public function printCards(Request $r, \App\Services\CardPrintService $printer)
+    {
+        $d = $r->validate([
+            'ids' => 'required|array|min:1|max:200', 'ids.*' => 'integer',
+            'format' => 'nullable|in:'.implode(',', \App\Services\CardPrintService::FORMATS),
+        ]);
+        $term = $this->members->currentTerm();
+        $members = Member::whereIn('id', $d['ids'])->whereNull('anonymized_at')->orderBy('name')
+            ->with(['memberships' => fn ($q) => $q->where('term_id', $term->id)->with('division:id,name'), 'activeCard:id,member_id,public_id'])->get();
+        abort_if($members->isEmpty(), 404, 'Anggota tidak ditemukan.');
+        [$pdf, $name] = $printer->pdf($members, $term, $r->user()->organization, $d['format'] ?? 'a4');
+        \App\Services\AuditLogger::log('member.cards_printed', 'member', null, ['count' => $members->count()]);
+
+        return response($pdf, 200, ['Content-Type' => 'application/pdf', 'Content-Disposition' => 'inline; filename="'.$name.'"']);
+    }
+
     /** Buat akun app untuk anggota terpilih; hasil (password sementara) hanya ditampilkan sekali. */
     public function createAccounts(Request $r, \App\Services\MemberAccountService $accounts)
     {
