@@ -7,11 +7,11 @@ import '../../app/session.dart';
 import '../../widgets/ui.dart';
 import '../connect_screen.dart';
 import '../login_screen.dart';
+import 'my_card_tab.dart';
 import 'my_events_tab.dart';
 import 'my_history_tab.dart';
-import 'my_qr_tab.dart';
 
-/// Layar utama anggota: QR pribadi, kegiatan (+ izin), riwayat.
+/// Layar utama anggota: kartu (+ QR cadangan), kegiatan (+ izin), riwayat.
 class MemberHomeScreen extends StatefulWidget {
   const MemberHomeScreen({super.key, required this.session, this.api});
 
@@ -28,7 +28,7 @@ class _MemberHomeScreenState extends State<MemberHomeScreen> {
   late final ApiClient _api = widget.api ?? widget.session.client();
   int _tab = 0;
 
-  static const _titles = ['QR Saya', 'Kegiatan', 'Riwayat'];
+  static const _titles = ['Kartu Saya', 'Kegiatan', 'Riwayat'];
 
   Future<void> _logout() async {
     await _api.logout();
@@ -49,7 +49,7 @@ class _MemberHomeScreenState extends State<MemberHomeScreen> {
         child: IndexedStack(
           index: _tab,
           children: [
-            MyQrTab(api: _api, name: widget.session.userName),
+            MyCardTab(api: _api, name: widget.session.userName),
             MyEventsTab(api: _api),
             MyHistoryTab(api: _api),
           ],
@@ -59,7 +59,7 @@ class _MemberHomeScreenState extends State<MemberHomeScreen> {
         selectedIndex: _tab,
         onDestinationSelected: (i) => setState(() => _tab = i),
         destinations: const [
-          NavigationDestination(icon: Icon(LucideIcons.qrCode), label: 'QR Saya'),
+          NavigationDestination(icon: Icon(LucideIcons.creditCard), label: 'Kartu'),
           NavigationDestination(icon: Icon(LucideIcons.calendarDays), label: 'Kegiatan'),
           NavigationDestination(icon: Icon(LucideIcons.chartColumn), label: 'Riwayat'),
         ],

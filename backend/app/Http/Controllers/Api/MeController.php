@@ -59,6 +59,21 @@ class MeController extends Controller
             ->map(fn ($a) => $a->only('id', 'title', 'body', 'pinned', 'created_at') + ['division' => $a->division?->name])];
     }
 
+    /** Tampilan kartu anggota (status e-profil/pengesahan + data kartu). */
+    public function card(Request $r, \App\Services\MemberCardService $cards)
+    {
+        return $cards->forUser($r->user());
+    }
+
+    /** Foto anggota milik sendiri (untuk kartu di app). */
+    public function photo(Request $r)
+    {
+        $member = $r->user()->member;
+        abort_unless($member?->photo_path && \Illuminate\Support\Facades\Storage::disk('local')->exists($member->photo_path), 404);
+
+        return \Illuminate\Support\Facades\Storage::disk('local')->response($member->photo_path, headers: ['Cache-Control' => 'private, max-age=3600']);
+    }
+
     /** Rapor kehadiran PDF periode berjalan untuk anggota sendiri. */
     public function reportCard(Request $r, \App\Services\ReportCardService $cards)
     {

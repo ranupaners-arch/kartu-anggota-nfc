@@ -2,6 +2,7 @@ import { Head, Link, router, useForm } from '@inertiajs/react';
 import { FileText, IdCard, Pencil, ShieldAlert, Trash2, UserRound } from 'lucide-react';
 import { type ChangeEvent, type FormEvent, useState } from 'react';
 import { type CardRow, CardsTable } from '@/components/cards-table';
+import { MemberCard, type MemberCardInfo } from '@/components/member-card';
 import { ConfirmAction } from '@/components/confirm-action';
 import { DataTable } from '@/components/data-table';
 import { PageTabs } from '@/components/page-tabs';
@@ -88,8 +89,8 @@ function PrivacyCard({ member, privacy }: { member: Member; privacy: Privacy }) 
     );
 }
 
-export default function MemberShow({ member, tab, memberships, cards, attendances, privacy, canManage }: {
-    member: Member; tab: string; memberships: Ms[]; cards: CardRow[]; attendances: Paginated<Att> | null; privacy: Privacy; canManage: boolean;
+export default function MemberShow({ member, tab, memberships, cards, attendances, privacy, canManage, cardPreview }: {
+    member: Member; tab: string; memberships: Ms[]; cards: CardRow[]; attendances: Paginated<Att> | null; privacy: Privacy; canManage: boolean; cardPreview: MemberCardInfo;
 }) {
     const anonymized = Boolean(privacy.anonymizedAt);
     const editable = canManage && !anonymized;
@@ -170,6 +171,7 @@ export default function MemberShow({ member, tab, memberships, cards, attendance
             )}
             {tab === 'kartu' && (
                 <>
+                    <div className="max-w-sm"><MemberCard info={cardPreview} /></div>
                     <p className="text-sm text-muted-foreground">Kartu baru diterbitkan lewat app petugas (mode Issue). Menerbitkan kartu baru otomatis memblokir kartu lama.</p>
                     <CardsTable cards={cards} showMember={false} />
                 </>

@@ -75,7 +75,7 @@ void main() {
       );
       await tester.pump();
       final bg = Theme.of(tester.element(find.byType(NavigationBar))).navigationBarTheme.backgroundColor!;
-      for (final label in ['QR Saya', 'Kegiatan', 'Riwayat']) {
+      for (final label in ['Kartu', 'Kegiatan', 'Riwayat']) {
         final p = tester.renderObject<RenderParagraph>(find.descendant(of: find.byType(NavigationBar), matching: find.text(label)));
         final ratio = contrast(p.text.style!.color!, bg);
         expect(ratio, greaterThanOrEqualTo(4.5), reason: '"$label" kontras ${ratio.toStringAsFixed(2)}:1 di mode ${brightness.name}');

@@ -35,6 +35,7 @@ class PortalController extends Controller
     {
         return Inertia::render('portal/qr', [
             'profile' => $this->profile($r),
+            'card' => app(\App\Services\MemberCardService::class)->forUser($r->user(), 'portal.photo'),
             'qr' => fn () => $members->myQr($r) + ['generated_at' => now()->toIso8601String()],
         ]);
     }
