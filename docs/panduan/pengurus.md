@@ -168,6 +168,8 @@ anggota aktif yang Alpa 3× berturut-turut atau kehadirannya di bawah 60%. Klik 
 - Menu **Denda**: total belum lunas & sudah lunas periode ini; centang → **Tandai lunas** /
   **Bebaskan** / kembalikan ke belum lunas. Absensi yang dibatalkan/dikoreksi → dendanya otomatis
   dibebaskan. Anggota melihat dendanya di **Riwayat** (app & portal).
+- **Rekap & Ekspor** (rekap periode/divisi) menampilkan kolom **Denda QR** dan **Belum lunas** per anggota
+  serta total belum lunas; ekspor Excel/PDF ikut memuat *Denda QR (kali)*, *Belum lunas (Rp)*, *Lunas (Rp)*.
 
 ## Rapor kehadiran
 
