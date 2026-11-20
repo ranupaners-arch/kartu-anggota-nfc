@@ -32,6 +32,9 @@ class AnnouncementController extends Controller
     {
         $a = Announcement::create($this->input($r) + ['created_by' => $r->user()->id]);
         AuditLogger::log('announcement.created', 'announcement', $a->id);
+        // Notifikasi push ke HP anggota (portal web) — di antrean agar tidak memperlambat halaman.
+        $id = $a->id;
+        dispatch(fn () => app(\App\Services\Push\PushService::class)->announcement(\App\Models\Announcement::withoutGlobalScopes()->findOrFail($id)));
 
         return back()->with('status', 'Pengumuman diterbitkan.');
     }

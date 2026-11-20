@@ -73,7 +73,35 @@ class PortalController extends Controller
             'profile' => $this->profile($r) + ['email' => $u->email],
             'mustChangePassword' => (bool) $u->must_change_password,
             'calendarUrl' => $u->calendar_token ? route('calendar.feed', ['token' => $u->calendar_token]) : null,
+            // Notifikasi push: kunci publik VAPID (null = fitur nonaktif di server ini).
+            'push' => ['publicKey' => \App\Services\Push\PushService::enabled() ? config('services.webpush.public_key') : null,
+                'devices' => \App\Models\PushSubscription::where('user_id', $u->id)->count()],
         ]);
+    }
+
+    public function subscribePush(Request $r, \App\Services\Push\PushService $push)
+    {
+        abort_unless(\App\Services\Push\PushService::enabled(), 503, 'Notifikasi belum diaktifkan di server ini.');
+        $d = $r->validate([
+            'endpoint' => 'required|url:https|max:2000', 'keys.p256dh' => 'required|string|max:200', 'keys.auth' => 'required|string|max:100',
+        ]);
+        $push->subscribe($r->user(), $d, $r->userAgent());
+
+        return response()->noContent();
+    }
+
+    public function unsubscribePush(Request $r, \App\Services\Push\PushService $push)
+    {
+        $push->unsubscribe($r->user(), (string) $r->input('endpoint'));
+
+        return response()->noContent();
+    }
+
+    public function testPush(Request $r, \App\Services\Push\PushService $push)
+    {
+        $n = $push->toUsers(collect([$r->user()->id]), 'Notifikasi aktif', 'Anda akan menerima pengingat kegiatan dan pengumuman di perangkat ini.', '/saya', 'uji');
+
+        return response()->json(['devices' => $n]);
     }
 
     public function password(Request $r)

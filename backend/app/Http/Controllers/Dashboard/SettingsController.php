@@ -37,6 +37,7 @@ class SettingsController extends Controller
                 'sentry' => (bool) config('sentry.dsn'),
                 'healthTokenSet' => (bool) config('attendance.health_token'),
                 'healthUrl' => url('/api/health'),
+                'push' => ['enabled' => \App\Services\Push\PushService::enabled(), 'devices' => \App\Models\PushSubscription::whereHas('user', fn ($u) => $u->where('organization_id', $r->user()->organization_id))->count()],
                 'mail' => ['enabled' => \App\Services\MailStatus::enabled(), 'mailer' => \App\Services\MailStatus::mailer(), 'from' => config('mail.from.address')],
             ] : null,
         ]);

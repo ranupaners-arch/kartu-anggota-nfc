@@ -33,6 +33,9 @@ Route::middleware(['auth:web', 'portal'])->prefix('saya')->name('portal.')->grou
     Route::get('akun', [App\Http\Controllers\Portal\PortalController::class, 'account'])->name('account');
     Route::put('password', [App\Http\Controllers\Portal\PortalController::class, 'password'])->middleware('throttle:10,1')->name('password');
     Route::post('kalender', [App\Http\Controllers\CalendarFeedController::class, 'reset'])->name('calendar');
+    Route::post('notifikasi', [App\Http\Controllers\Portal\PortalController::class, 'subscribePush'])->middleware('throttle:20,1')->name('push.subscribe');
+    Route::delete('notifikasi', [App\Http\Controllers\Portal\PortalController::class, 'unsubscribePush'])->name('push.unsubscribe');
+    Route::post('notifikasi/uji', [App\Http\Controllers\Portal\PortalController::class, 'testPush'])->middleware('throttle:5,1')->name('push.test');
 });
 
 // Mode petugas di browser: pindai QR Saya dengan kamera.

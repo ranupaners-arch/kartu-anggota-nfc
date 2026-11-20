@@ -15,3 +15,5 @@ Illuminate\Support\Facades\Schedule::job(new App\Jobs\QueueHeartbeat)->everyMinu
 Illuminate\Support\Facades\Schedule::command('app:retention')->dailyAt('02:30')->withoutOverlapping();
 // Ringkasan mingguan untuk pengurus: Senin 07.00 WIB (hanya bila email server sudah diatur).
 Illuminate\Support\Facades\Schedule::command('ringkasan:mingguan')->weeklyOn(1, '07:00')->timezone('Asia/Jakarta')->withoutOverlapping();
+// Pengingat push portal anggota ±1 jam sebelum kegiatan (nonaktif bila kunci VAPID kosong).
+Illuminate\Support\Facades\Schedule::command('push:pengingat')->everyFiveMinutes()->withoutOverlapping();
