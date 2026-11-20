@@ -25,9 +25,10 @@ interface Props {
 const statusLabels: Record<string, string> = { active: 'Aktif', inactive: 'Tidak aktif', alumni: 'Alumni', applicant: 'Pendaftar' };
 
 /** Pindah divisi / ubah status / arsipkan anggota terpilih (Super Admin). */
-function MemberBulkActions({ sel, divisions }: { sel: Selection; divisions: { id: number; name: string }[] }) {
+function MemberBulkActions({ sel, divisions, tab }: { sel: Selection; divisions: { id: number; name: string }[]; tab: string }) {
     const [division, setDivision] = useState('');
-    const [status, setStatus] = useState('alumni');
+    // Di tab Pendaftar, tindakan yang paling sering: setujui (jadikan Aktif).
+    const [status, setStatus] = useState(tab === 'pendaftar' ? 'active' : 'alumni');
     const [printFormat, setPrintFormat] = useState('a4');
     const n = sel.count;
     const divisionName = division ? divisions.find((d) => String(d.id) === division)?.name : 'Tanpa divisi';
@@ -85,7 +86,7 @@ export default function Members({ tab, members, divisions, term, filters, canMan
         }>
             <Head title="Anggota" />
             <p className="text-sm text-muted-foreground">Periode {term.name}{!canManage && ' · anggota divisi Anda'}</p>
-            <PageTabs tabs={canManage ? { aktif: 'Aktif', alumni: 'Alumni', semua: 'Semua', arsip: 'Arsip' } : { aktif: 'Aktif', alumni: 'Alumni', semua: 'Semua' }} current={tab} />
+            <PageTabs tabs={canManage ? { aktif: 'Aktif', pendaftar: 'Pendaftar', alumni: 'Alumni', semua: 'Semua', arsip: 'Arsip' } : { aktif: 'Aktif', alumni: 'Alumni', semua: 'Semua' }} current={tab} />
             <form onSubmit={apply} className="flex flex-wrap items-center gap-2">
                 <div className="relative">
                     <Search className="absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
@@ -106,6 +107,12 @@ export default function Members({ tab, members, divisions, term, filters, canMan
                 )}
                 <Button type="submit" variant="secondary">Terapkan</Button>
             </form>
+            {tab === 'pendaftar' && (
+                <p className="text-sm text-muted-foreground">
+                    Calon anggota yang mendaftar sendiri lewat tautan di <b>Pengaturan → Aplikasi</b>. Centang lalu <b>Ubah status → Aktif</b> untuk menyetujui
+                    (setelah itu bisa dibuatkan akun app & kartu), atau <b>Arsipkan</b> untuk menolak.
+                </p>
+            )}
             {tab === 'arsip' ? (
                 <DataTable head={['No. Anggota', 'Nama', 'Angkatan', 'Dihapus', '']} count={members.data.length} empty="Arsip kosong.">
                     {members.data.map((m) => (
@@ -134,7 +141,7 @@ export default function Members({ tab, members, divisions, term, filters, canMan
                     </TableRow>
                 ))}
             </DataTable>
-            {bulk && <BulkBar sel={sel}><MemberBulkActions sel={sel} divisions={divisions} /></BulkBar>}
+            {bulk && <BulkBar sel={sel}><MemberBulkActions sel={sel} divisions={divisions} tab={tab} /></BulkBar>}
             </>
             )}
             <Pager page={members} />
