@@ -7,6 +7,11 @@ use Illuminate\Support\Facades\Route;
 Route::get('jadwal/{token}.ics', [App\Http\Controllers\CalendarFeedController::class, 'show'])
     ->where('token', '[A-Za-z0-9]{48}')->middleware('throttle:30,1')->name('calendar.feed');
 
+// Pendaftaran anggota mandiri (tautan publik dari pengurus).
+Route::get('daftar/{token}', [App\Http\Controllers\Publik\RegistrationController::class, 'show'])->where('token', '[A-Za-z0-9]{24}')->name('register.show');
+Route::post('daftar/{token}', [App\Http\Controllers\Publik\RegistrationController::class, 'store'])->where('token', '[A-Za-z0-9]{24}')->middleware('throttle:5,1')->name('register.store');
+Route::get('daftar/{token}/terkirim', [App\Http\Controllers\Publik\RegistrationController::class, 'done'])->where('token', '[A-Za-z0-9]{24}')->name('register.done');
+
 Route::middleware('guest')->group(function () {
     Route::get('masuk', [Dashboard\AuthController::class, 'show'])->name('login');
     Route::post('masuk', [Dashboard\AuthController::class, 'login'])->middleware('throttle:10,1');
@@ -97,6 +102,7 @@ Route::middleware(['auth:web', 'dashboard'])->group(function () {
         Route::post('perangkat/{device}/cabut', [Dashboard\DeviceController::class, 'revoke'])->name('devices.revoke');
         Route::get('log', [Dashboard\LogController::class, 'index'])->name('logs.index');
         Route::get('pengaturan', [Dashboard\SettingsController::class, 'index'])->name('settings.index');
+        Route::post('pengaturan/pendaftaran', [Dashboard\SettingsController::class, 'registration'])->name('settings.registration');
         Route::post('pengaturan/email-uji', [Dashboard\SettingsController::class, 'testMail'])->middleware('throttle:5,1')->name('settings.test-mail');
         Route::put('pengaturan/organisasi', [Dashboard\SettingsController::class, 'updateOrganization'])->name('settings.organization');
         Route::put('pengaturan/privasi', [Dashboard\SettingsController::class, 'updatePrivacy'])->name('settings.privacy');

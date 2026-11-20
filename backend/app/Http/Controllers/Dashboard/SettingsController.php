@@ -26,6 +26,7 @@ class SettingsController extends Controller
             'terms' => Term::orderByDesc('starts_on')->get(),
             'divisions' => Division::withCount('memberships')->orderBy('name')->get(),
             'connect' => self::connectInfo(),
+            'registration' => ($t = $r->user()->organization->registration_token) ? ['url' => route('register.show', $t)] : null,
             'privacy' => fn () => $r->query('tab') === 'privasi' ? [
                 'excuseDays' => $r->user()->organization->retention_excuse_days,
                 'memberMonths' => $r->user()->organization->retention_member_months,
@@ -56,6 +57,25 @@ class SettingsController extends Controller
             'payload' => 'kartuanggota://connect?'.http_build_query(['server' => $server, 'name' => $name]),
             'https' => str_starts_with($server, 'https://'),
         ];
+    }
+
+    /** Pendaftaran anggota mandiri: buka (buat tautan), ganti tautan, atau tutup. */
+    public function registration(Request $r, \App\Services\RegistrationService $registrations)
+    {
+        $d = $r->validate(['action' => 'required|in:open,rotate,close']);
+        $org = $r->user()->organization;
+        match ($d['action']) {
+            'open' => $registrations->open($org),
+            'rotate' => $registrations->open($org, rotate: true),
+            'close' => $registrations->close($org),
+        };
+        \App\Services\AuditLogger::log("organization.registration_{$d['action']}", 'organization', $org->id);
+
+        return back()->with('status', match ($d['action']) {
+            'open' => 'Pendaftaran dibuka. Bagikan tautan atau QR-nya.',
+            'rotate' => 'Tautan pendaftaran diganti. Tautan lama tidak berlaku.',
+            'close' => 'Pendaftaran ditutup.',
+        });
     }
 
     /** Kirim email uji ke akun sendiri untuk memastikan pengaturan SMTP benar. */

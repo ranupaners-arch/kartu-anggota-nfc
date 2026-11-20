@@ -30,7 +30,7 @@ class MemberController extends Controller
         $q = $this->members->visibleTo($r->user())
             ->with(['memberships' => fn ($m) => $m->where('term_id', $term->id)->with('division:id,name'), 'activeCard:id,member_id,status'])->withExists('user')
             ->when($tab !== 'semua', fn ($q) => $q->whereHas('memberships', fn ($m) => $m->where('term_id', $term->id)
-                ->where('status', $tab === 'alumni' ? 'alumni' : 'active')))
+                ->where('status', match ($tab) { 'alumni' => 'alumni', 'pendaftar' => 'applicant', default => 'active' })))
             ->when($r->query('q'), fn ($q, $s) => $q->where(fn ($w) => $w->where('name', 'ilike', "%$s%")->orWhere('member_no', 'ilike', "%$s%")))
             ->when($r->query('division_id'), fn ($q, $d) => $q->whereHas('memberships', fn ($m) => $m->where('term_id', $term->id)->where('division_id', $d)))
             // Kesiapan: anggota yang belum punya akun app / kartu aktif (untuk memantau persiapan).
