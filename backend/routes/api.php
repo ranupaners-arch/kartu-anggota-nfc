@@ -28,6 +28,8 @@ Route::middleware(['auth:sanctum', 'password.changed'])->group(function () {
     Route::get('me', [AuthController::class, 'me']);
     Route::put('me/password', [AuthController::class, 'changePassword'])->middleware('throttle:10,1');
     Route::get('me/qr', [MemberController::class, 'myQr']);
+    Route::get('me/card', [MeController::class, 'card']);
+    Route::get('me/photo', [MeController::class, 'photo'])->name('api.me.photo');
     Route::get('me/events', [MeController::class, 'events']);
     Route::get('me/history', [MeController::class, 'history']);
     Route::get('me/announcements', [MeController::class, 'announcements']);
