@@ -12,13 +12,14 @@ import { Input } from '@/components/ui/input';
 import AppLayout from '@/layouts/app-layout';
 import { fmtDateTime, roleLabel } from '@/lib/format';
 import type { SharedProps } from '@/types';
+import { PushCard } from '@/components/push-card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 type TwoFactor = {
     enabled: boolean; confirmedAt: string | null; recoveryRemaining: number;
     setup: { otpauthUrl: string; secret: string } | null; recoveryCodes: string[] | null;
 };
-interface Props { user: { name: string; email: string; role: string; member: { member_no: string; name: string } | null }; twoFactor: TwoFactor; calendarUrl: string | null; weeklySummary: { enabled: boolean; mailEnabled: boolean } }
+interface Props { user: { name: string; email: string; role: string; member: { member_no: string; name: string } | null }; twoFactor: TwoFactor; calendarUrl: string | null; weeklySummary: { enabled: boolean; mailEnabled: boolean }; pushKey: string | null }
 
 /** Ringkasan mingguan lewat email (Senin pagi): nyala/mati + contoh dengan data saat ini. */
 function WeeklySummaryCard({ ws }: { ws: { enabled: boolean; mailEnabled: boolean } }) {
@@ -135,7 +136,7 @@ function TwoFactorCard({ tf }: { tf: TwoFactor }) {
     );
 }
 
-export default function Account({ user, twoFactor, calendarUrl, weeklySummary }: Props) {
+export default function Account({ user, twoFactor, calendarUrl, weeklySummary, pushKey }: Props) {
     const mustChange = usePage<SharedProps>().props.auth?.mustChangePassword ?? false;
     const form = useForm({ current_password: '', password: '', password_confirmation: '' });
     const submit = (e: FormEvent) => {
@@ -179,6 +180,7 @@ export default function Account({ user, twoFactor, calendarUrl, weeklySummary }:
                 <TwoFactorCard tf={twoFactor} />
                 <CalendarCard url={calendarUrl} />
                 <WeeklySummaryCard ws={weeklySummary} />
+                {user.role === 'super_admin' && <PushCard publicKey={pushKey} endpoint="/akun/notifikasi" description="Pendaftar baru dan laporan kartu (hilang/rusak/HP tanpa NFC) langsung ke perangkat ini." />}
             </div>
         </AppLayout>
     );
