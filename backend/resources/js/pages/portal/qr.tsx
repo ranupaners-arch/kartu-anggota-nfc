@@ -1,7 +1,9 @@
 import { Head, router, usePoll } from '@inertiajs/react';
 import { QRCodeSVG } from 'qrcode.react';
 import { useEffect, useState } from 'react';
+import { FileDown } from 'lucide-react';
 import { MemberCard, type MemberCardInfo } from '@/components/member-card';
+import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Card, CardContent } from '@/components/ui/card';
 import PortalLayout from '@/layouts/portal-layout';
@@ -65,6 +67,7 @@ function ActiveQr({ profile, qr, card }: { profile: Profile; qr: Qr; card: Membe
         <PortalLayout title="Kartu Saya">
             <Head title="Kartu Saya" />
             <MemberCard info={card} />
+            <Button variant="outline" render={<a href="/saya/kartu.pdf" />}><FileDown /> Unduh kartu (PDF) untuk dicetak</Button>
             <Card>
                 <CardContent className="grid justify-items-center gap-4 py-2 text-center">
                     <div className={`rounded-2xl bg-white p-4 transition-opacity ${stale ? 'opacity-30' : ''}`}>
