@@ -22,7 +22,7 @@ class EnsureMemberPortal
         if ($user && ! $user->disabled_at && $user->role === User::SCANNER) {
             return redirect()->route('scanner.index');
         }
-        if (! $user || $user->disabled_at || $user->role !== User::MEMBER || ! $user->member_id) {
+        if (! $user || $user->disabled_at || $user->role !== User::MEMBER) {
             Auth::guard('web')->logout();
             $request->session()->invalidate();
 
@@ -30,6 +30,10 @@ class EnsureMemberPortal
         }
         if ($user->must_change_password && ! $request->routeIs('portal.account', 'portal.password', 'logout')) {
             return redirect()->route('portal.account')->with('status', 'Ganti password sementara Anda dulu.');
+        }
+        // Belum mengisi e-profil: hanya halaman kartu (kartu kosong), formulir e-profil, dan akun.
+        if (! $user->member_id && ! $request->routeIs('portal.qr', 'portal.profile', 'portal.profile.store', 'portal.account', 'portal.password', 'portal.photo', 'logout')) {
+            return redirect()->route('portal.qr');
         }
 
         return $next($request);

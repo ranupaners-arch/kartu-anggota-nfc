@@ -7,6 +7,7 @@ use App\Models\Member;
 use App\Models\Membership;
 use App\Models\Organization;
 use App\Models\Term;
+use App\Models\User;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -24,6 +25,53 @@ class RegistrationService
     public function organizationFor(string $token): ?Organization
     {
         return Organization::where('registration_token', $token)->first();
+    }
+
+    /** Organisasi tujuan pendaftaran dari app: satu-satunya organisasi di server ini (instans tunggal). */
+    public function defaultOrganization(): ?Organization
+    {
+        return Organization::count() === 1 ? Organization::first() : null;
+    }
+
+    public function isOpen(?Organization $org): bool
+    {
+        return (bool) $org?->registration_token;
+    }
+
+    /** Akun app baru (peran Anggota) tanpa data anggota — e-profil diisi sesudahnya. */
+    public function createAccount(Organization $org, array $d): User
+    {
+        $user = User::create([
+            'organization_id' => $org->id, 'role' => User::MEMBER, 'member_id' => null,
+            'name' => trim($d['name']), 'email' => Str::lower(trim($d['email'])), 'password' => $d['password'],
+        ]);
+        AuditLogger::log('user.self_registered', 'user', $user->id, [], $user->id);
+
+        return $user;
+    }
+
+    /** Aturan e-profil (email diambil dari akun). */
+    public function profileRules(Organization $org): array
+    {
+        return array_diff_key($this->rules($org), ['email' => true]);
+    }
+
+    /** Kirim e-profil: buat data anggota berstatus Pendaftar dan tautkan ke akun ini. */
+    public function submitProfile(User $user, array $d, ?UploadedFile $photo): Member
+    {
+        abort_if($user->member_id, 422, 'E-profil sudah dikirim.');
+        $org = Organization::findOrFail($user->organization_id);
+        $term = $this->currentTerm($org) ?? abort(422, 'Belum ada periode aktif. Hubungi pengurus.');
+        if (Member::where('organization_id', $org->id)->whereRaw('lower(email) = ?', [Str::lower($user->email)])->exists()) {
+            throw \Illuminate\Validation\ValidationException::withMessages(['email' => 'Email akun ini sudah terdaftar sebagai anggota. Minta pengurus menautkan akun Anda.']);
+        }
+
+        return DB::transaction(function () use ($user, $org, $term, $d, $photo) {
+            $member = $this->register($org, $term, $d + ['email' => $user->email], $photo);
+            $user->forceFill(['member_id' => $member->id, 'name' => $member->name])->save();
+
+            return $member;
+        });
     }
 
     public function open(Organization $org, bool $rotate = false): Organization

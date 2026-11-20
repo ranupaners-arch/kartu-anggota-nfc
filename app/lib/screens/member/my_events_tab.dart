@@ -36,7 +36,9 @@ class _MyEventsTabState extends State<MyEventsTab> {
 
   Future<void> _refresh() async {
     _loadAnnouncements();
-    setState(() => _events = widget.api.myEvents());
+    setState(() {
+      _events = widget.api.myEvents();
+    });
     await _events.catchError((_) => <MemberEvent>[]);
   }
 

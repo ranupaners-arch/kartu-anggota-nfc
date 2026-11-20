@@ -30,6 +30,16 @@ anggota** di browser — isinya sama dengan app:
 
 Kartu NFC tetap dipakai seperti biasa — portal hanya cadangan QR dan pengganti fitur app lainnya.
 
+## Kartu Saya & e-profil (anggota baru)
+
+- Belum punya akun? Di layar **Masuk** ketuk **Belum punya akun? Daftar** (muncul selama organisasi
+  membuka pendaftaran), isi nama, email, dan password.
+- Halaman utama (**Kartu**) menampilkan **kartu kosong** bertuliskan *Daftarkan keanggotaan dengan
+  e-profil* → ketuk → isi NIM, kontak, angkatan, divisi minat, foto, dan persetujuan data → **Kirim**.
+- Kartu berubah menjadi **Menunggu pengesahan** sampai pengurus pusat mengesahkan; setelah itu kartu
+  **aktif** otomatis (tarik layar untuk memperbarui) dan QR cadangan tersedia lewat **Tampilkan QR**.
+- Di portal web sama: masuk → kartu kosong → **e-profil**.
+
 ## QR Saya — saat kartu tertinggal
 
 Buka tab **QR Saya** dan tunjukkan ke petugas. QR berganti otomatis tiap menit, sehingga tangkapan

@@ -17,6 +17,8 @@ class InstanceController extends Controller
             'app' => 'kartu-anggota',
             'name' => config('attendance.instance_name'),
             'api_version' => config('attendance.api_version'),
-        ])->header('Cache-Control', 'public, max-age=300');
+            // App menampilkan tombol "Daftar" hanya bila pendaftaran mandiri dibuka.
+            'registration_open' => app(\App\Services\RegistrationService::class)->isOpen(app(\App\Services\RegistrationService::class)->defaultOrganization()),
+        ])->header('Cache-Control', 'public, max-age=60');
     }
 }

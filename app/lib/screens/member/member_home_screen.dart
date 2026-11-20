@@ -7,6 +7,7 @@ import '../../app/session.dart';
 import '../../widgets/ui.dart';
 import '../connect_screen.dart';
 import '../login_screen.dart';
+import 'eprofile_screen.dart';
 import 'my_card_tab.dart';
 import 'my_events_tab.dart';
 import 'my_history_tab.dart';
@@ -49,7 +50,11 @@ class _MemberHomeScreenState extends State<MemberHomeScreen> {
         child: IndexedStack(
           index: _tab,
           children: [
-            MyCardTab(api: _api, name: widget.session.userName),
+            MyCardTab(
+              api: _api,
+              name: widget.session.userName,
+              onRegister: (context) => Navigator.of(context).push<bool>(MaterialPageRoute(builder: (_) => EProfileScreen(api: _api))),
+            ),
             MyEventsTab(api: _api),
             MyHistoryTab(api: _api),
           ],

@@ -37,11 +37,33 @@ class AuthController extends Controller
             }
         }
 
-        $device = Device::firstOrNew(['uuid' => $d['device_uuid']]);
+        return $this->issueToken($user, $d['device_uuid'], $d['device_name']);
+    }
+
+    /** Daftar akun anggota dari app (hanya selama pendaftaran mandiri dibuka); langsung masuk. */
+    public function register(Request $r, \App\Services\RegistrationService $registrations)
+    {
+        $org = $registrations->defaultOrganization();
+        abort_unless($registrations->isOpen($org), 403, 'Pendaftaran akun sedang ditutup. Hubungi pengurus organisasi.');
+        $r->merge(['email' => \Illuminate\Support\Str::lower(trim((string) $r->input('email')))]); // unik tanpa beda huruf besar/kecil
+        $d = $r->validate([
+            'name' => 'required|string|max:150', 'email' => 'required|email|max:150|unique:users,email',
+            'password' => ['required', 'confirmed', \Illuminate\Validation\Rules\Password::min(10)->letters()->numbers()],
+            'device_uuid' => 'required|string|max:100', 'device_name' => 'required|string|max:100',
+        ], ['email.unique' => 'Email ini sudah punya akun. Silakan masuk, atau pakai Lupa password.']);
+        $user = $registrations->createAccount($org, $d);
+
+        return response()->json($this->issueToken($user, $d['device_uuid'], $d['device_name']), 201);
+    }
+
+    /** Token per perangkat (satu token aktif per perangkat). */
+    private function issueToken(User $user, string $deviceUuid, string $deviceName): array
+    {
+        $device = Device::firstOrNew(['uuid' => $deviceUuid]);
         if ($device->isRevoked()) {
             abort(403, 'Perangkat ini sudah dicabut aksesnya.');
         }
-        $device->fill(['user_id' => $user->id, 'name' => $d['device_name'], 'last_seen_at' => now()])->save();
+        $device->fill(['user_id' => $user->id, 'name' => $deviceName, 'last_seen_at' => now()])->save();
 
         // Satu token aktif per perangkat.
         if ($device->token_id) {

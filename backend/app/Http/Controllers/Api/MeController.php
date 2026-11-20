@@ -65,6 +65,28 @@ class MeController extends Controller
         return $cards->forUser($r->user());
     }
 
+    /** Data untuk formulir e-profil: organisasi, periode, pilihan divisi. */
+    public function profileForm(Request $r, \App\Services\RegistrationService $registrations)
+    {
+        $org = \App\Models\Organization::findOrFail($r->user()->organization_id);
+        $term = $registrations->currentTerm($org);
+
+        return ['organization' => $org->name, 'term' => $term?->name, 'name' => $r->user()->name, 'email' => $r->user()->email,
+            'divisions' => $registrations->divisions($org), 'submitted' => (bool) $r->user()->member_id];
+    }
+
+    /** Kirim e-profil (multipart; foto opsional) → status Pendaftar, menunggu pengesahan Super Admin. */
+    public function submitProfile(Request $r, \App\Services\RegistrationService $registrations)
+    {
+        $user = $r->user();
+        abort_unless($user->role === \App\Models\User::MEMBER, 403);
+        $org = \App\Models\Organization::findOrFail($user->organization_id);
+        $d = $r->validate($registrations->profileRules($org), $registrations->messages());
+        $registrations->submitProfile($user, $d, $r->file('photo'));
+
+        return response()->json(app(\App\Services\MemberCardService::class)->forUser($user->fresh()), 201);
+    }
+
     /** Foto anggota milik sendiri (untuk kartu di app). */
     public function photo(Request $r)
     {
@@ -114,6 +136,6 @@ class MeController extends Controller
 
     private function memberId(Request $r): int
     {
-        return $r->user()->member_id ?? abort(422, 'Akun belum terhubung ke data anggota. Hubungi pengurus.');
+        return $r->user()->member_id ?? abort(422, 'Akun belum terdaftar sebagai anggota. Isi e-profil dulu di tab Kartu.');
     }
 }

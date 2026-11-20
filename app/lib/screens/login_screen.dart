@@ -6,6 +6,7 @@ import '../api/ids.dart';
 import '../app/server_config.dart';
 import '../app/session.dart';
 import 'change_password_screen.dart';
+import 'register_screen.dart';
 import 'connect_screen.dart';
 import '../app/home.dart';
 import '../widgets/ui.dart';
@@ -25,6 +26,8 @@ class _LoginScreenState extends State<LoginScreen> {
   final _password = TextEditingController();
   final _otp = TextEditingController();
   bool _needOtp = false;
+  // Tombol "Daftar" hanya bila organisasi membuka pendaftaran akun dari app.
+  late final Future<bool> _canRegister = ApiClient(baseUrl: widget.server.url).registrationOpen();
   String? _error;
   bool _busy = false;
 
@@ -118,6 +121,16 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         const SizedBox(height: 4),
                         FlexButton(onPressed: _busy ? null : _login, label: _busy ? 'Memproses…' : 'Masuk'),
+                        FutureBuilder<bool>(
+                          future: _canRegister,
+                          builder: (context, snap) => snap.data == true
+                              ? FlexButton(
+                                  variant: ShadButtonVariant.outline,
+                                  onPressed: _busy ? null : () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => RegisterScreen(server: widget.server))),
+                                  label: 'Belum punya akun? Daftar',
+                                )
+                              : const SizedBox.shrink(),
+                        ),
                         FlexButton(variant: ShadButtonVariant.link, small: true, onPressed: _busy ? null : () => showForgotPassword(context, ApiClient(baseUrl: widget.server.url), _email.text.trim()), label: 'Lupa password?'),
                         if (serverMode == ServerMode.selectable) FlexButton(variant: ShadButtonVariant.link, small: true, onPressed: _busy ? null : _changeServer, label: 'Ganti organisasi'),
                       ],
