@@ -1,7 +1,8 @@
-import { Head, usePoll } from '@inertiajs/react';
+import { Head, router, usePoll } from '@inertiajs/react';
 import { QRCodeSVG } from 'qrcode.react';
 import { useEffect, useState } from 'react';
 import { MemberCard, type MemberCardInfo } from '@/components/member-card';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Card, CardContent } from '@/components/ui/card';
 import PortalLayout from '@/layouts/portal-layout';
 
@@ -29,8 +30,27 @@ function useWakeLock() {
 }
 
 /** QR Saya: cadangan saat kartu tertinggal. Server merotasi QR tiap menit; halaman mengambil yang baru tiap 30 detik. */
-export default function PortalQr({ profile, qr, card }: { profile: Profile; qr: Qr; card: MemberCardInfo }) {
-    usePoll(30_000, { only: ['qr'] }, { keepAlive: true });
+export default function PortalQr({ profile, qr, card }: { profile: Profile; qr: Qr | null; card: MemberCardInfo }) {
+    // QR berganti tiap menit; kartu ikut diperbarui agar pengesahan langsung terlihat.
+    usePoll(30_000, { only: ['qr', 'card'] }, { keepAlive: true });
+    if (!qr) return <CardOnly card={card} />;
+    return <ActiveQr profile={profile} qr={qr} card={card} />;
+}
+
+/** Belum e-profil / menunggu pengesahan / tidak aktif: kartu + penjelasan, tanpa QR. */
+function CardOnly({ card }: { card: MemberCardInfo }) {
+    return (
+        <PortalLayout title="Kartu Saya">
+            <Head title="Kartu Saya" />
+            <MemberCard info={card} onRegister={() => router.visit('/saya/e-profil')} />
+            {card.state === 'none' && <Alert><AlertTitle>Belum terdaftar sebagai anggota</AlertTitle><AlertDescription>Ketuk kartu di atas untuk mengisi e-profil.</AlertDescription></Alert>}
+            {card.state === 'pending' && <Alert><AlertTitle>Menunggu pengesahan pusat</AlertTitle><AlertDescription>E-profil Anda sedang diperiksa pengurus. Kartu aktif otomatis setelah disahkan.</AlertDescription></Alert>}
+            {card.state === 'inactive' && <Alert><AlertTitle>{card.status === 'alumni' ? 'Status: alumni' : 'Keanggotaan tidak aktif'}</AlertTitle><AlertDescription>Kartu tidak bisa dipakai untuk absensi periode ini.</AlertDescription></Alert>}
+        </PortalLayout>
+    );
+}
+
+function ActiveQr({ profile, qr, card }: { profile: Profile; qr: Qr; card: MemberCardInfo }) {
     useWakeLock();
     const [age, setAge] = useState(0);
     useEffect(() => {
