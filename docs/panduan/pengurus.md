@@ -43,6 +43,11 @@ Aktif setelah email server diatur (lihat *Pengaturan → Sistem → Email*; cara
 - Anggota yang dihapus masuk tab **Arsip** dan bisa **Pulihkan** (kartu lamanya tetap diblokir).
   Nomor anggota di arsip tidak bisa dipakai anggota baru — pulihkan saja.
 - Admin Divisi bisa melihat daftar & detail anggota divisinya (baca-saja).
+- **Pendaftaran mandiri**: **Pengaturan → Aplikasi → Pendaftaran anggota mandiri → Buka
+  pendaftaran**, lalu bagikan tautan/QR-nya (mis. di grup atau poster open recruitment). Calon anggota
+  mengisi nama, NIM, email, HP, angkatan, divisi minat, foto, dan persetujuan data. Mereka muncul di
+  **Anggota → Pendaftar** (angka di menu Anggota). Setujui: centang → **Ubah status → Aktif**;
+  tolak: **Arsipkan**. **Tutup pendaftaran** atau **Ganti tautan** bila tautan tersebar ke luar.
 - **Tindakan massal** (Super Admin): centang beberapa anggota (atau **Pilih semua** di halaman
   itu) → bilah di bawah layar: **Pindahkan** ke divisi lain, **Ubah status** (mis. jadikan Alumni
   di akhir periode), atau **Arsipkan**. Selalu ada konfirmasi dulu.
