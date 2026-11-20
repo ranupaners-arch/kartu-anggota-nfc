@@ -1,7 +1,10 @@
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, Link, router, useForm } from '@inertiajs/react';
 import { type FormEvent, useState } from 'react';
 import { type CardRow, CardsTable } from '@/components/cards-table';
-import { ConfirmAction } from '@/components/confirm-action';
+import { FormField } from '@/components/form-field';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { DataTable } from '@/components/data-table';
 import { PageTabs } from '@/components/page-tabs';
 import { Pager } from '@/components/pager';
@@ -16,10 +19,51 @@ import type { Paginated } from '@/types';
 
 type Rejected = { id: number; created_at: string; card_status: string | null; event_id: number | null; device_id: number | null; member: { member_no: string; name: string } | null };
 
+const reasonLabel: Record<string, string> = { hilang: 'Hilang', rusak: 'Rusak', tanpa_nfc: 'HP tanpa NFC' };
+
 type Req = {
-    id: number; reason: 'hilang' | 'rusak'; note: string | null; status: 'pending' | 'approved' | 'rejected'; created_at: string; reviewed_at: string | null; review_note: string | null;
+    id: number; reason: 'hilang' | 'rusak' | 'tanpa_nfc'; note: string | null; status: 'pending' | 'approved' | 'rejected'; resolution: 'self' | 'admin' | null;
+    created_at: string; reviewed_at: string | null; review_note: string | null;
     member: { id: number; member_no: string; name: string; self_card_writes_left: number } | null; reviewer: { name: string } | null;
 };
+
+/** Putuskan laporan kartu: izinkan anggota mendaftarkan sendiri, pengurus terbitkan, atau tolak — dengan catatan. */
+function ReviewDialog({ req }: { req: Req }) {
+    const [open, setOpen] = useState(false);
+    const form = useForm({ action: 'approve', resolution: req.reason === 'tanpa_nfc' ? 'admin' : 'self', note: '' });
+    const submit = (action: 'approve' | 'reject') => {
+        form.transform((d) => ({ ...d, action }));
+        form.post(`/kartu/permintaan/${req.id}`, { preserveScroll: true, onSuccess: () => setOpen(false) });
+    };
+    return (
+        <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger render={<Button size="sm" />}>Tindak lanjuti</DialogTrigger>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Laporan kartu · {req.member?.name}</DialogTitle>
+                    <DialogDescription>{reasonLabel[req.reason]}{req.note ? ` — “${req.note}”` : ''}</DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-3 text-sm">
+                    <Label className="flex items-start gap-2 font-normal">
+                        <input type="radio" name="res" className="mt-1" checked={form.data.resolution === 'self'} onChange={() => form.setData('resolution', 'self')} />
+                        <span><b>Izinkan daftar sendiri</b> — anggota mendapat 1 kesempatan mendaftarkan kartu NFC baru lewat app (HP-nya atau HP lain ber-NFC).</span>
+                    </Label>
+                    <Label className="flex items-start gap-2 font-normal">
+                        <input type="radio" name="res" className="mt-1" checked={form.data.resolution === 'admin'} onChange={() => form.setData('resolution', 'admin')} />
+                        <span><b>Pengurus terbitkan</b> — tulis kartu lewat app petugas (Terbitkan Kartu), lalu serahkan ke anggota.</span>
+                    </Label>
+                    <FormField label="Catatan untuk anggota (opsional)" hint="Mis. “Ambil kartu di sekretariat, Senin 13.00”." error={form.errors.note}>
+                        <Textarea rows={2} maxLength={500} value={form.data.note} onChange={(e) => form.setData('note', e.target.value)} />
+                    </FormField>
+                </div>
+                <DialogFooter>
+                    <Button variant="destructive" disabled={form.processing} onClick={() => submit('reject')}>Tolak</Button>
+                    <Button disabled={form.processing} onClick={() => submit('approve')}>Setujui</Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    );
+}
 
 /** Permintaan kartu pengganti dari anggota: setujui = anggota dapat 1 jatah daftar kartu sendiri lagi. */
 function Requests({ items }: { items: Req[] }) {
@@ -34,16 +78,16 @@ function Requests({ items }: { items: Req[] }) {
                     <TableRow key={r.id}>
                         <TableCell>{fmtDateTime(r.created_at)}</TableCell>
                         <TableCell>{r.member ? <Link href={`/anggota/${r.member.id}?tab=kartu`} className="font-medium hover:underline">{r.member.name}</Link> : '—'}<div className="text-xs text-muted-foreground">{r.member?.member_no}</div></TableCell>
-                        <TableCell className="capitalize">{r.reason}</TableCell>
+                        <TableCell>{reasonLabel[r.reason] ?? r.reason}</TableCell>
                         <TableCell className="max-w-xs whitespace-normal">{r.note ?? '—'}</TableCell>
                         <TableCell><StatusBadge status={r.status} />{r.reviewer && <div className="text-xs text-muted-foreground">{r.reviewer.name}</div>}</TableCell>
                         <TableCell>
-                            {r.status === 'pending' ? (
-                                <div className="flex gap-1.5">
-                                    <ConfirmAction size="sm" variant="default" title={`Setujui kartu pengganti ${r.member?.name ?? ''}?`} description="Anggota mendapat 1 kesempatan mendaftarkan kartu NFC baru lewat app-nya. Kartu aktif lamanya diblokir saat kartu baru didaftarkan." href={`/kartu/permintaan/${r.id}`} data={{ action: 'approve' }} confirmLabel="Setujui">Setujui</ConfirmAction>
-                                    <ConfirmAction size="sm" destructive title="Tolak permintaan?" description="Anggota tetap bisa absen dengan QR (sesuai kebijakan denda)." href={`/kartu/permintaan/${r.id}`} data={{ action: 'reject' }} confirmLabel="Tolak">Tolak</ConfirmAction>
-                                </div>
-                            ) : <span className="text-xs text-muted-foreground">{fmtDateTime(r.reviewed_at)}</span>}
+                            {r.status === 'pending' ? <ReviewDialog req={r} /> : (
+                                <span className="text-xs text-muted-foreground">
+                                    {r.resolution === 'admin' ? 'Diterbitkan pengurus' : r.resolution === 'self' ? 'Daftar sendiri' : ''} · {fmtDateTime(r.reviewed_at)}
+                                    {r.review_note && <span className="block">{r.review_note}</span>}
+                                </span>
+                            )}
                         </TableCell>
                     </TableRow>
                 ))}
