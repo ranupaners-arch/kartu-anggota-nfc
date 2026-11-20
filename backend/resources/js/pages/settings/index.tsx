@@ -251,7 +251,7 @@ function PrivacySettings({ privacy }: { privacy: Privacy }) {
 }
 
 type Check = { status: 'ok' | 'warn' | 'fail'; message: string; ms?: number };
-type Health = { status: Check['status']; checks: Record<string, Check>; checked_at: string; sentry: boolean; healthTokenSet: boolean; healthUrl: string; mail: { enabled: boolean; mailer: string; from: string | null } };
+type Health = { status: Check['status']; checks: Record<string, Check>; checked_at: string; sentry: boolean; healthTokenSet: boolean; healthUrl: string; mail: { enabled: boolean; mailer: string; from: string | null }; push: { enabled: boolean; devices: number } };
 const checkLabels: Record<string, string> = { database: 'Database', cache: 'Cache (Redis)', storage: 'Penyimpanan berkas', queue: 'Queue worker', scheduler: 'Scheduler' };
 const statusTone: Record<Check['status'], string> = {
     ok: 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400', warn: 'bg-amber-500/10 text-amber-700 dark:text-amber-400', fail: 'bg-destructive/10 text-destructive',
@@ -280,6 +280,19 @@ function SystemHealth({ health }: { health: Health }) {
                             Isi <code className="rounded bg-muted px-1.5 py-0.5">MAIL_MAILER=smtp</code>, <code className="rounded bg-muted px-1.5 py-0.5">MAIL_HOST</code>, <code className="rounded bg-muted px-1.5 py-0.5">MAIL_PORT</code>, <code className="rounded bg-muted px-1.5 py-0.5">MAIL_USERNAME</code>, <code className="rounded bg-muted px-1.5 py-0.5">MAIL_PASSWORD</code>, dan <code className="rounded bg-muted px-1.5 py-0.5">MAIL_FROM_ADDRESS</code> di file <code>.env</code> server (lihat docs/deploy.md), lalu jalankan ulang. Sampai saat itu, reset password hanya lewat pengurus.
                         </p>
                     )}
+                </CardContent>
+            </Card>
+            <Card className="max-w-3xl">
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                        Notifikasi push portal <span className={`rounded-md px-2 py-0.5 text-sm font-medium ${statusTone[health.push.enabled ? 'ok' : 'warn']}`}>{health.push.enabled ? 'Aktif' : 'Belum diatur'}</span>
+                    </CardTitle>
+                    <CardDescription>Pengingat ±1 jam sebelum kegiatan & pengumuman baru ke HP anggota yang memakai portal web (tanpa Firebase).</CardDescription>
+                </CardHeader>
+                <CardContent className="text-sm text-muted-foreground">
+                    {health.push.enabled
+                        ? <>{health.push.devices} perangkat berlangganan. Anggota mengaktifkannya di portal: <b>Akun → Notifikasi</b>.</>
+                        : <>Jalankan <code className="rounded bg-muted px-1.5 py-0.5">php artisan push:vapid</code> di server, salin hasilnya ke <code className="rounded bg-muted px-1.5 py-0.5">.env</code>, lalu jalankan ulang (lihat docs/deploy.md).</>}
                 </CardContent>
             </Card>
             <Card className="max-w-3xl">

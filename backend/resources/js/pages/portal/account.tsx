@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import PortalLayout from '@/layouts/portal-layout';
 import { Copyright } from '@/components/copyright';
+import { PushCard } from '@/components/push-card';
 
 type Profile = { name: string; member_no: string; division: string | null; organization: string | null; email: string };
 
@@ -41,7 +42,7 @@ function CalendarLink({ url }: { url: string | null }) {
     );
 }
 
-export default function PortalAccount({ profile, mustChangePassword, calendarUrl }: { profile: Profile; mustChangePassword: boolean; calendarUrl: string | null }) {
+export default function PortalAccount({ profile, mustChangePassword, calendarUrl, push }: { profile: Profile; mustChangePassword: boolean; calendarUrl: string | null; push: { publicKey: string | null; devices: number } }) {
     const form = useForm({ current_password: '', password: '', password_confirmation: '' });
     const submit = (e: FormEvent) => {
         e.preventDefault();
@@ -80,6 +81,7 @@ export default function PortalAccount({ profile, mustChangePassword, calendarUrl
                     </form>
                 </CardContent>
             </Card>
+            {!mustChangePassword && <PushCard publicKey={push.publicKey} />}
             {!mustChangePassword && <CalendarLink url={calendarUrl} />}
             <Button variant="outline" onClick={() => router.post('/keluar')}><LogOut /> Keluar</Button>
             <Copyright className="text-center" />

@@ -112,6 +112,20 @@ Periksa di dashboard: **Pengaturan → Sistem → Email** harus *Aktif*, lalu **
 Ringkasan dikirim Senin 07.00 WIB oleh scheduler (`php artisan ringkasan:mingguan` untuk mengirim
 manual); pengurus bisa mematikannya di **Akun → Ringkasan mingguan**.
 
+## Notifikasi push portal anggota
+
+Pengingat ±1 jam sebelum kegiatan dan pengumuman baru ke HP anggota yang memakai **portal web** (Web
+Push standar, tanpa Firebase). Nonaktif sampai kunci VAPID diisi:
+
+```bash
+docker compose exec app php artisan push:vapid   # cetak VAPID_PUBLIC_KEY / VAPID_PRIVATE_KEY / VAPID_SUBJECT
+```
+
+Salin ketiga baris itu ke `.env` (ganti `VAPID_SUBJECT` dengan `mailto:` email pengurus), lalu
+`docker compose up -d`. Periksa di **Pengaturan → Sistem → Notifikasi push portal** (*Aktif*). Kunci
+privat rahasia — jangan dibagikan; bila diganti, anggota perlu mengaktifkan notifikasi lagi.
+Pengingat dikirim scheduler (`push:pengingat`, tiap 5 menit); butuh HTTPS.
+
 ## Pemantauan & masalah umum
 
 | Perlu | Perintah |
