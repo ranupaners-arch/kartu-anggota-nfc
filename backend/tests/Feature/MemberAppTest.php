@@ -124,6 +124,6 @@ class MemberAppTest extends TestCase
     public function test_account_without_member_link_gets_clear_error(): void
     {
         $u = User::factory()->create(['organization_id' => $this->org->id, 'role' => 'member', 'member_id' => null]);
-        $this->actingAs($u, 'sanctum')->getJson('/api/me/events')->assertStatus(422)->assertJsonPath('message', 'Akun belum terhubung ke data anggota. Hubungi pengurus.');
+        $this->actingAs($u, 'sanctum')->getJson('/api/me/events')->assertStatus(422)->assertJsonPath('message', 'Akun belum terdaftar sebagai anggota. Isi e-profil dulu di tab Kartu.');
     }
 }
