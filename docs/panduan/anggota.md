@@ -25,6 +25,8 @@ anggota** di browser — isinya sama dengan app:
    peringatan, **Unduh rapor PDF**), **Akun** (ganti password, langganan jadwal, keluar).
 3. Agar seperti app: iPhone Safari → **Bagikan → Tambahkan ke Layar Utama**; Android Chrome →
    menu ⋮ → **Tambahkan ke layar utama**.
+4. **Notifikasi** (bila organisasi mengaktifkannya): **Akun → Aktifkan notifikasi** — pengingat ±1 jam
+   sebelum kegiatan dan pengumuman baru. Di iPhone, buka portal dari ikon Layar Utama dulu (iOS 16.4+).
 
 Kartu NFC tetap dipakai seperti biasa — portal hanya cadangan QR dan pengganti fitur app lainnya.
 

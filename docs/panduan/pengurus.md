@@ -111,6 +111,10 @@ Setelah dibuat, buka kegiatan:
 disematkan dan diberi tanggal kedaluwarsa. Tampil di app anggota (tab Kegiatan). Admin Divisi hanya
 untuk divisinya.
 
+- Pengumuman baru juga dikirim sebagai **notifikasi push** ke HP anggota yang mengaktifkannya di
+  portal (bila server sudah diatur — *Pengaturan → Sistem*). Anggota juga mendapat pengingat ±1 jam
+  sebelum kegiatan bila belum tercatat hadir/izin.
+
 ## Selama kegiatan
 
 - **Monitor langsung** (tombol di halaman kegiatan, buka di laptop/proyektor): jumlah hadir,
