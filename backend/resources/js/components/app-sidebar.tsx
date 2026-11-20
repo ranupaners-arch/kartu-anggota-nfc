@@ -1,6 +1,6 @@
 import { Link, usePage } from '@inertiajs/react';
 import {
-    BarChart3, CalendarDays, ClipboardCheck, CreditCard, House, Megaphone, ScrollText, Settings, ShieldAlert, Smartphone, UserCog, Users,
+    Banknote, BarChart3, CalendarDays, ClipboardCheck, CreditCard, House, Megaphone, ScrollText, Settings, ShieldAlert, Smartphone, UserCog, Users,
     type LucideIcon,
 } from 'lucide-react';
 import {
@@ -35,6 +35,7 @@ export function useNavigation(): Group[] {
                 { label: 'Anggota', href: '/anggota', icon: Users, badge: navBadges?.applicants },
                 ...(superAdmin ? [{ label: 'Kartu', href: '/kartu', icon: CreditCard, badge: navBadges?.cardRequests }] : []),
                 { label: 'Rekap & Ekspor', href: '/rekap', icon: BarChart3 },
+                ...(superAdmin ? [{ label: 'Denda', href: '/denda', icon: Banknote }] : []),
             ],
         },
         ...(superAdmin
