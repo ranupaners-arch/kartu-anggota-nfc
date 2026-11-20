@@ -123,6 +123,9 @@ Route::middleware(['auth:web', 'dashboard'])->group(function () {
         Route::post('pengaturan/email-uji', [Dashboard\SettingsController::class, 'testMail'])->middleware('throttle:5,1')->name('settings.test-mail');
         Route::put('pengaturan/organisasi', [Dashboard\SettingsController::class, 'updateOrganization'])->name('settings.organization');
         Route::put('pengaturan/privasi', [Dashboard\SettingsController::class, 'updatePrivacy'])->name('settings.privacy');
+        Route::put('pengaturan/denda', [Dashboard\SettingsController::class, 'updateFines'])->name('settings.fines');
+        Route::get('denda', [Dashboard\FineController::class, 'index'])->name('fines.index');
+        Route::post('denda/tandai', [Dashboard\FineController::class, 'mark'])->name('fines.mark');
         Route::post('pengaturan/periode', [Dashboard\SettingsController::class, 'storeTerm'])->name('settings.terms.store');
         Route::post('pengaturan/periode/{term}/berjalan', [Dashboard\SettingsController::class, 'setCurrentTerm'])->name('settings.terms.current');
         Route::put('pengaturan/periode/{term}', [Dashboard\SettingsController::class, 'updateTerm'])->name('settings.terms.update');

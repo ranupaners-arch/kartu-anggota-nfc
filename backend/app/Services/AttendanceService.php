@@ -32,6 +32,8 @@ class AttendanceService
             }
             $attendance->changes()->create(['changed_by' => $user->id, 'from_status' => $from, 'to_status' => $to, 'reason' => $reason]);
             AuditLogger::log('attendance.corrected', 'attendance', $attendance->id, ['from' => $from, 'to' => $to, 'reason' => $reason]);
+            // Absensi dibatalkan / bukan hadir lagi → denda QR-nya dibebaskan otomatis.
+            app(FineService::class)->onAttendanceCorrected($attendance, $user);
         });
 
         return $attendance->fresh();
