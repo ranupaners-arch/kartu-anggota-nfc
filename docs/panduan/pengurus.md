@@ -64,9 +64,11 @@ Aktif setelah email server diatur (lihat *Pengaturan → Sistem → Email*; cara
   Ukuran CR80 (85,6 × 54 mm); foto, nama, nomor, divisi, berlaku s.d. akhir periode.
 - Kartu hilang/dicuri: dashboard → **Kartu** → **Hilang** atau **Blokir**. Berlaku seketika.
 - **Kartu dari anggota sendiri**: anggota yang sudah disahkan bisa mendaftarkan kartu NFC kosong lewat
-  app-nya **satu kali**. Kartu pengganti (hilang/rusak) diajukan anggota dan muncul di **Kartu →
-  Permintaan Pengganti** (angka di menu Kartu): **Setujui** = anggota boleh mendaftarkan kartu baru
-  sekali lagi; laporan *hilang* sudah otomatis memblokir kartu lamanya.
+  app-nya **satu kali**. Laporan anggota (*kartu hilang*, *kartu rusak*, *HP tanpa NFC*) muncul di
+  **Kartu → Permintaan Pengganti** (angka di menu Kartu) → **Tindak lanjuti**: *Izinkan daftar sendiri*
+  (jatah +1) atau *Pengurus terbitkan* (tulis kartu lewat app petugas → Terbitkan Kartu, lalu serahkan),
+  dengan catatan untuk anggota (mis. tempat & waktu pengambilan); atau *Tolak*. Laporan *hilang* sudah
+  otomatis memblokir kartu lamanya.
 
 ### Akun petugas & perangkat
 - **Pengguna & Peran** → **Tambah Pengguna** → peran *Petugas Scan* (atau *Anggota*, tautkan ke

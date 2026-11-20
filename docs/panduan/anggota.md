@@ -39,10 +39,15 @@ Kartu NFC tetap dipakai seperti biasa — portal hanya cadangan QR dan pengganti
 - Kartu berubah menjadi **Menunggu pengesahan** sampai pengurus pusat mengesahkan; setelah itu kartu
   **aktif** otomatis (tarik layar untuk memperbarui) dan QR cadangan tersedia lewat **Tampilkan QR**.
 - Di portal web sama: masuk → kartu kosong → **e-profil**.
-- **Daftarkan kartu NFC sendiri** (app Android ber-NFC, setelah disahkan): siapkan kartu NTAG215
-  kosong (mis. hasil cetak sendiri) → **Daftarkan kartu NFC saya** → tempelkan kartu ke HP. Hanya
-  **1 kali**. Kartu hilang/rusak? **Ajukan pengganti** (alasan *hilang* langsung memblokir kartu lama);
-  setelah pengurus menyetujui, Anda bisa mendaftarkan kartu baru sekali lagi.
+- **Daftarkan kartu NFC sendiri** (setelah disahkan): siapkan kartu NTAG215 kosong (mis. hasil cetak
+  sendiri) → **Daftarkan kartu NFC saya** → tempelkan kartu ke HP. Hanya **1 kali**. App memeriksa NFC HP:
+  - NFC **mati** → *Buka pengaturan NFC*, nyalakan, kembali ke app.
+  - HP **tanpa NFC** / NFC rusak → *Minta pengurus terbitkan kartu*, atau masuk dengan akun Anda di HP
+    lain yang ber-NFC (HP teman/sekretariat) untuk mendaftarkan kartu, lalu keluar.
+- **Lapor kartu hilang/rusak** (tab Kartu): pilih *Kartu hilang* (kartu lama langsung diblokir), *Kartu
+  rusak*, atau *HP tanpa NFC*. Keputusan pengurus tampil di tab Kartu — mis. boleh mendaftarkan kartu
+  baru sendiri, atau kartu diterbitkan pengurus beserta catatan tempat/waktu pengambilan. Sementara itu
+  absen pakai QR.
 
 ## QR Saya — saat kartu tertinggal
 
