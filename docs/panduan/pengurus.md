@@ -48,6 +48,9 @@ Aktif setelah email server diatur (lihat *Pengaturan → Sistem → Email*; cara
   mengisi nama, NIM, email, HP, angkatan, divisi minat, foto, dan persetujuan data. Mereka muncul di
   **Anggota → Pendaftar** (angka di menu Anggota). Setujui: centang → **Ubah status → Aktif**;
   tolak: **Arsipkan**. **Tutup pendaftaran** atau **Ganti tautan** bila tautan tersebar ke luar.
+  Selama pendaftaran dibuka, calon anggota juga bisa **membuat akun sendiri di app/portal** lalu
+  mengisi **e-profil** dari kartu kosong; mereka masuk ke antrean **Pendaftar** yang sama. Setelah
+  disahkan (status Aktif), kartu di app/portal mereka aktif otomatis. Pengesahan hanya oleh Super Admin.
 - **Tindakan massal** (Super Admin): centang beberapa anggota (atau **Pilih semua** di halaman
   itu) → bilah di bawah layar: **Pindahkan** ke divisi lain, **Ubah status** (mis. jadikan Alumni
   di akhir periode), atau **Arsipkan**. Selalu ada konfirmasi dulu.
