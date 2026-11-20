@@ -39,6 +39,9 @@ Kartu NFC tetap dipakai seperti biasa — portal hanya cadangan QR dan pengganti
 - Kartu berubah menjadi **Menunggu pengesahan** sampai pengurus pusat mengesahkan; setelah itu kartu
   **aktif** otomatis (tarik layar untuk memperbarui) dan QR cadangan tersedia lewat **Tampilkan QR**.
 - Di portal web sama: masuk → kartu kosong → **e-profil**.
+- **Cetak kartu sendiri** (setelah disahkan): tab Kartu → **Unduh kartu (PDF) untuk dicetak** (portal:
+  tombol yang sama di halaman Kartu). Ukuran kartu CR80 (85,6 × 54 mm), depan & belakang — cetak di
+  kertas tebal/PVC, lalu daftarkan kartu NFC-nya lewat *Daftarkan kartu NFC saya*.
 - **Daftarkan kartu NFC sendiri** (setelah disahkan): siapkan kartu NTAG215 kosong (mis. hasil cetak
   sendiri) → **Daftarkan kartu NFC saya** → tempelkan kartu ke HP. Hanya **1 kali**. App memeriksa NFC HP:
   - NFC **mati** → *Buka pengaturan NFC*, nyalakan, kembali ke app.
