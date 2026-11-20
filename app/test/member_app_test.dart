@@ -307,4 +307,22 @@ void main() {
     expect(opened, [0x25, 0x50, 0x44, 0x46]); // %PDF
     expect(seen.last.headers['Authorization'], 'Bearer t');
   });
+
+  test('rupiah: pemisah ribuan titik', () {
+    expect(rupiah(5000), 'Rp5.000');
+    expect(rupiah(1250000), 'Rp1.250.000');
+    expect(rupiah(0), 'Rp0');
+  });
+
+  testWidgets('Riwayat menampilkan denda QR', (tester) async {
+    final c = MockClient((req) async => http.Response(jsonEncode({
+          'term': '2026', 'by_status': {'hadir': 1}, 'total': 1, 'attendance_rate': 100, 'recent': [],
+          'fines': {'unpaid_total': 7500, 'items': [{'id': 1, 'amount': 7500, 'status': 'unpaid', 'event': 'Rapat Pleno', 'date': '2026-11-01T02:00:00Z'}]},
+        }), 200));
+    await tester.pumpWidget(KartuAnggotaApp(home: Scaffold(body: MyHistoryTab(api: api(c)))));
+    await tester.pumpAndSettle();
+    expect(find.text('Denda absen pakai QR'), findsOneWidget);
+    expect(find.textContaining('Rp7.500'), findsWidgets);
+    expect(find.text('Belum lunas'), findsOneWidget);
+  });
 }

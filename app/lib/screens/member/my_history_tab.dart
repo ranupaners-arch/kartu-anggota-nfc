@@ -122,6 +122,36 @@ class _MyHistoryTabState extends State<MyHistoryTab> {
             );
             if (_downloadError != null) children.addAll([const SizedBox(height: 8), ErrorBanner(_downloadError!)]);
             children.add(const SizedBox(height: 12));
+            if (h.fines.isNotEmpty) {
+              const label = {'unpaid': 'Belum lunas', 'paid': 'Lunas', 'waived': 'Dibebaskan'};
+              children.add(
+                ShadCard(
+                  title: const Text('Denda absen pakai QR'),
+                  description: Text('Belum lunas: ${rupiah(h.finesUnpaid)} — bayar ke pengurus. Bawa kartu agar tidak didenda.'),
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: Column(
+                      children: [
+                        for (final f in h.fines)
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 4),
+                            child: Row(
+                              children: [
+                                Expanded(child: Text('${f.event}${f.date == null ? '' : ' · ${fmtDate(f.date!)}'}', overflow: TextOverflow.ellipsis, maxLines: 2)),
+                                const SizedBox(width: 8),
+                                Text(rupiah(f.amount), style: theme.textTheme.small),
+                                const SizedBox(width: 8),
+                                ShadBadge.secondary(child: Text(label[f.status] ?? f.status)),
+                              ],
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+              children.add(const SizedBox(height: 12));
+            }
             if (h.recent.isEmpty) {
               children.add(Text('Belum ada riwayat kehadiran.', style: theme.textTheme.muted));
             }

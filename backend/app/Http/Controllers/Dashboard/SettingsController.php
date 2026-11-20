@@ -23,6 +23,7 @@ class SettingsController extends Controller
         return Inertia::render('settings/index', [
             'tab' => $r->query('tab', 'organisasi'),
             'org' => $r->user()->organization->only('name', 'slug'),
+            'finePolicy' => $r->user()->organization->only('fine_enabled', 'fine_amount', 'fine_free_per_term'),
             'terms' => Term::orderByDesc('starts_on')->get(),
             'divisions' => Division::withCount('memberships')->orderBy('name')->get(),
             'connect' => self::connectInfo(),
@@ -102,6 +103,16 @@ class SettingsController extends Controller
         AuditLogger::log('organization.updated', 'organization', $r->user()->organization_id);
 
         return back()->with('status', 'Profil organisasi disimpan.');
+    }
+
+    /** Kebijakan denda absen pakai QR (kartu tertinggal). */
+    public function updateFines(Request $r)
+    {
+        $d = $r->validate(['fine_enabled' => 'boolean', 'fine_amount' => 'required|integer|min:0|max:10000000', 'fine_free_per_term' => 'required|integer|min:0|max:100']);
+        $r->user()->organization->update(['fine_enabled' => $r->boolean('fine_enabled')] + $d);
+        AuditLogger::log('organization.fine_policy', 'organization', $r->user()->organization_id, $d);
+
+        return back()->with('status', 'Kebijakan denda disimpan.');
     }
 
     public function updatePrivacy(Request $r)

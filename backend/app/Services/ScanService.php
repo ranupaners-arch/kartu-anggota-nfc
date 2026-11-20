@@ -133,8 +133,11 @@ class ScanService
             AuditLogger::log('scan.override', 'attendance', $attendance->id, ['reason' => $in['override_reason']], $user->id);
         }
         $this->detectAnomaly($card, $event, $device, $scannedAt, $user);
+        // Kebijakan denda: QR padahal punya kartu aktif (kartu tertinggal).
+        $fine = app(FineService::class)->onQrAttendance($attendance, $event);
+        $message = ($review ? 'Tercatat, perlu ditinjau admin.' : 'Berhasil.').($fine ? ' Denda QR Rp'.number_format($fine, 0, ',', '.').' (kartu tidak dibawa).' : '');
 
-        return $this->result('ok', $member, $status, $review ? 'Tercatat, perlu ditinjau admin.' : 'Berhasil.', $attendance->id, $session);
+        return $this->result('ok', $member, $status, $message, $attendance->id, $session) + ['fine' => $fine];
     }
 
     private function memberFromQr(string $token, Carbon $at): ?Member

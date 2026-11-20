@@ -425,7 +425,7 @@ class MemberEvent {
 
 /// Ringkasan kehadiran anggota (GET /api/me/history).
 class MemberHistory {
-  const MemberHistory({required this.byStatus, required this.total, this.term, this.rate, this.recent = const [], this.atRisk = false, this.alpaStreak = 0});
+  const MemberHistory({required this.byStatus, required this.total, this.term, this.rate, this.recent = const [], this.atRisk = false, this.alpaStreak = 0, this.finesUnpaid = 0, this.fines = const []});
 
   factory MemberHistory.fromJson(Map<String, dynamic> j) => MemberHistory(
     term: j['term'] as String?,
@@ -438,6 +438,16 @@ class MemberHistory {
       for (final r in j['recent'] as List)
         (event: (r as Map<String, dynamic>)['event'] as String? ?? '-', date: DateTime.tryParse(r['date'] as String? ?? '')?.toLocal(), status: r['status'] as String),
     ],
+    finesUnpaid: ((j['fines'] as Map<String, dynamic>?)?['unpaid_total'] as num?)?.toInt() ?? 0,
+    fines: [
+      for (final f in ((j['fines'] as Map<String, dynamic>?)?['items'] as List?) ?? const [])
+        (
+          event: (f as Map<String, dynamic>)['event'] as String? ?? '-',
+          date: DateTime.tryParse(f['date'] as String? ?? '')?.toLocal(),
+          amount: (f['amount'] as num).toInt(),
+          status: f['status'] as String,
+        ),
+    ],
   );
 
   final String? term;
@@ -449,7 +459,14 @@ class MemberHistory {
   final bool atRisk;
   final int alpaStreak;
   final List<({String event, DateTime? date, String status})> recent;
+
+  /// Denda absen pakai QR (kartu tertinggal) periode ini.
+  final int finesUnpaid;
+  final List<({String event, DateTime? date, int amount, String status})> fines;
 }
+
+/// "Rp7.500" (pemisah ribuan titik).
+String rupiah(int n) => 'Rp${n.toString().replaceAllMapped(RegExp(r'\B(?=(\d{3})+(?!\d))'), (_) => '.')}';
 
 /// Pengumuman pengurus (GET /api/me/announcements).
 class Announcement {

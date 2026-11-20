@@ -12,6 +12,7 @@ type History = {
     by_status: Record<'hadir' | 'telat' | 'izin' | 'sakit' | 'alpa', number>;
     warning: { at_risk: boolean; alpa_streak: number; rate: number | null } | null;
     recent: { event: string | null; date: string | null; status: string; source: string | null }[];
+    fines?: { unpaid_total: number; items: { id: number; amount: number; status: string; event: string | null; date: string | null }[] };
 };
 
 const statusLabel: Record<string, string> = { hadir: 'Hadir', telat: 'Telat', izin: 'Izin', sakit: 'Sakit', alpa: 'Alpa' };
@@ -48,6 +49,25 @@ export default function PortalHistory({ history: h }: { history: History }) {
                     <Button variant="outline" render={<a href="/saya/rapor" />}><FileDown /> Unduh rapor PDF</Button>
                 </CardContent>
             </Card>
+            {h.fines && h.fines.items.length > 0 && (
+                <Card className="gap-2">
+                    <CardHeader>
+                        <CardTitle className="text-base">Denda absen pakai QR</CardTitle>
+                        <CardDescription>Belum lunas: <b className="text-foreground">Rp{h.fines.unpaid_total.toLocaleString('id-ID')}</b> — bayar ke pengurus. Bawa kartu agar tidak didenda.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <ul className="divide-y">
+                            {h.fines.items.map((f) => (
+                                <li key={f.id} className="flex items-center gap-3 py-2 text-sm">
+                                    <span className="min-w-0 flex-1 truncate">{f.event ?? '—'}<span className="block text-xs text-muted-foreground">{fmtDate(f.date)}</span></span>
+                                    <span className="tabular-nums">Rp{f.amount.toLocaleString('id-ID')}</span>
+                                    <StatusBadge status={f.status === 'unpaid' ? 'pending' : f.status === 'paid' ? 'approved' : 'closed'} label={{ unpaid: 'Belum lunas', paid: 'Lunas', waived: 'Dibebaskan' }[f.status] ?? f.status} />
+                                </li>
+                            ))}
+                        </ul>
+                    </CardContent>
+                </Card>
+            )}
             <Card className="gap-2">
                 <CardHeader><CardTitle className="text-base">Riwayat terbaru</CardTitle></CardHeader>
                 <CardContent>

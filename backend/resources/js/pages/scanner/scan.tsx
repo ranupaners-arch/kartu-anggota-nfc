@@ -11,7 +11,7 @@ import { cn } from '@/lib/utils';
 type Session = { id: number; title: string; checkin_opens_at: string; late_after: string; checkin_closes_at: string };
 type Result = {
     status: 'ok' | 'duplicate' | 'invalid' | 'blocked' | 'not_target' | 'outside_window' | 'clock_drift' | string;
-    attendance_status: string | null; message: string;
+    attendance_status: string | null; message: string; fine?: number;
     member: { id: number; member_no: string; name: string; division: string | null; photo_url: string | null } | null;
 };
 type Recent = Result & { at: number; key: number };
@@ -140,6 +140,7 @@ export default function ScannerScan({ event, session, multiSession }: { event: {
                                 {[result.member?.member_no, result.member?.division].filter(Boolean).join(' · ')}
                                 {result.status !== 'ok' && <> {result.member ? '· ' : ''}{result.message}</>}
                             </div>
+                            {!!result.fine && <div className="mt-1 text-sm font-semibold text-amber-700 dark:text-amber-400">Denda QR Rp{result.fine.toLocaleString('id-ID')} — kartu tidak dibawa</div>}
                         </div>
                     </div>
                 )}

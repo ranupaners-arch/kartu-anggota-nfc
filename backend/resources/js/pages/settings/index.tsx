@@ -9,6 +9,8 @@ import { PageTabs } from '@/components/page-tabs';
 import { StatusBadge } from '@/components/status-badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -100,6 +102,37 @@ function Organization({ org }: { org: { name: string; slug: string } }) {
                 <form onSubmit={(e) => { e.preventDefault(); form.put('/pengaturan/organisasi', { preserveScroll: true }); }} className="flex items-end gap-2">
                     <div className="flex-1"><FormField label="Nama organisasi" error={form.errors.name}><Input required value={form.data.name} onChange={(e) => form.setData('name', e.target.value)} /></FormField></div>
                     <Button type="submit" disabled={form.processing}>Simpan</Button>
+                </form>
+            </CardContent>
+        </Card>
+    );
+}
+
+type FinePolicy = { fine_enabled: boolean; fine_amount: number; fine_free_per_term: number };
+
+/** Kebijakan denda absen pakai QR padahal punya kartu aktif (kartu tertinggal). */
+function FinePolicyCard({ policy }: { policy: FinePolicy }) {
+    const form = useForm({ fine_enabled: policy.fine_enabled, fine_amount: String(policy.fine_amount), fine_free_per_term: String(policy.fine_free_per_term) });
+    return (
+        <Card className="max-w-xl">
+            <CardHeader>
+                <CardTitle>Kebijakan denda</CardTitle>
+                <CardDescription>Berlaku saat anggota yang <b>punya kartu NFC aktif</b> absen memakai QR (kartu tidak dibawa). Belum punya kartu atau kartu dilapor hilang → tidak didenda. Kelola di menu <b>Denda</b>.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <form onSubmit={(e) => { e.preventDefault(); form.put('/pengaturan/denda', { preserveScroll: true }); }} className="grid gap-4">
+                    <Label className="flex items-center gap-2 font-normal">
+                        <Checkbox checked={form.data.fine_enabled} onCheckedChange={(v) => form.setData('fine_enabled', v === true)} /> Aktifkan denda
+                    </Label>
+                    <div className="grid gap-4 sm:grid-cols-2">
+                        <FormField label="Nominal per kejadian (Rp)" error={form.errors.fine_amount}>
+                            <Input type="number" min={0} step={500} inputMode="numeric" required value={form.data.fine_amount} onChange={(e) => form.setData('fine_amount', e.target.value)} />
+                        </FormField>
+                        <FormField label="Jatah QR gratis per periode" hint="0 = langsung didenda sejak yang pertama." error={form.errors.fine_free_per_term}>
+                            <Input type="number" min={0} max={100} inputMode="numeric" required value={form.data.fine_free_per_term} onChange={(e) => form.setData('fine_free_per_term', e.target.value)} />
+                        </FormField>
+                    </div>
+                    <div><Button type="submit" disabled={form.processing}>Simpan</Button></div>
                 </form>
             </CardContent>
         </Card>
@@ -325,12 +358,12 @@ function SystemHealth({ health }: { health: Health }) {
     );
 }
 
-export default function Settings({ tab, org, terms, divisions, connect, registration, privacy, health }: { tab: string; org: { name: string; slug: string }; terms: Term[]; divisions: Div[]; connect: Connect; registration: { url: string } | null; privacy: Privacy | null; health: Health | null }) {
+export default function Settings({ tab, org, finePolicy, terms, divisions, connect, registration, privacy, health }: { tab: string; org: { name: string; slug: string }; finePolicy: FinePolicy; terms: Term[]; divisions: Div[]; connect: Connect; registration: { url: string } | null; privacy: Privacy | null; health: Health | null }) {
     return (
         <AppLayout title="Pengaturan">
             <Head title="Pengaturan" />
             <PageTabs tabs={{ organisasi: 'Organisasi', periode: 'Periode', divisi: 'Divisi', aplikasi: 'Aplikasi', privasi: 'Privasi', sistem: 'Sistem' }} current={tab} />
-            {tab === 'organisasi' && <Organization org={org} />}
+            {tab === 'organisasi' && <><Organization org={org} /><FinePolicyCard policy={finePolicy} /></>}
             {tab === 'periode' && <Terms terms={terms} />}
             {tab === 'divisi' && <Divisions divisions={divisions} />}
             {tab === 'aplikasi' && <AppConnect connect={connect} registration={registration} />}
