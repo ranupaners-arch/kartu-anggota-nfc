@@ -63,7 +63,12 @@ class ReportService
             ->selectRaw('member_id, status, count(*) as n')->groupBy('member_id', 'status')->get()
             ->groupBy('member_id');
 
-        $rows = $members->map(function (Member $m) use ($counts) {
+        // Denda absen QR per anggota (tidak termasuk jatah gratis).
+        $fines = \App\Models\Fine::where('term_id', $term->id)->whereIn('member_id', $members->pluck('id'))->where('status', '!=', \App\Models\Fine::FREE)
+            ->selectRaw("member_id, count(*) as n, sum(case when status = 'unpaid' then amount else 0 end) as unpaid, sum(case when status = 'paid' then amount else 0 end) as paid")
+            ->groupBy('member_id')->get()->keyBy('member_id');
+
+        $rows = $members->map(function (Member $m) use ($counts, $fines) {
             $byStatus = array_fill_keys(self::STATUSES, 0);
             foreach ($counts->get($m->id, collect()) as $c) {
                 $byStatus[$c->status] = (int) $c->n;
@@ -76,6 +81,9 @@ class ReportService
                 'membership_status' => $m->memberships->first()?->status,
                 ...$byStatus, 'total' => $total,
                 'attendance_rate' => $total ? round(($byStatus['hadir'] + $byStatus['telat']) / $total * 100, 1) : null,
+                'fines_count' => (int) ($fines[$m->id]->n ?? 0),
+                'fines_unpaid' => (int) ($fines[$m->id]->unpaid ?? 0),
+                'fines_paid' => (int) ($fines[$m->id]->paid ?? 0),
             ];
         })->values();
 
@@ -87,6 +95,9 @@ class ReportService
             'events' => Event::where('term_id', $term->id)->when($divisionId, fn ($q) => $q->where(fn ($w) => $w
                 ->whereNull('division_id')->orWhere('division_id', $divisionId)))->count(),
             'average_rate' => $rated->isNotEmpty() ? round($rated->avg('attendance_rate'), 1) : null,
+            // Kolom denda ditampilkan bila kebijakan aktif atau sudah ada denda di periode ini.
+            'show_fines' => (bool) \App\Models\Organization::whereKey($term->organization_id)->value('fine_enabled') || $fines->isNotEmpty(),
+            'fines_unpaid_total' => (int) $rows->sum('fines_unpaid'),
             'rows' => $rows,
         ];
     }
