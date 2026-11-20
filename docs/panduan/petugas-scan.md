@@ -52,6 +52,20 @@ ke QR itu. QR berganti tiap menit, jadi tangkapan layar tidak bisa dipakai. **QR
   Jangan keluar akun sebelum semua scan tersinkron.
 - Scan yang sama tidak akan tercatat ganda walau terkirim dua kali.
 
+## Tanpa app: pindai QR lewat browser (iPhone / HP tanpa NFC)
+
+Petugas tanpa HP Android ber-NFC tetap bisa memindai **QR Saya** anggota:
+
+1. Buka alamat server di browser HP, **Masuk** dengan akun petugas → otomatis ke halaman **Pindai QR**
+   (pengurus: tombol **Pindai QR (browser)** di halaman kegiatan).
+2. Pilih kegiatan yang **Dibuka**, izinkan akses kamera.
+3. Arahkan kamera ke QR Saya anggota. Hasil langsung tampil: **hijau** Hadir/Telat, **kuning** sudah
+   tercatat, **merah** ditolak (QR kedaluwarsa, bukan peserta, di luar jendela check-in) — disertai
+   getar & bunyi. Cocokkan foto bila ada.
+
+Catatan: perlu internet (tidak ada mode offline) dan alamat **https://**; kartu NFC tetap lewat app
+Android.
+
 ## Kendala umum
 
 | Masalah | Solusi |

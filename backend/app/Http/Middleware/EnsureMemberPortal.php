@@ -19,6 +19,9 @@ class EnsureMemberPortal
         if ($user?->isAdmin()) {
             return redirect()->route('home');
         }
+        if ($user && ! $user->disabled_at && $user->role === User::SCANNER) {
+            return redirect()->route('scanner.index');
+        }
         if (! $user || $user->disabled_at || $user->role !== User::MEMBER || ! $user->member_id) {
             Auth::guard('web')->logout();
             $request->session()->invalidate();

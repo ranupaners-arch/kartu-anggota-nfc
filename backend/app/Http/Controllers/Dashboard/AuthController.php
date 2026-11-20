@@ -27,11 +27,11 @@ class AuthController extends Controller
         $user = Auth::guard('web')->user();
         // Pengurus → dashboard; anggota (akun tertaut) → portal anggota /saya. Petugas scan memakai app.
         $member = $user->role === User::MEMBER && $user->member_id;
-        if ($user->disabled_at || (! $user->isAdmin() && ! $member)) {
+        if ($user->disabled_at || (! $user->isAdmin() && ! $member && $user->role !== User::SCANNER)) {
             Auth::guard('web')->logout();
             throw ValidationException::withMessages(['email' => $user->disabled_at
                 ? 'Akun dinonaktifkan. Hubungi pengurus.'
-                : 'Akun petugas scan dipakai di app, bukan di web.']);
+                : 'Akun ini belum terhubung ke data anggota. Hubungi pengurus.']);
         }
 
         if (app(TwoFactorService::class)->enabled($user)) {
@@ -84,7 +84,11 @@ class AuthController extends Controller
         $r->session()->regenerate();
         AuditLogger::log('auth.dashboard_login', 'user', $user->id, [], $user->id);
 
-        return $user->isAdmin() ? redirect()->intended(route('home')) : redirect()->route('portal.qr');
+        return match (true) {
+            $user->isAdmin() => redirect()->intended(route('home')),
+            $user->role === User::SCANNER => redirect()->route('scanner.index'),
+            default => redirect()->route('portal.qr'),
+        };
     }
 
     public function logout(Request $r)

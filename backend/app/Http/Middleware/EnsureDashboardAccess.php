@@ -17,6 +17,10 @@ class EnsureDashboardAccess
         if ($user && ! $user->disabled_at && $user->role === User::MEMBER && $user->member_id) {
             return $request->routeIs('logout') ? $next($request) : redirect()->route('portal.qr');
         }
+        // Petugas scan di web → halaman pindai.
+        if ($user && ! $user->disabled_at && $user->role === User::SCANNER) {
+            return $request->routeIs('logout') ? $next($request) : redirect()->route('scanner.index');
+        }
         if (! $user || $user->disabled_at || ! in_array($user->role, [User::SUPER_ADMIN, User::DIVISION_ADMIN], true)) {
             Auth::guard('web')->logout();
             $request->session()->invalidate();

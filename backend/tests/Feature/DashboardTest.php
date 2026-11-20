@@ -64,7 +64,7 @@ class DashboardTest extends TestCase
             'member_id' => $m->id, 'status' => 'hadir', 'scanned_at' => now()] + $extra);
     }
 
-    public function test_login_only_for_active_admins(): void
+    public function test_dashboard_login_only_for_active_admins(): void
     {
         $this->get('/')->assertRedirect(route('login'));
         $this->post(route('login'), ['email' => $this->admin->email, 'password' => 'salah'])->assertSessionHasErrors('email');
@@ -74,7 +74,11 @@ class DashboardTest extends TestCase
         $this->post(route('logout'))->assertRedirect(route('login'));
 
         $scanner = User::factory()->create(['organization_id' => $this->org->id, 'role' => 'scanner', 'password' => 'rahasia123']);
-        $this->post(route('login'), ['email' => $scanner->email, 'password' => 'rahasia123'])->assertSessionHasErrors('email');
+        // Petugas scan boleh masuk web, tapi hanya ke halaman pindai — dashboard tetap tertutup.
+        $this->post(route('login'), ['email' => $scanner->email, 'password' => 'rahasia123'])->assertRedirect(route('scanner.index'));
+        $this->get('/')->assertRedirect(route('scanner.index'));
+        $this->get('/anggota')->assertRedirect(route('scanner.index'));
+        $this->post(route('logout'));
         $this->assertGuest('web');
 
         $this->admin->update(['disabled_at' => now()]);

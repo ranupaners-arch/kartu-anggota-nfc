@@ -35,6 +35,16 @@ Route::middleware(['auth:web', 'portal'])->prefix('saya')->name('portal.')->grou
     Route::post('kalender', [App\Http\Controllers\CalendarFeedController::class, 'reset'])->name('calendar');
 });
 
+// Mode petugas di browser: pindai QR Saya dengan kamera.
+Route::middleware(['auth:web', 'scanner.web'])->prefix('pindai')->name('scanner.')->group(function () {
+    Route::get('/', [App\Http\Controllers\Scanner\ScannerController::class, 'index'])->name('index');
+    Route::get('password', [App\Http\Controllers\Scanner\ScannerController::class, 'password'])->name('password');
+    Route::put('password', [App\Http\Controllers\Scanner\ScannerController::class, 'updatePassword'])->middleware('throttle:10,1')->name('password.update');
+    Route::get('{event}', [App\Http\Controllers\Scanner\ScannerController::class, 'show'])->whereNumber('event')->name('show');
+    Route::post('{event}/scan', [App\Http\Controllers\Scanner\ScannerController::class, 'scan'])->whereNumber('event')->middleware('throttle:120,1')->name('scan');
+    Route::get('{event}/foto/{member}', [Dashboard\EventMonitorController::class, 'photo'])->whereNumber(['event', 'member'])->name('photo');
+});
+
 Route::middleware(['auth:web', 'dashboard'])->group(function () {
     Route::post('keluar', [Dashboard\AuthController::class, 'logout'])->name('logout');
     Route::get('/', Dashboard\HomeController::class)->name('home');

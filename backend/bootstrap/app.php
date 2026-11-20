@@ -16,6 +16,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'role' => \App\Http\Middleware\EnsureRole::class,
             'dashboard' => \App\Http\Middleware\EnsureDashboardAccess::class,
+            'scanner.web' => \App\Http\Middleware\EnsureScannerWeb::class,
             'portal' => \App\Http\Middleware\EnsureMemberPortal::class,
             'password.changed' => \App\Http\Middleware\EnsurePasswordChanged::class,
         ]);
