@@ -16,6 +16,7 @@ import 'package:kartuanggota/screens/issue_card_screen.dart';
 import 'package:kartuanggota/screens/login_screen.dart';
 import 'package:kartuanggota/screens/member/eprofile_screen.dart';
 import 'package:kartuanggota/screens/register_screen.dart';
+import 'package:kartuanggota/screens/member/self_card_screen.dart';
 import 'package:kartuanggota/screens/member/excuse_screen.dart';
 import 'package:kartuanggota/screens/member/member_home_screen.dart';
 import 'package:kartuanggota/screens/scan_screen.dart';
@@ -43,7 +44,7 @@ ApiClient api() => ApiClient(baseUrl: 'http://srv', client: MockClient((req) asy
         '/api/events' => {'data': [for (var i = 0; i < 3; i++) {'id': i + 1, 'title': 'Rapat Kerja Nasional Himpunan Mahasiswa ${i + 1}', 'location': 'Aula Gedung Serbaguna Lantai 3', 'checkin_closes_at': '2099-01-01T03:00:00Z'}]},
         '/api/me/qr' => {'payload': 'card:qr:TOKEN', 'expires_in': 90},
         '/api/me/profile-form' => {'organization': 'Himpunan Mahasiswa Program Studi Teknik Informatika', 'term': '2026/2027', 'name': longName, 'email': 'muhammad.rizky.pratama.wijayakusuma@mahasiswa.ac.id', 'divisions': [{'id': 1, 'name': 'Penelitian dan Pengembangan Keilmuan'}]},
-        '/api/me/card' => {'state': 'active', 'status': 'active', 'organization': 'Himpunan Mahasiswa Program Studi Teknik Informatika', 'term': '2026/2027', 'valid_until': '2027-07-31', 'member': {'name': longName, 'member_no': '240100123456', 'division': 'Penelitian dan Pengembangan Keilmuan', 'cohort': '2024', 'photo_url': null}, 'card': {'last4': 'ABCD'}},
+        '/api/me/card' => {'state': 'active', 'status': 'active', 'organization': 'Himpunan Mahasiswa Program Studi Teknik Informatika', 'term': '2026/2027', 'valid_until': '2027-07-31', 'member': {'name': longName, 'member_no': '240100123456', 'division': 'Penelitian dan Pengembangan Keilmuan', 'cohort': '2024', 'photo_url': null}, 'card': {'last4': 'ABCD'}, 'self_card': {'can_write': true, 'can_request': false, 'pending_request': null}},
         '/api/me/events' => {'data': [{'id': 7, 'title': 'Rapat Kerja Nasional Himpunan Mahasiswa', 'location': 'Aula Gedung Serbaguna', 'starts_at': '2099-01-01T02:00:00Z', 'checkin_closes_at': '2099-01-01T03:00:00Z', 'closed_at': null, 'is_mandatory': true, 'my_status': null, 'excuse': {'type': 'sakit', 'status': 'pending', 'review_note': 'Mohon lampirkan surat dokter'}, 'can_request_excuse': true, 'sessions': 3, 'present_sessions': 1}]},
         '/api/me/history' => {'term': '2026/2027', 'by_status': {'hadir': 12, 'telat': 3, 'izin': 1, 'sakit': 2, 'alpa': 1}, 'total': 19, 'attendance_rate': 78.9, 'recent': [{'event': 'Rapat Kerja Nasional Himpunan Mahasiswa', 'date': '2026-11-01T02:00:00Z', 'status': 'telat'}]},
         '/api/events/1/roster' => {'event': {'id': 1, 'title': 'Rapat', 'checkin_opens_at': '2026-01-01T00:00:00Z', 'late_after': '2026-01-01T00:00:00Z', 'checkin_closes_at': '2099-01-01T00:00:00Z', 'closed_at': null}, 'members': [], 'generated_at': '2026-01-01T00:00:00Z'},
@@ -63,6 +64,7 @@ Map<String, Future<Widget> Function()> screens() => {
       'Hubungkan': () async => const ConnectScreen(),
       'Daftar': () async => const RegisterScreen(server: ServerConfig(url: 'https://absen.himpunan-mahasiswa.ac.id', name: 'Himpunan Mahasiswa Program Studi Teknik Informatika')),
       'E-profil': () async => EProfileScreen(api: api()),
+      'Daftar kartu': () async => SelfCardScreen(api: api()),
       'Masuk': () async => const LoginScreen(server: ServerConfig(url: 'https://absen.himpunan-mahasiswa.ac.id', name: 'Himpunan Mahasiswa Program Studi')),
       'Kegiatan': () async => EventsScreen(session: session, api: api()),
       'Scan': () async => ScanScreen(
