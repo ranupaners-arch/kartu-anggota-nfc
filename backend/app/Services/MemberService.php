@@ -184,9 +184,13 @@ class MemberService
             return;
         }
         $ms = Membership::firstOrNew(['member_id' => $member->id, 'term_id' => $this->currentTerm()->id]);
+        $wasApplicant = $ms->exists && $ms->status === 'applicant';
         $ms->fill(array_intersect_key($d, array_flip(['division_id', 'status', 'role'])));
         $ms->status ??= 'active';
         $ms->save();
+        if ($wasApplicant && $ms->status === 'active') {
+            Notifier::later('membershipApproved', $member->id); // e-profil disahkan
+        }
     }
 
     private function assertDivision(array $d): void

@@ -138,6 +138,7 @@ class RegistrationService
             return $member;
         });
         AuditLogger::log('member.self_registered', 'member', $member->id);
+        Notifier::later('newApplicant', $member->id);
 
         return $member;
     }

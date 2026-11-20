@@ -90,6 +90,7 @@ class SelfCardService
             }
             $req = CardRequest::create(['member_id' => $member->id, 'user_id' => $user->id, 'reason' => $reason, 'note' => $note]);
             AuditLogger::log('card.replacement_requested', 'card_request', $req->id, ['reason' => $reason]);
+            Notifier::later('newCardRequest', $req->id);
 
             return $req;
         });
@@ -109,6 +110,7 @@ class SelfCardService
                 Member::whereKey($req->member_id)->update(['self_card_writes_left' => DB::raw('least(self_card_writes_left + 1, 3)')]);
             }
             AuditLogger::log('card.replacement_'.($approve ? 'approved' : 'rejected'), 'card_request', $req->id);
+            Notifier::later('cardRequestDecided', $req->id);
         });
 
         return $req->fresh();

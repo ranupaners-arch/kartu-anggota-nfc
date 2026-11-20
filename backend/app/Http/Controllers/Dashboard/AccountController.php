@@ -19,6 +19,7 @@ class AccountController extends Controller
         return \Inertia\Inertia::render('account/edit', [
             'user' => $user->only('name', 'email', 'role') + ['member' => $user->member?->only('member_no', 'name')],
             // Tautan langganan jadwal (.ics); null = belum dibuat.
+            'pushKey' => \App\Services\Push\PushService::enabled() ? config('services.webpush.public_key') : null,
             'weeklySummary' => ['enabled' => (bool) ($user->weekly_summary ?? true), 'mailEnabled' => \App\Services\MailStatus::enabled()],
             'calendarUrl' => $user->calendar_token ? route('calendar.feed', ['token' => $user->calendar_token]) : null,
             'twoFactor' => [
