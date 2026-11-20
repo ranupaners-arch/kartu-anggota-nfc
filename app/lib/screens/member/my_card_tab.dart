@@ -4,6 +4,7 @@ import 'package:shadcn_ui/shadcn_ui.dart';
 
 import '../../api/api_client.dart';
 import '../../app/device_settings.dart';
+import '../../app/pdf.dart';
 import '../../nfc/nfc_service.dart';
 import '../../widgets/member_card.dart';
 import '../../widgets/ui.dart';
@@ -13,7 +14,7 @@ import 'self_card_screen.dart';
 /// Tab "Kartu": kartu anggota di halaman utama. Kosong → ajakan isi e-profil; menunggu → info
 /// pengesahan; aktif → kartu lengkap + QR cadangan (kartu tertinggal).
 class MyCardTab extends StatefulWidget {
-  const MyCardTab({super.key, required this.api, required this.name, this.onRegister, this.selfCardScreen, this.nfcAvailability});
+  const MyCardTab({super.key, required this.api, required this.name, this.onRegister, this.selfCardScreen, this.nfcAvailability, this.openPdf});
 
   final ApiClient api;
   final String name;
@@ -26,6 +27,9 @@ class MyCardTab extends StatefulWidget {
 
   /// Untuk tes: status NFC HP (bawaan: dicek lewat NfcService).
   final Future<NfcAvailability> Function()? nfcAvailability;
+
+  /// Untuk tes: penyimpan/pembuka PDF (bawaan: simpan sementara lalu buka penampil PDF HP).
+  final Future<String?> Function(List<int> bytes)? openPdf;
 
   @override
   State<MyCardTab> createState() => _MyCardTabState();
@@ -55,6 +59,26 @@ class _MyCardTabState extends State<MyCardTab> {
   Future<void> _report([String reason = 'hilang']) async {
     final sent = await showShadDialog<bool>(context: context, builder: (_) => _ReportDialog(api: widget.api, initialReason: reason));
     if (sent == true) _refresh();
+  }
+
+  bool _downloading = false;
+  String? _downloadError;
+
+  /// Unduh PDF kartu sendiri (depan & belakang) untuk dicetak di kertas/PVC.
+  Future<void> _downloadCard() async {
+    setState(() {
+      _downloading = true;
+      _downloadError = null;
+    });
+    try {
+      final bytes = await widget.api.downloadBytes('${widget.api.baseUrl}/api/me/card.pdf');
+      final err = await (widget.openPdf ?? (b) => saveAndOpenPdf(b, fileName: 'kartu-anggota.pdf'))(bytes);
+      if (err != null && mounted) setState(() => _downloadError = err);
+    } catch (e) {
+      if (mounted) setState(() => _downloadError = e is ApiException ? e.message : 'Gagal mengunduh kartu.');
+    } finally {
+      if (mounted) setState(() => _downloading = false);
+    }
   }
 
   Future<void> _turnOnNfc() async {
@@ -183,6 +207,17 @@ class _MyCardTabState extends State<MyCardTab> {
                   children.add(const SizedBox(height: 8));
                 }
                 children.add(FlexButton(label: 'Tampilkan QR (kartu tertinggal)', icon: LucideIcons.qrCode, variant: ShadButtonVariant.outline, onPressed: _showQr));
+                children.add(const SizedBox(height: 8));
+                children.add(
+                  FlexButton(
+                    label: _downloading ? 'Mengunduh kartu…' : 'Unduh kartu (PDF) untuk dicetak',
+                    icon: LucideIcons.fileDown,
+                    variant: ShadButtonVariant.outline,
+                    enabled: !_downloading,
+                    onPressed: _downloadCard,
+                  ),
+                );
+                if (_downloadError != null) children.addAll([const SizedBox(height: 8), ErrorBanner(_downloadError!)]);
                 children.add(const SizedBox(height: 8));
                 if (info.pendingRequestReason != null) {
                   children.add(

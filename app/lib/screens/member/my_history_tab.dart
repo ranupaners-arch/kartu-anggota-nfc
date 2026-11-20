@@ -1,21 +1,12 @@
-import 'dart:io';
-
 import 'package:material_ui/material_ui.dart';
-import 'package:open_filex/open_filex.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
 import '../../api/api_client.dart';
 import '../../app/format.dart';
+import '../../app/pdf.dart';
 import '../../widgets/ui.dart';
 
-/// Simpan PDF ke folder sementara lalu buka dengan penampil PDF HP. Kembalikan pesan galat atau null.
-Future<String?> _saveAndOpenPdf(List<int> bytes) async {
-  final f = File('${(await getTemporaryDirectory()).path}/rapor-kehadiran.pdf');
-  await f.writeAsBytes(bytes, flush: true);
-  final r = await OpenFilex.open(f.path, type: 'application/pdf');
-  return r.type == ResultType.done ? null : 'Tidak ada aplikasi untuk membuka PDF di HP ini.';
-}
+Future<String?> _saveAndOpenPdf(List<int> bytes) => saveAndOpenPdf(bytes, fileName: 'rapor-kehadiran.pdf');
 
 /// Ringkasan & riwayat kehadiran anggota periode berjalan, dengan unduhan rapor PDF.
 class MyHistoryTab extends StatefulWidget {

@@ -136,4 +136,25 @@ void main() {
     expect(find.text('Pengurus akan menerbitkan kartu Anda'), findsOneWidget);
     expect(find.textContaining('Ambil di sekretariat Senin'), findsOneWidget);
   });
+
+  testWidgets('unduh kartu PDF untuk dicetak', (tester) async {
+    tester.view.physicalSize = const Size(800, 1800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    List<int>? opened;
+    final api = ApiClient(
+      baseUrl: 'http://srv',
+      client: MockClient((req) async => req.url.path == '/api/me/card.pdf'
+          ? http.Response.bytes([37, 80, 68, 70], 200, headers: {'content-type': 'application/pdf'})
+          : http.Response(jsonEncode(card(canWrite: false, canRequest: true, hasCard: true)), 200)),
+    )..token = 't';
+    await tester.pumpWidget(KartuAnggotaApp(home: Scaffold(body: MyCardTab(api: api, name: 'Budi', nfcAvailability: () async => NfcAvailability.enabled, openPdf: (b) async {
+      opened = b;
+      return null;
+    }))));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Unduh kartu (PDF) untuk dicetak'));
+    await tester.pumpAndSettle();
+    expect(opened, [37, 80, 68, 70]);
+  });
 }
