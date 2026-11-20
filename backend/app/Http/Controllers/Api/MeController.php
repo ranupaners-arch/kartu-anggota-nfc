@@ -65,6 +65,32 @@ class MeController extends Controller
         return $cards->forUser($r->user());
     }
 
+    private function member(Request $r): \App\Models\Member
+    {
+        return \App\Models\Member::findOrFail($this->memberId($r));
+    }
+
+    public function selfCardInit(Request $r, \App\Services\SelfCardService $cards)
+    {
+        return response()->json($cards->init($this->member($r)), 201);
+    }
+
+    public function selfCardAssign(Request $r, \App\Models\Card $card, \App\Services\SelfCardService $cards)
+    {
+        $d = $r->validate(['hw_uid' => 'nullable|string|max:64']);
+        $cards->assign($this->member($r), $card, $d['hw_uid'] ?? null);
+
+        return app(\App\Services\MemberCardService::class)->forUser($r->user());
+    }
+
+    public function cardReplacement(Request $r, \App\Services\SelfCardService $cards)
+    {
+        $d = $r->validate(['reason' => 'required|in:hilang,rusak', 'note' => 'nullable|string|max:500']);
+        $cards->request($r->user(), $this->member($r), $d['reason'], $d['note'] ?? null);
+
+        return response()->json(app(\App\Services\MemberCardService::class)->forUser($r->user()), 201);
+    }
+
     /** Data untuk formulir e-profil: organisasi, periode, pilihan divisi. */
     public function profileForm(Request $r, \App\Services\RegistrationService $registrations)
     {
