@@ -55,7 +55,7 @@ class MemberPortalTest extends TestCase
         return $e;
     }
 
-    public function test_login_routes_members_to_portal_and_rejects_scanners(): void
+    public function test_login_routes_members_to_portal_and_scanners_to_scan_page(): void
     {
         $this->post('/masuk', ['email' => 'budi@mhs.test', 'password' => 'RahasiaLama123'])->assertRedirect('/saya');
         $this->get('/')->assertRedirect('/saya'); // dashboard → kembali ke portal
@@ -63,8 +63,9 @@ class MemberPortalTest extends TestCase
         $this->assertGuest();
 
         User::factory()->create(['organization_id' => $this->org->id, 'role' => 'scanner', 'email' => 'petugas@hmps.test', 'password' => 'Petugas12345']);
-        $this->post('/masuk', ['email' => 'petugas@hmps.test', 'password' => 'Petugas12345'])->assertSessionHasErrors('email');
-        $this->assertGuest();
+        $this->post('/masuk', ['email' => 'petugas@hmps.test', 'password' => 'Petugas12345'])->assertRedirect('/pindai'); // mode petugas di browser
+        $this->get('/saya')->assertRedirect('/pindai'); // petugas → halaman pindai, bukan portal
+        $this->post('/keluar');
 
         $admin = User::factory()->create(['organization_id' => $this->org->id, 'role' => 'super_admin']);
         $this->actingAs($admin)->get('/saya')->assertRedirect('/');
