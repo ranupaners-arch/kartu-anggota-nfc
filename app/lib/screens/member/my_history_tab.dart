@@ -54,7 +54,9 @@ class _MyHistoryTabState extends State<MyHistoryTab> {
   }
 
   Future<void> _refresh() async {
-    setState(() => _history = widget.api.myHistory());
+    setState(() {
+      _history = widget.api.myHistory();
+    });
     await _history.catchError((_) => const MemberHistory(byStatus: {}, total: 0));
   }
 

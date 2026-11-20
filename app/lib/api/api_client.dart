@@ -149,6 +149,65 @@ class ApiClient {
     await _send('PUT', '/api/me/password', {'current_password': current, 'password': next, 'password_confirmation': next});
   }
 
+  /// Apakah server membuka pendaftaran akun dari app (tombol "Daftar"). Gagal → anggap tertutup.
+  Future<bool> registrationOpen() async {
+    try {
+      final j = await _send('GET', '/api/instance');
+      return j['registration_open'] == true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /// Daftar akun anggota baru (lalu langsung masuk). Mengembalikan data pengguna.
+  Future<Map<String, dynamic>> register({required String name, required String email, required String password, required String deviceUuid, String deviceName = 'HP Anggota'}) async {
+    final j = await _send('POST', '/api/auth/register', {
+      'name': name, 'email': email, 'password': password, 'password_confirmation': password, 'device_uuid': deviceUuid, 'device_name': deviceName,
+    });
+    token = j['token'] as String;
+    return j['user'] as Map<String, dynamic>;
+  }
+
+  /// Data formulir e-profil: organisasi, periode, pilihan divisi.
+  Future<({String organization, String? term, String name, String email, List<({int id, String name})> divisions})> profileForm() async {
+    final j = await _send('GET', '/api/me/profile-form');
+    return (
+      organization: j['organization'] as String? ?? '',
+      term: j['term'] as String?,
+      name: j['name'] as String? ?? '',
+      email: j['email'] as String? ?? '',
+      divisions: [for (final d in j['divisions'] as List) (id: d['id'] as int, name: d['name'] as String)],
+    );
+  }
+
+  /// Kirim e-profil (foto opsional) → kartu menunggu pengesahan.
+  Future<MemberCardInfo> submitProfile({required String name, required String memberNo, String? phone, String? cohort, int? divisionId, List<int>? photoBytes, String? photoName}) async {
+    final req = http.MultipartRequest('POST', Uri.parse('$baseUrl/api/me/profile'))
+      ..headers.addAll({'Accept': 'application/json', if (token != null) 'Authorization': 'Bearer $token'})
+      ..fields.addAll({
+        'name': name, 'member_no': memberNo, 'consent': '1',
+        if (phone != null && phone.isNotEmpty) 'phone': phone,
+        if (cohort != null && cohort.isNotEmpty) 'cohort': cohort,
+        if (divisionId != null) 'division_id': '$divisionId',
+      });
+    if (photoBytes != null && photoName != null) {
+      req.files.add(http.MultipartFile.fromBytes('photo', photoBytes, filename: photoName));
+    }
+    final res = await http.Response.fromStream(await _http.send(req).timeout(const Duration(seconds: 30)));
+    Object? decoded;
+    try {
+      decoded = res.body.isEmpty ? null : jsonDecode(res.body);
+    } on FormatException {
+      decoded = null;
+    }
+    if (res.statusCode >= 400) {
+      final errors = decoded is Map ? decoded['errors'] : null;
+      final msg = errors is Map && errors.isNotEmpty ? (errors.values.first as List).first as String? : (decoded is Map ? decoded['message'] as String? : null);
+      throw ApiException(res.statusCode, errorMessage(res.statusCode, msg));
+    }
+    return MemberCardInfo.fromJson(decoded as Map<String, dynamic>);
+  }
+
   Future<void> logout() async {
     try {
       await _send('POST', '/api/auth/logout');

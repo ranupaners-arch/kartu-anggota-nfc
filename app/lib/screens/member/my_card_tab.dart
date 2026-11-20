@@ -25,7 +25,9 @@ class _MyCardTabState extends State<MyCardTab> {
   late Future<MemberCardInfo> _card = widget.api.myCard();
 
   Future<void> _refresh() async {
-    setState(() => _card = widget.api.myCard());
+    setState(() {
+      _card = widget.api.myCard();
+    });
     await _card.catchError((_) => MemberCardInfo(state: CardState.none));
   }
 
