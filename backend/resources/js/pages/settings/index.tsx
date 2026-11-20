@@ -21,7 +21,43 @@ type Div = { id: number; name: string; memberships_count: number };
 type Connect = { server: string; name: string; payload: string; https: boolean };
 
 /** QR untuk menghubungkan app petugas ke server organisasi ini (model self-hosted). */
-function AppConnect({ connect }: { connect: Connect }) {
+/** Pendaftaran anggota mandiri: tautan + QR publik; pendaftar masuk sebagai "Pendaftar" sampai disetujui. */
+function Registration({ registration }: { registration: { url: string } | null }) {
+    const act = (action: string) => router.post('/pengaturan/pendaftaran', { action }, { preserveScroll: true });
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                    Pendaftaran anggota mandiri
+                    <span className={`rounded-md px-2 py-0.5 text-sm font-medium ${registration ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400' : 'bg-muted text-muted-foreground'}`}>{registration ? 'Dibuka' : 'Ditutup'}</span>
+                </CardTitle>
+                <CardDescription>Calon anggota mengisi data & foto sendiri lewat tautan/QR ini. Mereka masuk ke <b>Anggota → Pendaftar</b>; setujui dengan mengubah statusnya menjadi Aktif.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                {registration ? (
+                    <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
+                        <div className="rounded-xl border bg-white p-4"><QRCodeSVG value={registration.url} size={160} marginSize={0} aria-label="QR pendaftaran" /></div>
+                        <div className="grid min-w-0 gap-3 text-sm">
+                            <div className="flex items-center gap-2">
+                                <code className="min-w-0 truncate rounded bg-muted px-2 py-1">{registration.url}</code>
+                                <Button size="icon-sm" variant="ghost" aria-label="Salin tautan pendaftaran" onClick={() => navigator.clipboard?.writeText(registration.url)}><Copy /></Button>
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                                <Button size="sm" variant="outline" render={<a href={registration.url} target="_blank" rel="noreferrer" />}>Buka formulir</Button>
+                                <ConfirmAction size="sm" title="Ganti tautan pendaftaran?" description="Tautan & QR lama langsung tidak berlaku." href="/pengaturan/pendaftaran" data={{ action: 'rotate' }} confirmLabel="Ganti">Ganti tautan</ConfirmAction>
+                                <ConfirmAction size="sm" destructive title="Tutup pendaftaran?" description="Formulir tidak bisa diisi lagi sampai dibuka kembali (dengan tautan baru)." href="/pengaturan/pendaftaran" data={{ action: 'close' }} confirmLabel="Tutup">Tutup pendaftaran</ConfirmAction>
+                            </div>
+                        </div>
+                    </div>
+                ) : (
+                    <Button onClick={() => act('open')}>Buka pendaftaran</Button>
+                )}
+            </CardContent>
+        </Card>
+    );
+}
+
+function AppConnect({ connect, registration }: { connect: Connect; registration: { url: string } | null }) {
     return (
         <div className="grid max-w-3xl gap-4">
             {!connect.https && (
@@ -50,6 +86,7 @@ function AppConnect({ connect }: { connect: Connect }) {
                     </div>
                 </CardContent>
             </Card>
+            <Registration registration={registration} />
         </div>
     );
 }
@@ -275,7 +312,7 @@ function SystemHealth({ health }: { health: Health }) {
     );
 }
 
-export default function Settings({ tab, org, terms, divisions, connect, privacy, health }: { tab: string; org: { name: string; slug: string }; terms: Term[]; divisions: Div[]; connect: Connect; privacy: Privacy | null; health: Health | null }) {
+export default function Settings({ tab, org, terms, divisions, connect, registration, privacy, health }: { tab: string; org: { name: string; slug: string }; terms: Term[]; divisions: Div[]; connect: Connect; registration: { url: string } | null; privacy: Privacy | null; health: Health | null }) {
     return (
         <AppLayout title="Pengaturan">
             <Head title="Pengaturan" />
@@ -283,7 +320,7 @@ export default function Settings({ tab, org, terms, divisions, connect, privacy,
             {tab === 'organisasi' && <Organization org={org} />}
             {tab === 'periode' && <Terms terms={terms} />}
             {tab === 'divisi' && <Divisions divisions={divisions} />}
-            {tab === 'aplikasi' && <AppConnect connect={connect} />}
+            {tab === 'aplikasi' && <AppConnect connect={connect} registration={registration} />}
             {tab === 'privasi' && privacy && <PrivacySettings privacy={privacy} />}
             {tab === 'sistem' && health && <SystemHealth health={health} />}
         </AppLayout>

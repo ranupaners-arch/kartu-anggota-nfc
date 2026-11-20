@@ -32,7 +32,7 @@ export function useNavigation(): Group[] {
         {
             label: 'Data',
             items: [
-                { label: 'Anggota', href: '/anggota', icon: Users },
+                { label: 'Anggota', href: '/anggota', icon: Users, badge: navBadges?.applicants },
                 ...(superAdmin ? [{ label: 'Kartu', href: '/kartu', icon: CreditCard }] : []),
                 { label: 'Rekap & Ekspor', href: '/rekap', icon: BarChart3 },
             ],

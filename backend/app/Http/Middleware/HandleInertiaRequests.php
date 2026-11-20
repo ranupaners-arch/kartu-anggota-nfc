@@ -50,6 +50,8 @@ class HandleInertiaRequests extends Middleware
             'navBadges' => fn () => $user?->isAdmin() ? [
                 'excuses' => app(\App\Services\ExcuseService::class)->visibleTo($user)->where('status', 'pending')->count(),
                 'reviews' => app(\App\Services\AttendanceService::class)->pendingReviewCount($user),
+                // Pendaftar baru menunggu keputusan (hanya Super Admin yang mengelola anggota).
+                'applicants' => $user->isSuperAdmin() ? \App\Models\Membership::whereHas('term', fn ($t) => $t->where('is_current', true))->where('status', 'applicant')->count() : 0,
             ] : null,
             'flash' => fn () => ['status' => $request->session()->get('status')],
         ];
