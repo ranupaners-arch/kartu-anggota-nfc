@@ -1,4 +1,4 @@
-import { Head, router, usePage } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import { Download, FileSpreadsheet, FileText } from 'lucide-react';
 import { useState } from 'react';
 import { DataTable } from '@/components/data-table';
@@ -12,12 +12,12 @@ import AppLayout from '@/layouts/app-layout';
 import { fmtDateTime } from '@/lib/format';
 import type { Paginated, SharedProps } from '@/types';
 
-type Row = { member_id: number; member_no: string; name: string; division: string | null; hadir: number; telat: number; izin: number; sakit: number; alpa: number; attendance_rate: number | null };
+type Row = { member_id: number; member_no: string; name: string; division: string | null; hadir: number; telat: number; izin: number; sakit: number; alpa: number; attendance_rate: number | null; fines_count?: number; fines_unpaid?: number; fines_paid?: number };
 type Exp = { id: number; report: string; format: string; status: string; error: string | null; created_at: string };
 
 interface Props {
     tab: string; terms: { id: number; name: string }[]; term: { id: number; name: string } | null; divisionId: number | null;
-    divisions: { id: number; name: string }[]; report: { events: number; average_rate: number | null; rows: Row[] } | null; exports: Paginated<Exp> | null;
+    divisions: { id: number; name: string }[]; report: { events: number; average_rate: number | null; rows: Row[]; show_fines?: boolean; fines_unpaid_total?: number } | null; exports: Paginated<Exp> | null;
 }
 
 export default function Reports({ tab, terms, term, divisionId, divisions, report, exports }: Props) {
@@ -70,13 +70,22 @@ export default function Reports({ tab, terms, term, divisionId, divisions, repor
                     </div>
                     {report ? (
                         <>
-                            <p className="text-sm text-muted-foreground">{report.events} kegiatan · rata-rata kehadiran {report.average_rate ?? '–'}%</p>
-                            <DataTable head={['No.', 'Nama', 'Divisi', 'Hadir', 'Telat', 'Izin', 'Sakit', 'Alpa', '% Hadir']} count={report.rows.length}>
+                            <p className="text-sm text-muted-foreground">
+                                {report.events} kegiatan · rata-rata kehadiran {report.average_rate ?? '–'}%
+                                {report.show_fines && <> · denda belum lunas <Link href="/denda" className="font-medium text-foreground underline-offset-4 hover:underline">Rp{(report.fines_unpaid_total ?? 0).toLocaleString('id-ID')}</Link></>}
+                            </p>
+                            <DataTable head={['No.', 'Nama', 'Divisi', 'Hadir', 'Telat', 'Izin', 'Sakit', 'Alpa', '% Hadir', ...(report.show_fines ? ['Denda QR', 'Belum lunas'] : [])]} count={report.rows.length}>
                                 {report.rows.map((r) => (
                                     <TableRow key={r.member_id}>
                                         <TableCell className="tabular-nums">{r.member_no}</TableCell><TableCell>{r.name}</TableCell><TableCell>{r.division ?? '—'}</TableCell>
                                         {[r.hadir, r.telat, r.izin, r.sakit, r.alpa].map((n, i) => <TableCell key={i} className="tabular-nums">{n}</TableCell>)}
                                         <TableCell className="font-medium tabular-nums">{r.attendance_rate ?? '–'}</TableCell>
+                                        {report.show_fines && (
+                                            <>
+                                                <TableCell className="tabular-nums">{r.fines_count || '—'}</TableCell>
+                                                <TableCell className="tabular-nums">{r.fines_unpaid ? `Rp${r.fines_unpaid.toLocaleString('id-ID')}` : '—'}</TableCell>
+                                            </>
+                                        )}
                                     </TableRow>
                                 ))}
                             </DataTable>
