@@ -79,6 +79,7 @@ Route::middleware(['auth:web', 'dashboard'])->group(function () {
         Route::post('anggota/impor', [Dashboard\MemberController::class, 'importPreview'])->name('members.import.preview');
         Route::post('anggota/massal', [Dashboard\MemberController::class, 'bulk'])->name('members.bulk');
         Route::post('anggota/akun-app', [Dashboard\MemberController::class, 'createAccounts'])->name('members.accounts');
+        Route::get('anggota/kartu-cetak', [Dashboard\MemberController::class, 'printCards'])->middleware('throttle:20,1')->name('members.print-cards');
         Route::get('anggota/akun-app/hasil', [Dashboard\MemberController::class, 'accountSlips'])->name('members.accounts.slips');
         Route::post('anggota/impor/simpan', [Dashboard\MemberController::class, 'importCommit'])->name('members.import.commit');
         Route::resource('anggota', Dashboard\MemberController::class)->parameters(['anggota' => 'member'])->names('members')->except(['index', 'show']);

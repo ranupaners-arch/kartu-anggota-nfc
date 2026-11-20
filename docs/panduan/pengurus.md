@@ -50,6 +50,10 @@ Aktif setelah email server diatur (lihat *Pengaturan → Sistem → Email*; cara
 ### Kartu
 - Kartu diterbitkan lewat **app** (login Super Admin): ikon kartu di kanan atas → cari anggota →
   **Terbitkan & tulis kartu** → tempel kartu NTAG215 kosong. Kartu lama anggota itu otomatis diblokir.
+- **Cetak desain kartu (PDF)**: detail anggota → **Cetak kartu**, atau centang banyak anggota →
+  **Cetak kartu** di bilah bawah. Format **A4 · 10 kartu** (garis potong; halaman belakang kolomnya
+  ditukar — cetak bolak-balik *balik di sisi panjang*) atau **Per kartu (PVC)** untuk printer kartu.
+  Ukuran CR80 (85,6 × 54 mm); foto, nama, nomor, divisi, berlaku s.d. akhir periode.
 - Kartu hilang/dicuri: dashboard → **Kartu** → **Hilang** atau **Blokir**. Berlaku seketika.
 
 ### Akun petugas & perangkat

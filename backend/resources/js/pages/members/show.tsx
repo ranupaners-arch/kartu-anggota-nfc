@@ -1,5 +1,5 @@
 import { Head, Link, router, useForm } from '@inertiajs/react';
-import { FileText, Pencil, ShieldAlert, Trash2, UserRound } from 'lucide-react';
+import { FileText, IdCard, Pencil, ShieldAlert, Trash2, UserRound } from 'lucide-react';
 import { type ChangeEvent, type FormEvent, useState } from 'react';
 import { type CardRow, CardsTable } from '@/components/cards-table';
 import { ConfirmAction } from '@/components/confirm-action';
@@ -111,7 +111,10 @@ export default function MemberShow({ member, tab, memberships, cards, attendance
             <div className="flex flex-wrap items-center justify-between gap-2">
                 <p className="text-sm text-muted-foreground">No. anggota {member.member_no}</p>
                 {!anonymized && (
-                    <Button variant="outline" size="sm" render={<a href={`/anggota/${member.id}/rapor`} target="_blank" rel="noreferrer" />}><FileText /> Rapor PDF</Button>
+                    <div className="flex flex-wrap gap-2">
+                        {editable && <Button variant="outline" size="sm" render={<a href={`/anggota/kartu-cetak?ids[]=${member.id}&format=kartu`} target="_blank" rel="noreferrer" />}><IdCard /> Cetak kartu</Button>}
+                        <Button variant="outline" size="sm" render={<a href={`/anggota/${member.id}/rapor`} target="_blank" rel="noreferrer" />}><FileText /> Rapor PDF</Button>
+                    </div>
                 )}
             </div>
             {anonymized && (
