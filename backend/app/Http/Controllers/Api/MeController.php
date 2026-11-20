@@ -85,7 +85,7 @@ class MeController extends Controller
 
     public function cardReplacement(Request $r, \App\Services\SelfCardService $cards)
     {
-        $d = $r->validate(['reason' => 'required|in:hilang,rusak', 'note' => 'nullable|string|max:500']);
+        $d = $r->validate(['reason' => 'required|in:'.implode(',', \App\Services\SelfCardService::REASONS), 'note' => 'nullable|string|max:500']);
         $cards->request($r->user(), $this->member($r), $d['reason'], $d['note'] ?? null);
 
         return response()->json(app(\App\Services\MemberCardService::class)->forUser($r->user()), 201);

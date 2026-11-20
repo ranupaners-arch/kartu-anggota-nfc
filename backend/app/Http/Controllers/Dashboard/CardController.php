@@ -15,10 +15,15 @@ class CardController extends Controller
     /** Setujui (jatah tulis kartu sendiri +1) atau tolak permintaan kartu pengganti. */
     public function reviewRequest(Request $r, \App\Models\CardRequest $request, \App\Services\SelfCardService $cards)
     {
-        $d = $r->validate(['action' => 'required|in:approve,reject', 'note' => 'nullable|string|max:500']);
-        $cards->review($r->user(), $request, $d['action'] === 'approve', $d['note'] ?? null);
+        $d = $r->validate(['action' => 'required|in:approve,reject', 'resolution' => 'nullable|in:self,admin', 'note' => 'nullable|string|max:500']);
+        $resolution = $d['resolution'] ?? 'self';
+        $cards->review($r->user(), $request, $d['action'] === 'approve', $d['note'] ?? null, $resolution);
 
-        return back()->with('status', $d['action'] === 'approve' ? 'Disetujui. Anggota bisa mendaftarkan kartu baru di app-nya.' : 'Permintaan ditolak.');
+        return back()->with('status', match (true) {
+            $d['action'] === 'reject' => 'Permintaan ditolak.',
+            $resolution === 'admin' => 'Disetujui: terbitkan kartunya lewat app petugas (Terbitkan Kartu), lalu serahkan ke anggota.',
+            default => 'Disetujui. Anggota bisa mendaftarkan kartu baru di app-nya.',
+        });
     }
 
     public function index(Request $r)

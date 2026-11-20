@@ -47,7 +47,7 @@ class SelfCardTest extends TestCase
     public function test_member_registers_own_card_once(): void
     {
         Sanctum::actingAs($this->user);
-        $this->getJson('/api/me/card')->assertJsonPath('self_card.can_write', true)->assertJsonPath('self_card.can_request', false);
+        $this->getJson('/api/me/card')->assertJsonPath('self_card.can_write', true)->assertJsonPath('self_card.can_request', true); // lapor selalu bisa
 
         $card = $this->write();
         $this->assertSame([true, false, true], [$card['card']['active'], $card['self_card']['can_write'], $card['self_card']['can_request']]);
@@ -91,6 +91,25 @@ class SelfCardTest extends TestCase
         Sanctum::actingAs($this->user);
         $this->write();
         $this->assertSame(1, Card::where('member_id', $this->budi->id)->where('status', 'active')->count());
+    }
+
+    public function test_phone_without_nfc_request_is_issued_by_admin_with_note(): void
+    {
+        Sanctum::actingAs($this->user);
+        $this->postJson('/api/me/card/replacement', ['reason' => 'tanpa_nfc', 'note' => 'HP saya tidak ada NFC'])->assertCreated();
+        $this->postJson('/api/me/card/replacement', ['reason' => 'lainnya'])->assertUnprocessable();
+
+        $admin = User::factory()->create(['organization_id' => $this->org->id, 'role' => 'super_admin']);
+        auth()->forgetGuards();
+        $req = CardRequest::sole();
+        $this->actingAs($admin, 'web')->post("/kartu/permintaan/{$req->id}", ['action' => 'approve', 'resolution' => 'admin', 'note' => 'Ambil di sekretariat Senin'])
+            ->assertSessionHas('status');
+        $this->assertSame(['approved', 'admin', 1], [$req->fresh()->status, $req->fresh()->resolution, $this->budi->fresh()->self_card_writes_left]); // jatah tidak bertambah
+
+        auth()->forgetGuards();
+        Sanctum::actingAs($this->user);
+        $this->getJson('/api/me/card')->assertJsonPath('self_card.last_decision.resolution', 'admin')
+            ->assertJsonPath('self_card.last_decision.review_note', 'Ambil di sekretariat Senin')->assertJsonPath('self_card.can_request', true);
     }
 
     public function test_only_super_admin_reviews_requests(): void
