@@ -10,12 +10,13 @@ import 'package:kartuanggota/nfc/ntag.dart';
 import 'package:kartuanggota/screens/member/my_card_tab.dart';
 import 'package:kartuanggota/screens/member/self_card_screen.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:nfc_manager/nfc_manager.dart' show NfcAvailability;
 
-Map<String, dynamic> card({required bool canWrite, bool canRequest = false, String? pending, bool hasCard = false}) => {
+Map<String, dynamic> card({required bool canWrite, bool canRequest = false, String? pending, bool hasCard = false, Map<String, dynamic>? decision}) => {
   'state': 'active', 'organization': 'HMPS', 'valid_until': '2027-07-31',
   'member': {'name': 'Budi', 'member_no': 'B01', 'division': 'Humas', 'photo_url': null},
   'card': hasCard ? {'last4': 'ABCD'} : null,
-  'self_card': {'can_write': canWrite, 'can_request': canRequest, 'pending_request': pending == null ? null : {'reason': pending}},
+  'self_card': {'can_write': canWrite, 'can_request': canRequest, 'pending_request': pending == null ? null : {'reason': pending}, 'last_decision': decision},
 };
 
 void main() {
@@ -48,6 +49,7 @@ void main() {
           body: MyCardTab(
             api: api,
             name: 'Budi',
+            nfcAvailability: () async => NfcAvailability.enabled,
             selfCardScreen: (api) => SelfCardScreen(api: api, writer: (init) async => const WriteResult(model: NtagModel.ntag215, uidHex: '04AABB', protectedNow: true)),
           ),
         ),
@@ -64,11 +66,11 @@ void main() {
 
     expect(paths, containsAllInOrder(['POST /api/me/card/init', 'POST /api/me/card/9/assign']));
     expect(find.text('Daftarkan kartu NFC saya'), findsNothing);
-    expect(find.textContaining('Ajukan pengganti'), findsOneWidget);
+    expect(find.text('Lapor kartu hilang/rusak'), findsOneWidget);
     expect(find.textContaining('…ABCD'), findsOneWidget);
   });
 
-  testWidgets('ajukan kartu pengganti (hilang) → menunggu persetujuan', (tester) async {
+  testWidgets('lapor kartu hilang → menunggu tindak lanjut pengurus', (tester) async {
     tester.view.physicalSize = const Size(800, 1800);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
@@ -83,13 +85,55 @@ void main() {
         return http.Response(jsonEncode(card(canWrite: false, canRequest: reason == null, pending: reason)), 200);
       }),
     )..token = 't';
-    await tester.pumpWidget(KartuAnggotaApp(home: Scaffold(body: MyCardTab(api: api, name: 'Budi'))));
+    await tester.pumpWidget(KartuAnggotaApp(home: Scaffold(body: MyCardTab(api: api, name: 'Budi', nfcAvailability: () async => NfcAvailability.enabled))));
     await tester.pumpAndSettle();
-    await tester.tap(find.textContaining('Ajukan pengganti'));
+    await tester.tap(find.text('Lapor kartu hilang/rusak'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Ajukan'));
+    await tester.tap(find.text('Kirim laporan'));
     await tester.pumpAndSettle();
     expect(reason, 'hilang');
-    expect(find.text('Permintaan kartu pengganti menunggu persetujuan'), findsOneWidget);
+    expect(find.text('Laporan kartu menunggu tindak lanjut pengurus'), findsOneWidget);
+  });
+
+  Future<void> pumpTab(WidgetTester tester, NfcAvailability nfc, Map<String, dynamic> json, {List<String>? reasons}) async {
+    tester.view.physicalSize = const Size(800, 1800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final api = ApiClient(
+      baseUrl: 'http://srv',
+      client: MockClient((req) async {
+        if (req.url.path == '/api/me/card/replacement') {
+          reasons?.add((jsonDecode(req.body) as Map)['reason'] as String);
+          return http.Response(jsonEncode(card(canWrite: true, pending: 'tanpa_nfc')), 201);
+        }
+        return http.Response(jsonEncode(json), 200);
+      }),
+    )..token = 't';
+    await tester.pumpWidget(KartuAnggotaApp(home: Scaffold(body: MyCardTab(api: api, name: 'Budi', nfcAvailability: () async => nfc))));
+    await tester.pumpAndSettle();
+  }
+
+  testWidgets('HP tanpa NFC: arahkan ke minta pengurus terbitkan kartu', (tester) async {
+    final reasons = <String>[];
+    await pumpTab(tester, NfcAvailability.unsupported, card(canWrite: true, canRequest: true), reasons: reasons);
+    expect(find.text('HP ini tidak mendukung NFC'), findsOneWidget);
+    expect(find.text('Daftarkan kartu NFC saya'), findsNothing);
+    await tester.tap(find.text('Minta pengurus terbitkan kartu'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Kirim laporan'));
+    await tester.pumpAndSettle();
+    expect(reasons, ['tanpa_nfc']);
+  });
+
+  testWidgets('NFC mati: ajakan menyalakan NFC', (tester) async {
+    await pumpTab(tester, NfcAvailability.disabled, card(canWrite: true, canRequest: true));
+    expect(find.text('NFC di HP ini sedang mati'), findsOneWidget);
+    expect(find.text('Buka pengaturan NFC'), findsOneWidget);
+  });
+
+  testWidgets('keputusan pengurus tampil: pengurus menerbitkan + catatan', (tester) async {
+    await pumpTab(tester, NfcAvailability.unsupported, card(canWrite: false, canRequest: true, decision: {'reason': 'tanpa_nfc', 'status': 'approved', 'resolution': 'admin', 'review_note': 'Ambil di sekretariat Senin'}));
+    expect(find.text('Pengurus akan menerbitkan kartu Anda'), findsOneWidget);
+    expect(find.textContaining('Ambil di sekretariat Senin'), findsOneWidget);
   });
 }

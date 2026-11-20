@@ -21,16 +21,24 @@ class SelfCardService
 {
     private const RESERVE_MINUTES = 15;
 
+    /** Alasan laporan: kartu hilang, kartu rusak, atau HP anggota tanpa NFC / NFC rusak. */
+    public const REASONS = ['hilang', 'rusak', 'tanpa_nfc'];
+
     public function status(Member $member): array
     {
         $active = $this->isActiveMember($member);
         $pending = CardRequest::where('member_id', $member->id)->where('status', 'pending')->latest()->first();
+        // Keputusan terakhir (30 hari) agar anggota tahu tindak lanjutnya, mis. "ambil kartu di sekretariat".
+        $decided = $pending ? null : CardRequest::where('member_id', $member->id)->where('status', '!=', 'pending')
+            ->where('reviewed_at', '>=', now()->subDays(30))->latest('reviewed_at')->first();
 
         return [
             'can_write' => $active && $member->self_card_writes_left > 0,
             'writes_left' => (int) $member->self_card_writes_left,
             'pending_request' => $pending?->only('id', 'reason', 'created_at'),
-            'can_request' => $active && $member->self_card_writes_left === 0 && ! $pending,
+            // Lapor hilang/rusak/HP tanpa NFC selalu bisa bagi anggota aktif (selama tak ada yang menunggu).
+            'can_request' => $active && ! $pending,
+            'last_decision' => $decided?->only('reason', 'status', 'resolution', 'review_note', 'reviewed_at'),
         ];
     }
 
@@ -87,13 +95,17 @@ class SelfCardService
         });
     }
 
-    /** Super Admin: setujui (jatah +1) atau tolak. */
-    public function review(User $admin, CardRequest $req, bool $approve, ?string $note): CardRequest
+    /**
+     * Super Admin memutuskan: setujui dengan tindak lanjut "self" (jatah daftar sendiri +1) atau "admin"
+     * (pengurus menerbitkan kartu lewat app petugas; catatan mis. tempat pengambilan), atau tolak.
+     */
+    public function review(User $admin, CardRequest $req, bool $approve, ?string $note, string $resolution = 'self'): CardRequest
     {
         abort_unless($req->status === 'pending', 422, 'Permintaan sudah diputuskan.');
-        DB::transaction(function () use ($admin, $req, $approve, $note) {
-            $req->update(['status' => $approve ? 'approved' : 'rejected', 'reviewed_by' => $admin->id, 'reviewed_at' => now(), 'review_note' => $note]);
-            if ($approve) {
+        DB::transaction(function () use ($admin, $req, $approve, $note, $resolution) {
+            $req->update(['status' => $approve ? 'approved' : 'rejected', 'resolution' => $approve ? $resolution : null,
+                'reviewed_by' => $admin->id, 'reviewed_at' => now(), 'review_note' => $note]);
+            if ($approve && $resolution === 'self') {
                 Member::whereKey($req->member_id)->update(['self_card_writes_left' => DB::raw('least(self_card_writes_left + 1, 3)')]);
             }
             AuditLogger::log('card.replacement_'.($approve ? 'approved' : 'rejected'), 'card_request', $req->id);

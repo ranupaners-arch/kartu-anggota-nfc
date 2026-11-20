@@ -1,7 +1,10 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:nfc_manager/nfc_manager.dart' show NfcAvailability;
 import 'package:shadcn_ui/shadcn_ui.dart';
 
 import '../../api/api_client.dart';
+import '../../app/device_settings.dart';
+import '../../nfc/nfc_service.dart';
 import '../../widgets/member_card.dart';
 import '../../widgets/ui.dart';
 import 'my_qr_tab.dart';
@@ -10,7 +13,7 @@ import 'self_card_screen.dart';
 /// Tab "Kartu": kartu anggota di halaman utama. Kosong → ajakan isi e-profil; menunggu → info
 /// pengesahan; aktif → kartu lengkap + QR cadangan (kartu tertinggal).
 class MyCardTab extends StatefulWidget {
-  const MyCardTab({super.key, required this.api, required this.name, this.onRegister, this.selfCardScreen});
+  const MyCardTab({super.key, required this.api, required this.name, this.onRegister, this.selfCardScreen, this.nfcAvailability});
 
   final ApiClient api;
   final String name;
@@ -21,16 +24,23 @@ class MyCardTab extends StatefulWidget {
   /// Untuk tes: layar daftar kartu sendiri (bawaan: SelfCardScreen dengan NFC asli).
   final Widget Function(ApiClient api)? selfCardScreen;
 
+  /// Untuk tes: status NFC HP (bawaan: dicek lewat NfcService).
+  final Future<NfcAvailability> Function()? nfcAvailability;
+
   @override
   State<MyCardTab> createState() => _MyCardTabState();
 }
 
 class _MyCardTabState extends State<MyCardTab> {
   late Future<MemberCardInfo> _card = widget.api.myCard();
+  late Future<NfcAvailability> _nfc = _checkNfc();
+
+  Future<NfcAvailability> _checkNfc() => (widget.nfcAvailability ?? () => NfcService().availability())().catchError((_) => NfcAvailability.unsupported);
 
   Future<void> _refresh() async {
     setState(() {
       _card = widget.api.myCard();
+      _nfc = _checkNfc();
     });
     await _card.catchError((_) => MemberCardInfo(state: CardState.none));
   }
@@ -42,9 +52,64 @@ class _MyCardTabState extends State<MyCardTab> {
     if (ok == true) _refresh();
   }
 
-  Future<void> _requestReplacement() async {
-    final sent = await showShadDialog<bool>(context: context, builder: (_) => _ReplacementDialog(api: widget.api));
+  Future<void> _report([String reason = 'hilang']) async {
+    final sent = await showShadDialog<bool>(context: context, builder: (_) => _ReportDialog(api: widget.api, initialReason: reason));
     if (sent == true) _refresh();
+  }
+
+  Future<void> _turnOnNfc() async {
+    await openNfcSettings();
+    if (mounted) setState(() => _nfc = _checkNfc()); // dicek ulang saat kembali
+  }
+
+  /// Bagian "daftarkan kartu NFC sendiri" sesuai kemampuan NFC HP ini.
+  Widget _ownCardSection(BuildContext context) => FutureBuilder<NfcAvailability>(
+    future: _nfc,
+    builder: (context, snap) {
+      if (snap.connectionState != ConnectionState.done) return const SizedBox.shrink();
+      return switch (snap.data) {
+        NfcAvailability.enabled => FlexButton(label: 'Daftarkan kartu NFC saya', icon: LucideIcons.nfc, onPressed: _registerOwnCard),
+        NfcAvailability.disabled => ShadAlert(
+          icon: const Icon(LucideIcons.nfc),
+          title: const Text('NFC di HP ini sedang mati'),
+          description: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            spacing: 8,
+            children: [
+              const Text('Nyalakan NFC untuk mendaftarkan kartu Anda sendiri.'),
+              ShadButton.outline(size: ShadButtonSize.sm, onPressed: _turnOnNfc, child: const Text('Buka pengaturan NFC')),
+            ],
+          ),
+        ),
+        _ => ShadAlert(
+          icon: const Icon(LucideIcons.smartphone),
+          title: const Text('HP ini tidak mendukung NFC'),
+          description: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            spacing: 8,
+            children: [
+              const Text('Pilihan: minta pengurus menerbitkan kartu Anda, atau masuk dengan akun Anda di HP lain yang ber-NFC (mis. HP teman/sekretariat) untuk mendaftarkan kartu. Sementara itu absen pakai QR.'),
+              ShadButton.outline(size: ShadButtonSize.sm, onPressed: () => _report('tanpa_nfc'), child: const Text('Minta pengurus terbitkan kartu')),
+            ],
+          ),
+        ),
+      };
+    },
+  );
+
+  static const _reasonLabel = {'hilang': 'kartu hilang', 'rusak': 'kartu rusak', 'tanpa_nfc': 'HP tanpa NFC'};
+
+  /// Keputusan pengurus atas laporan terakhir.
+  Widget _decision(({String reason, String status, String? resolution, String? note}) d, bool canWrite) {
+    final note = d.note == null || d.note!.isEmpty ? '' : ' Catatan: ${d.note}';
+    if (d.status == 'rejected') {
+      return ShadAlert(icon: const Icon(LucideIcons.circleX), title: const Text('Laporan kartu ditolak'), description: Text('Hubungi pengurus bila perlu.$note'));
+    }
+    return ShadAlert(
+      icon: const Icon(LucideIcons.circleCheck),
+      title: Text(d.resolution == 'admin' ? 'Pengurus akan menerbitkan kartu Anda' : 'Laporan disetujui'),
+      description: Text(d.resolution == 'admin' ? 'Kartu baru disiapkan pengurus.$note' : '${canWrite ? 'Silakan daftarkan kartu baru di bawah.' : 'Kartu baru sudah terdaftar.'}$note'),
+    );
   }
 
   void _showQr() => Navigator.of(context).push(
@@ -109,8 +174,12 @@ class _MyCardTabState extends State<MyCardTab> {
                   ),
                 );
               case CardState.active:
-                if (info.canWriteCard) {
-                  children.add(FlexButton(label: 'Daftarkan kartu NFC saya', icon: LucideIcons.nfc, onPressed: _registerOwnCard));
+                if (info.lastDecision case final d?) {
+                  children.add(_decision(d, info.canWriteCard));
+                  children.add(const SizedBox(height: 8));
+                }
+                if (info.canWriteCard && info.pendingRequestReason == null) {
+                  children.add(_ownCardSection(context));
                   children.add(const SizedBox(height: 8));
                 }
                 children.add(FlexButton(label: 'Tampilkan QR (kartu tertinggal)', icon: LucideIcons.qrCode, variant: ShadButtonVariant.outline, onPressed: _showQr));
@@ -119,13 +188,13 @@ class _MyCardTabState extends State<MyCardTab> {
                   children.add(
                     ShadAlert(
                       icon: const Icon(LucideIcons.hourglass),
-                      title: const Text('Permintaan kartu pengganti menunggu persetujuan'),
-                      description: Text('Alasan: ${info.pendingRequestReason}. Setelah disetujui pengurus, Anda bisa mendaftarkan kartu baru di sini.'),
+                      title: const Text('Laporan kartu menunggu tindak lanjut pengurus'),
+                      description: Text('Laporan: ${_reasonLabel[info.pendingRequestReason] ?? info.pendingRequestReason}. Keputusan pengurus akan tampil di sini.'),
                     ),
                   );
                   children.add(const SizedBox(height: 8));
                 } else if (info.canRequestCard) {
-                  children.add(FlexButton(label: 'Kartu hilang/rusak? Ajukan pengganti', icon: LucideIcons.creditCard, variant: ShadButtonVariant.ghost, small: true, onPressed: _requestReplacement));
+                  children.add(FlexButton(label: 'Lapor kartu hilang/rusak', icon: LucideIcons.triangleAlert, variant: ShadButtonVariant.ghost, small: true, onPressed: _report));
                   children.add(const SizedBox(height: 8));
                 }
                 children.add(
@@ -144,18 +213,20 @@ class _MyCardTabState extends State<MyCardTab> {
   }
 }
 
-/// Ajukan kartu pengganti: alasan (hilang/rusak) + catatan. "Hilang" langsung memblokir kartu lama.
-class _ReplacementDialog extends StatefulWidget {
-  const _ReplacementDialog({required this.api});
+/// Lapor kartu: hilang (kartu lama langsung diblokir), rusak, atau HP tanpa NFC / NFC rusak
+/// (minta pengurus menerbitkan kartu). Pengurus menindaklanjuti; keputusannya tampil di tab Kartu.
+class _ReportDialog extends StatefulWidget {
+  const _ReportDialog({required this.api, required this.initialReason});
 
   final ApiClient api;
+  final String initialReason;
 
   @override
-  State<_ReplacementDialog> createState() => _ReplacementDialogState();
+  State<_ReportDialog> createState() => _ReportDialogState();
 }
 
-class _ReplacementDialogState extends State<_ReplacementDialog> {
-  String _reason = 'hilang';
+class _ReportDialogState extends State<_ReportDialog> {
+  late String _reason = widget.initialReason;
   final _note = TextEditingController();
   bool _busy = false;
   String? _error;
@@ -185,11 +256,11 @@ class _ReplacementDialogState extends State<_ReplacementDialog> {
 
   @override
   Widget build(BuildContext context) => ShadDialog(
-    title: const Text('Ajukan kartu pengganti'),
-    description: const Text('Pengurus akan meninjau. Bila disetujui, Anda bisa mendaftarkan kartu NFC baru sekali lagi.'),
+    title: const Text('Lapor kartu'),
+    description: const Text('Laporan dikirim ke pengurus untuk ditindaklanjuti. Sementara itu Anda tetap bisa absen dengan QR.'),
     actions: [
       ShadButton.outline(onPressed: () => Navigator.of(context).pop(false), child: const Text('Batal')),
-      ShadButton(enabled: !_busy, onPressed: _busy ? null : _send, child: Text(_busy ? 'Mengirim…' : 'Ajukan')),
+      ShadButton(enabled: !_busy, onPressed: _busy ? null : _send, child: Text(_busy ? 'Mengirim…' : 'Kirim laporan')),
     ],
     child: Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
@@ -203,11 +274,12 @@ class _ReplacementDialogState extends State<_ReplacementDialog> {
             initialValue: _reason,
             onChanged: (v) => setState(() => _reason = v ?? _reason),
             items: const [
-              ShadRadio(value: 'hilang', label: Text('Hilang — kartu lama langsung diblokir')),
-              ShadRadio(value: 'rusak', label: Text('Rusak / tidak terbaca')),
+              ShadRadio(value: 'hilang', label: Text('Kartu hilang — kartu lama langsung diblokir')),
+              ShadRadio(value: 'rusak', label: Text('Kartu rusak / tidak terbaca')),
+              ShadRadio(value: 'tanpa_nfc', label: Text('HP saya tanpa NFC / NFC rusak — minta pengurus terbitkan kartu')),
             ],
           ),
-          ShadInput(controller: _note, placeholder: const Text('Catatan (opsional)'), maxLines: 2),
+          ShadInput(controller: _note, placeholder: const Text('Catatan (opsional), mis. kapan bisa ambil kartu'), maxLines: 2),
         ],
       ),
     ),
