@@ -24,6 +24,9 @@ class PortalController extends Controller
     private function profile(Request $r): array
     {
         $m = $r->user()->member;
+        if (! $m) {
+            return ['name' => $r->user()->name, 'member_no' => null, 'division' => null, 'organization' => $r->user()->organization?->name];
+        }
         $term = Term::where('is_current', true)->first();
         $division = $term ? Membership::with('division:id,name')->where('member_id', $m->id)->where('term_id', $term->id)->first()?->division?->name : null;
 
@@ -36,8 +39,34 @@ class PortalController extends Controller
         return Inertia::render('portal/qr', [
             'profile' => $this->profile($r),
             'card' => app(\App\Services\MemberCardService::class)->forUser($r->user(), 'portal.photo'),
-            'qr' => fn () => $members->myQr($r) + ['generated_at' => now()->toIso8601String()],
+            // QR hanya untuk anggota yang sudah disahkan (aktif).
+            'qr' => fn () => $r->user()->member_id && \App\Models\Membership::where('member_id', $r->user()->member_id)
+                ->whereHas('term', fn ($t) => $t->where('is_current', true))->where('status', 'active')->exists()
+                ? $members->myQr($r) + ['generated_at' => now()->toIso8601String()] : null,
         ]);
+    }
+
+    /** Formulir e-profil (web) bagi akun yang belum terdaftar sebagai anggota. */
+    public function profileForm(Request $r, \App\Services\RegistrationService $registrations)
+    {
+        if ($r->user()->member_id) {
+            return redirect()->route('portal.qr');
+        }
+        $org = $r->user()->organization;
+
+        return Inertia::render('portal/profile', [
+            'organization' => $org->name, 'term' => $registrations->currentTerm($org)?->name,
+            'name' => $r->user()->name, 'email' => $r->user()->email, 'divisions' => $registrations->divisions($org),
+        ]);
+    }
+
+    public function submitProfile(Request $r, \App\Services\RegistrationService $registrations)
+    {
+        $org = $r->user()->organization;
+        $d = $r->validate($registrations->profileRules($org), $registrations->messages());
+        $registrations->submitProfile($r->user(), $d, $r->file('photo'));
+
+        return redirect()->route('portal.qr')->with('status', 'E-profil terkirim. Menunggu pengesahan pengurus pusat.');
     }
 
     public function events(Request $r)

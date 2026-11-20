@@ -19,7 +19,7 @@ class InstanceTest extends TestCase
         Organization::create(['name' => 'Rahasia', 'slug' => 'rahasia']);
 
         $this->getJson('/api/instance')->assertOk()
-            ->assertExactJson(['app' => 'kartu-anggota', 'name' => 'HMPS', 'api_version' => 1]);
+            ->assertExactJson(['app' => 'kartu-anggota', 'name' => 'HMPS', 'api_version' => 1, 'registration_open' => false]); // hanya ya/tidak, tanpa data organisasi
     }
 
     public function test_settings_shows_connect_qr_payload(): void

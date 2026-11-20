@@ -22,6 +22,7 @@ Route::get('health', \App\Http\Controllers\Api\HealthController::class)->middlew
 Route::get('instance', InstanceController::class)->middleware('throttle:60,1');
 Route::post('auth/login', [AuthController::class, 'login'])->middleware('throttle:10,1');
 Route::post('auth/forgot', [AuthController::class, 'forgot'])->middleware('throttle:5,1');
+Route::post('auth/register', [AuthController::class, 'register'])->middleware('throttle:5,1');
 
 Route::middleware(['auth:sanctum', 'password.changed'])->group(function () {
     Route::post('auth/logout', [AuthController::class, 'logout']);
@@ -29,6 +30,8 @@ Route::middleware(['auth:sanctum', 'password.changed'])->group(function () {
     Route::put('me/password', [AuthController::class, 'changePassword'])->middleware('throttle:10,1');
     Route::get('me/qr', [MemberController::class, 'myQr']);
     Route::get('me/card', [MeController::class, 'card']);
+    Route::get('me/profile-form', [MeController::class, 'profileForm']);
+    Route::post('me/profile', [MeController::class, 'submitProfile'])->middleware('throttle:5,1');
     Route::get('me/photo', [MeController::class, 'photo'])->name('api.me.photo');
     Route::get('me/events', [MeController::class, 'events']);
     Route::get('me/history', [MeController::class, 'history']);

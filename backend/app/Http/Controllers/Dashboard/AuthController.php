@@ -26,7 +26,7 @@ class AuthController extends Controller
         }
         $user = Auth::guard('web')->user();
         // Pengurus → dashboard; anggota (akun tertaut) → portal anggota /saya. Petugas scan memakai app.
-        $member = $user->role === User::MEMBER && $user->member_id;
+        $member = $user->role === User::MEMBER; // termasuk yang belum mengisi e-profil (kartu kosong)
         if ($user->disabled_at || (! $user->isAdmin() && ! $member && $user->role !== User::SCANNER)) {
             Auth::guard('web')->logout();
             throw ValidationException::withMessages(['email' => $user->disabled_at

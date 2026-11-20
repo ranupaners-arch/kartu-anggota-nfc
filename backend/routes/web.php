@@ -30,6 +30,8 @@ Route::middleware(['auth:web', 'portal'])->prefix('saya')->name('portal.')->grou
     Route::post('izin', [App\Http\Controllers\Portal\PortalController::class, 'storeExcuse'])->middleware('throttle:10,1')->name('excuse');
     Route::get('riwayat', [App\Http\Controllers\Portal\PortalController::class, 'history'])->name('history');
     Route::get('foto', [App\Http\Controllers\Api\MeController::class, 'photo'])->name('photo');
+    Route::get('e-profil', [App\Http\Controllers\Portal\PortalController::class, 'profileForm'])->name('profile');
+    Route::post('e-profil', [App\Http\Controllers\Portal\PortalController::class, 'submitProfile'])->middleware('throttle:5,1')->name('profile.store');
     Route::get('rapor', [App\Http\Controllers\Portal\PortalController::class, 'reportCard'])->middleware('throttle:10,1')->name('report-card');
     Route::get('akun', [App\Http\Controllers\Portal\PortalController::class, 'account'])->name('account');
     Route::put('password', [App\Http\Controllers\Portal\PortalController::class, 'password'])->middleware('throttle:10,1')->name('password');

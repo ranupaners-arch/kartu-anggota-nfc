@@ -14,7 +14,7 @@ class EnsureDashboardAccess
     {
         $user = $request->user();
         // Anggota yang sudah masuk ke portal & membuka alamat dashboard → kembali ke portalnya.
-        if ($user && ! $user->disabled_at && $user->role === User::MEMBER && $user->member_id) {
+        if ($user && ! $user->disabled_at && $user->role === User::MEMBER) {
             return $request->routeIs('logout') ? $next($request) : redirect()->route('portal.qr');
         }
         // Petugas scan di web → halaman pindai.
