@@ -1,6 +1,7 @@
 import { Head, usePoll } from '@inertiajs/react';
 import { QRCodeSVG } from 'qrcode.react';
 import { useEffect, useState } from 'react';
+import { MemberCard, type MemberCardInfo } from '@/components/member-card';
 import { Card, CardContent } from '@/components/ui/card';
 import PortalLayout from '@/layouts/portal-layout';
 
@@ -28,7 +29,7 @@ function useWakeLock() {
 }
 
 /** QR Saya: cadangan saat kartu tertinggal. Server merotasi QR tiap menit; halaman mengambil yang baru tiap 30 detik. */
-export default function PortalQr({ profile, qr }: { profile: Profile; qr: Qr }) {
+export default function PortalQr({ profile, qr, card }: { profile: Profile; qr: Qr; card: MemberCardInfo }) {
     usePoll(30_000, { only: ['qr'] }, { keepAlive: true });
     useWakeLock();
     const [age, setAge] = useState(0);
@@ -41,8 +42,9 @@ export default function PortalQr({ profile, qr }: { profile: Profile; qr: Qr }) 
     const stale = age > qr.expires_in;
 
     return (
-        <PortalLayout title="QR Saya">
-            <Head title="QR Saya" />
+        <PortalLayout title="Kartu Saya">
+            <Head title="Kartu Saya" />
+            <MemberCard info={card} />
             <Card>
                 <CardContent className="grid justify-items-center gap-4 py-2 text-center">
                     <div className={`rounded-2xl bg-white p-4 transition-opacity ${stale ? 'opacity-30' : ''}`}>

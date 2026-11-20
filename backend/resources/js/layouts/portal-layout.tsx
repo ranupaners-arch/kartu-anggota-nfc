@@ -1,5 +1,5 @@
 import { Link, router, usePage } from '@inertiajs/react';
-import { CalendarDays, History, LogOut, QrCode, UserRound, type LucideIcon } from 'lucide-react';
+import { CalendarDays, CreditCard, History, LogOut, UserRound, type LucideIcon } from 'lucide-react';
 import { type ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -7,7 +7,7 @@ import type { SharedProps } from '@/types';
 import { FlashToaster } from '@/layouts/app-layout';
 
 const tabs: { href: string; label: string; icon: LucideIcon }[] = [
-    { href: '/saya', label: 'QR Saya', icon: QrCode },
+    { href: '/saya', label: 'Kartu', icon: CreditCard },
     { href: '/saya/kegiatan', label: 'Kegiatan', icon: CalendarDays },
     { href: '/saya/riwayat', label: 'Riwayat', icon: History },
     { href: '/saya/akun', label: 'Akun', icon: UserRound },
