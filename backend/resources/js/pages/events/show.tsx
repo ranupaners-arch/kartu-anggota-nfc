@@ -1,5 +1,5 @@
 import { Head, Link, router, useForm } from '@inertiajs/react';
-import { Copy, FileSpreadsheet, FileText, MonitorPlay, Pencil } from 'lucide-react';
+import { Copy, FileSpreadsheet, FileText, MonitorPlay, Pencil, ScanLine } from 'lucide-react';
 import { type FormEvent, useState } from 'react';
 import { ConfirmAction } from '@/components/confirm-action';
 import { DataTable } from '@/components/data-table';
@@ -256,6 +256,7 @@ export default function EventShow(props: Props) {
         <AppLayout title={event.title} actions={
             <>
                 <Button variant="outline" render={<a href={`/kegiatan/${event.id}/monitor`} target="_blank" rel="noreferrer" />}><MonitorPlay /> Monitor langsung</Button>
+                {!event.closed_at && <Button variant="outline" render={<a href={`/pindai/${event.id}`} target="_blank" rel="noreferrer" />}><ScanLine /> Pindai QR (browser)</Button>}
                 <Button variant="outline" render={<Link href={`/kegiatan/${event.id}/edit`} />}><Pencil /> Ubah</Button>
                 <DuplicateEvent event={event} sessions={props.sessions} />
                 {!event.closed_at && (
