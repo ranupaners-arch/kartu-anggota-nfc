@@ -91,6 +91,23 @@ class MeController extends Controller
         return response()->json(app(\App\Services\MemberCardService::class)->forUser($r->user()), 201);
     }
 
+    /**
+     * PDF kartu anggota sendiri untuk dicetak (desain sama dengan cetak pengurus). Hanya kartu yang
+     * sudah disahkan (aktif). ?format=kartu (bawaan, printer PVC/kartu) atau a4.
+     */
+    public function cardPdf(Request $r, \App\Services\CardPrintService $printer)
+    {
+        $member = $this->member($r);
+        $term = Term::where('is_current', true)->firstOrFail();
+        abort_unless(\App\Models\Membership::where('member_id', $member->id)->where('term_id', $term->id)->where('status', 'active')->exists(),
+            403, 'Kartu bisa dicetak setelah keanggotaan disahkan.');
+        $format = in_array($r->query('format'), \App\Services\CardPrintService::FORMATS, true) ? $r->query('format') : 'kartu';
+        $member->load(['memberships' => fn ($q) => $q->where('term_id', $term->id)->with('division:id,name'), 'activeCard:id,member_id,public_id']);
+        [$pdf, $name] = $printer->pdf(collect([$member]), $term, \App\Models\Organization::findOrFail($r->user()->organization_id), $format);
+
+        return response($pdf, 200, ['Content-Type' => 'application/pdf', 'Content-Disposition' => 'attachment; filename="'.$name.'"']);
+    }
+
     /** Data untuk formulir e-profil: organisasi, periode, pilihan divisi. */
     public function profileForm(Request $r, \App\Services\RegistrationService $registrations)
     {

@@ -30,6 +30,7 @@ Route::middleware(['auth:sanctum', 'password.changed'])->group(function () {
     Route::put('me/password', [AuthController::class, 'changePassword'])->middleware('throttle:10,1');
     Route::get('me/qr', [MemberController::class, 'myQr']);
     Route::get('me/card', [MeController::class, 'card']);
+    Route::get('me/card.pdf', [MeController::class, 'cardPdf'])->middleware('throttle:10,1');
     Route::post('me/card/init', [MeController::class, 'selfCardInit'])->middleware('throttle:10,1');
     Route::post('me/card/{card}/assign', [MeController::class, 'selfCardAssign'])->middleware('throttle:10,1');
     Route::post('me/card/replacement', [MeController::class, 'cardReplacement'])->middleware('throttle:5,1');
