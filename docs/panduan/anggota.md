@@ -79,6 +79,13 @@ Tab **Riwayat** menampilkan persentase kehadiran periode berjalan dan daftar keh
 Anda Alpa beberapa kali berturut-turut atau kehadirannya rendah, muncul peringatan di sini.
 Tombol **Unduh rapor PDF** membuka rapor kehadiran periode berjalan (mis. untuk syarat sertifikat).
 
+## Denda
+
+Bila organisasi mengaktifkan denda: absen memakai **QR padahal Anda punya kartu NFC aktif** (kartu
+tidak dibawa) dikenai denda sesuai kebijakan (bisa ada jatah gratis per periode). Lihat di **Riwayat →
+Denda absen pakai QR**; bayar ke pengurus. Kartu hilang? **Lapor** dulu di tab Kartu — kartu diblokir
+dan absen QR Anda tidak didenda.
+
 ## Data pribadi
 
 Data Anda (termasuk foto) hanya dipakai untuk absensi organisasi. Anda berhak meminta data pribadi

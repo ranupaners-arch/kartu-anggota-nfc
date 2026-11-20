@@ -156,6 +156,17 @@ anggota aktif yang Alpa 3× berturut-turut atau kehadirannya di bawah 60%. Klik 
   keseluruhan dan per divisi periode ini dibanding periode lalu. Batang = periode ini, garis tegak
   = periode lalu; selisihnya ditulis dalam *poin* (▲ naik, ▼ turun).
 
+## Denda absen pakai QR
+
+- **Pengaturan → Organisasi → Kebijakan denda**: aktif/nonaktif, nominal per kejadian, jatah QR gratis
+  per periode.
+- Denda tercatat **otomatis** saat anggota yang **punya kartu NFC aktif** absen memakai QR (kartu tidak
+  dibawa); petugas melihat keterangan *Denda QR Rp…* di hasil scan. Tidak didenda: anggota yang belum
+  punya kartu, atau yang kartunya sudah dilapor **hilang** (kartu langsung diblokir).
+- Menu **Denda**: total belum lunas & sudah lunas periode ini; centang → **Tandai lunas** /
+  **Bebaskan** / kembalikan ke belum lunas. Absensi yang dibatalkan/dikoreksi → dendanya otomatis
+  dibebaskan. Anggota melihat dendanya di **Riwayat** (app & portal).
+
 ## Rapor kehadiran
 
 Detail anggota → **Rapor PDF** (periode berjalan) atau tautan **rapor** di tiap periode pada tabel
