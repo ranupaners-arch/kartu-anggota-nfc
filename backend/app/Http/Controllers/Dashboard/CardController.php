@@ -12,9 +12,23 @@ use Inertia\Inertia;
 
 class CardController extends Controller
 {
+    /** Setujui (jatah tulis kartu sendiri +1) atau tolak permintaan kartu pengganti. */
+    public function reviewRequest(Request $r, \App\Models\CardRequest $request, \App\Services\SelfCardService $cards)
+    {
+        $d = $r->validate(['action' => 'required|in:approve,reject', 'note' => 'nullable|string|max:500']);
+        $cards->review($r->user(), $request, $d['action'] === 'approve', $d['note'] ?? null);
+
+        return back()->with('status', $d['action'] === 'approve' ? 'Disetujui. Anggota bisa mendaftarkan kartu baru di app-nya.' : 'Permintaan ditolak.');
+    }
+
     public function index(Request $r)
     {
         $tab = $r->query('tab', 'semua');
+        if ($tab === 'pengganti') {
+            return Inertia::render('cards/index', ['tab' => $tab, 'filters' => ['q' => null, 'status' => null],
+                'items' => \App\Models\CardRequest::with('member:id,member_no,name,self_card_writes_left', 'reviewer:id,name')
+                    ->orderByRaw("status = 'pending' desc")->latest()->paginate(30)->withQueryString()]);
+        }
         if ($tab === 'ditolak') {
             $items = AuditLog::where('action', 'scan.blocked')
                 ->whereIn('user_id', User::where('organization_id', $r->user()->organization_id)->select('id'))

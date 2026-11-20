@@ -168,6 +168,17 @@ class ApiClient {
     return j['user'] as Map<String, dynamic>;
   }
 
+  /// Daftar kartu NFC sendiri — langkah 1: siapkan kartu (payload + password proteksi).
+  Future<CardInit> selfCardInit() async => CardInit.fromJson(await _send('POST', '/api/me/card/init', {}));
+
+  /// Langkah 2 (setelah kartu tertulis): aktifkan; kartu lama diblokir server.
+  Future<MemberCardInfo> selfCardAssign(int cardId, {String? hwUid}) async =>
+      MemberCardInfo.fromJson(await _send('POST', '/api/me/card/$cardId/assign', {'hw_uid': ?hwUid}));
+
+  /// Ajukan kartu pengganti (hilang/rusak). "hilang" langsung memblokir kartu aktif.
+  Future<MemberCardInfo> requestCardReplacement(String reason, String? note) async =>
+      MemberCardInfo.fromJson(await _send('POST', '/api/me/card/replacement', {'reason': reason, if (note != null && note.isNotEmpty) 'note': note}));
+
   /// Data formulir e-profil: organisasi, periode, pilihan divisi.
   Future<({String organization, String? term, String name, String email, List<({int id, String name})> divisions})> profileForm() async {
     final j = await _send('GET', '/api/me/profile-form');
@@ -464,15 +475,22 @@ class Announcement {
 enum CardState { none, pending, active, inactive }
 
 class MemberCardInfo {
-  MemberCardInfo({required this.state, this.status, this.organization, this.term, this.validUntil, this.name, this.memberNo, this.division, this.cohort, this.photoUrl, this.cardLast4});
+  MemberCardInfo({required this.state, this.status, this.organization, this.term, this.validUntil, this.name, this.memberNo, this.division, this.cohort, this.photoUrl, this.cardLast4, this.canWriteCard = false, this.canRequestCard = false, this.pendingRequestReason});
 
   final CardState state;
   final String? status, organization, term, name, memberNo, division, cohort, photoUrl, cardLast4;
   final DateTime? validUntil;
 
+  /// Boleh mendaftarkan kartu NFC sendiri (jatah tersisa) / boleh mengajukan kartu pengganti.
+  final bool canWriteCard, canRequestCard;
+
+  /// Alasan permintaan kartu pengganti yang masih menunggu (hilang/rusak), bila ada.
+  final String? pendingRequestReason;
+
   factory MemberCardInfo.fromJson(Map<String, dynamic> j) {
     final m = j['member'] as Map<String, dynamic>?;
     final c = j['card'] as Map<String, dynamic>?;
+    final sc = j['self_card'] as Map<String, dynamic>?;
     return MemberCardInfo(
       state: CardState.values.firstWhere((s) => s.name == j['state'], orElse: () => CardState.none),
       status: j['status'] as String?,
@@ -485,6 +503,9 @@ class MemberCardInfo {
       cohort: m?['cohort'] as String?,
       photoUrl: m?['photo_url'] as String?,
       cardLast4: c?['last4'] as String?,
+      canWriteCard: sc?['can_write'] == true,
+      canRequestCard: sc?['can_request'] == true,
+      pendingRequestReason: (sc?['pending_request'] as Map<String, dynamic>?)?['reason'] as String?,
     );
   }
 }

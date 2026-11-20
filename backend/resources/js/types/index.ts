@@ -7,7 +7,7 @@ export interface SharedProps {
         organization: { id: number; name: string } | null;
         isSuperAdmin: boolean; mustChangePassword?: boolean;
     } | null;
-    navBadges: { excuses: number; reviews: number; applicants?: number } | null;
+    navBadges: { excuses: number; reviews: number; applicants?: number; cardRequests?: number } | null;
     flash: { status: string | null };
     errors: Record<string, string>;
     [key: string]: unknown;

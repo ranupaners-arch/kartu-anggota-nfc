@@ -110,6 +110,7 @@ Route::middleware(['auth:web', 'dashboard'])->group(function () {
         Route::post('anggota/{member}/hapus-data', [Dashboard\MemberController::class, 'anonymize'])->name('members.anonymize');
         Route::get('kartu', [Dashboard\CardController::class, 'index'])->name('cards.index');
         Route::post('kartu/{card}/blokir', [Dashboard\CardController::class, 'block'])->name('cards.block');
+        Route::post('kartu/permintaan/{request}', [Dashboard\CardController::class, 'reviewRequest'])->name('cards.requests.review');
         Route::resource('pengguna', Dashboard\UserController::class)->parameters(['pengguna' => 'user'])->names('users')->except(['show', 'destroy']);
         Route::post('pengguna/{user}/reset-password', [Dashboard\UserController::class, 'resetPassword'])->name('users.reset-password');
         Route::post('pengguna/{user}/status', [Dashboard\UserController::class, 'toggle'])->name('users.toggle');

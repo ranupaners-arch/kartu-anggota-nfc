@@ -63,6 +63,10 @@ Aktif setelah email server diatur (lihat *Pengaturan → Sistem → Email*; cara
   ditukar — cetak bolak-balik *balik di sisi panjang*) atau **Per kartu (PVC)** untuk printer kartu.
   Ukuran CR80 (85,6 × 54 mm); foto, nama, nomor, divisi, berlaku s.d. akhir periode.
 - Kartu hilang/dicuri: dashboard → **Kartu** → **Hilang** atau **Blokir**. Berlaku seketika.
+- **Kartu dari anggota sendiri**: anggota yang sudah disahkan bisa mendaftarkan kartu NFC kosong lewat
+  app-nya **satu kali**. Kartu pengganti (hilang/rusak) diajukan anggota dan muncul di **Kartu →
+  Permintaan Pengganti** (angka di menu Kartu): **Setujui** = anggota boleh mendaftarkan kartu baru
+  sekali lagi; laporan *hilang* sudah otomatis memblokir kartu lamanya.
 
 ### Akun petugas & perangkat
 - **Pengguna & Peran** → **Tambah Pengguna** → peran *Petugas Scan* (atau *Anggota*, tautkan ke

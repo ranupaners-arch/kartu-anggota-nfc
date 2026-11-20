@@ -50,6 +50,8 @@ class MemberCardService
                 'division' => $ms?->division?->name, 'photo_url' => $photoUrl,
             ],
             'card' => $card ? ['active' => true, 'last4' => strtoupper(substr($card->public_id, -4))] : null,
+            // Daftar kartu NFC sendiri (jatah) & permintaan kartu pengganti.
+            'self_card' => app(SelfCardService::class)->status($member),
         ] + $base;
     }
 }
