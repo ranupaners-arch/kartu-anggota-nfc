@@ -28,6 +28,7 @@ const statusLabels: Record<string, string> = { active: 'Aktif', inactive: 'Tidak
 function MemberBulkActions({ sel, divisions }: { sel: Selection; divisions: { id: number; name: string }[] }) {
     const [division, setDivision] = useState('');
     const [status, setStatus] = useState('alumni');
+    const [printFormat, setPrintFormat] = useState('a4');
     const n = sel.count;
     const divisionName = division ? divisions.find((d) => String(d.id) === division)?.name : 'Tanpa divisi';
     return (
@@ -46,6 +47,14 @@ function MemberBulkActions({ sel, divisions }: { sel: Selection; divisions: { id
                 </NativeSelect>
                 <ConfirmAction size="sm" title={`Ubah status ${n} anggota menjadi ${statusLabels[status]}?`} description="Berlaku untuk keanggotaan periode berjalan." href="/anggota/massal"
                     data={{ ids: sel.ids, action: 'status', value: status }} onSuccess={sel.clear} confirmLabel="Ubah status">Ubah status</ConfirmAction>
+            </div>
+            {/* Cetak kartu: PDF di tab baru (A4 10 kartu/lembar dengan garis potong, atau per kartu untuk printer PVC). */}
+            <div className="flex items-center gap-1.5">
+                <NativeSelect size="sm" value={printFormat} onChange={(e) => setPrintFormat(e.target.value)} aria-label="Format cetak kartu">
+                    <NativeSelectOption value="a4">A4 · 10 kartu</NativeSelectOption>
+                    <NativeSelectOption value="kartu">Per kartu (PVC)</NativeSelectOption>
+                </NativeSelect>
+                <Button variant="outline" size="sm" render={<a href={`/anggota/kartu-cetak?${new URLSearchParams([...sel.ids.map((id) => ['ids[]', String(id)]), ['format', printFormat]])}`} target="_blank" rel="noreferrer" />}>Cetak kartu</Button>
             </div>
             <ConfirmAction size="sm" title={`Buat akun app untuk ${n} anggota?`}
                 description="Akun dibuat memakai email anggota, dengan password sementara yang wajib diganti saat pertama masuk. Anggota tanpa email atau yang sudah punya akun dilewati. Password hanya ditampilkan sekali di halaman berikutnya — siapkan untuk dicetak."
