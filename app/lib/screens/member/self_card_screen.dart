@@ -42,7 +42,7 @@ class _SelfCardScreenState extends State<SelfCardScreen> {
     } on NfcException catch (e) {
       setState(() {
         _step = null;
-        _error = 'Kartu belum tertulis: ${e.message} Coba lagi dengan kartu yang sama.';
+        _error = 'Kartu belum tertulis: ${e.message} Coba lagi dengan kartu yang sama. Bila NFC HP bermasalah, kembali lalu pakai Lapor kartu → "HP tanpa NFC".';
       });
     } on ApiException catch (e) {
       setState(() {

@@ -475,7 +475,7 @@ class Announcement {
 enum CardState { none, pending, active, inactive }
 
 class MemberCardInfo {
-  MemberCardInfo({required this.state, this.status, this.organization, this.term, this.validUntil, this.name, this.memberNo, this.division, this.cohort, this.photoUrl, this.cardLast4, this.canWriteCard = false, this.canRequestCard = false, this.pendingRequestReason});
+  MemberCardInfo({required this.state, this.status, this.organization, this.term, this.validUntil, this.name, this.memberNo, this.division, this.cohort, this.photoUrl, this.cardLast4, this.canWriteCard = false, this.canRequestCard = false, this.pendingRequestReason, this.lastDecision});
 
   final CardState state;
   final String? status, organization, term, name, memberNo, division, cohort, photoUrl, cardLast4;
@@ -486,6 +486,9 @@ class MemberCardInfo {
 
   /// Alasan permintaan kartu pengganti yang masih menunggu (hilang/rusak), bila ada.
   final String? pendingRequestReason;
+
+  /// Keputusan pengurus atas laporan kartu terakhir (30 hari): status approved/rejected, tindak lanjut self/admin, catatan.
+  final ({String reason, String status, String? resolution, String? note})? lastDecision;
 
   factory MemberCardInfo.fromJson(Map<String, dynamic> j) {
     final m = j['member'] as Map<String, dynamic>?;
@@ -506,6 +509,10 @@ class MemberCardInfo {
       canWriteCard: sc?['can_write'] == true,
       canRequestCard: sc?['can_request'] == true,
       pendingRequestReason: (sc?['pending_request'] as Map<String, dynamic>?)?['reason'] as String?,
+      lastDecision: switch (sc?['last_decision']) {
+        final Map<String, dynamic> d => (reason: d['reason'] as String? ?? '', status: d['status'] as String? ?? '', resolution: d['resolution'] as String?, note: d['review_note'] as String?),
+        _ => null,
+      },
     );
   }
 }
