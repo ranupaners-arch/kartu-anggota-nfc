@@ -47,9 +47,9 @@ app lama di-uninstall sekali; APK berikutnya cukup "Perbarui".
   Offline: foto tetap tampil bila layar Scan kegiatan itu pernah dibuka saat online (foto peserta
   diunduh ke HP di latar belakang). Ganti foto di dashboard → buka layar Scan lagi saat online → foto baru.
 - **Mode gelap (#10):** semua teks terbaca.
-- **App anggota:** login `anggota@hmps.test` / `password` → tab **QR Saya** (QR berganti tiap menit;
-  scan dari HP lain sebagai petugas), **Kegiatan** (status + Ajukan izin dengan lampiran gambar/PDF),
-  **Riwayat** (persentase + daftar). Lalu setujui/tolak izinnya di dashboard → Pengajuan Izin.
+- **App anggota:** login `anggota@hmps.test` / `password` → tab **Kartu** → *Tampilkan QR* (QR berganti
+  tiap menit; scan dari HP lain sebagai petugas), **Kegiatan** (status + Ajukan izin dengan lampiran
+  gambar/PDF), **Riwayat** (persentase + daftar). Lalu setujui/tolak izinnya di dashboard → Pengajuan Izin.
 - **2FA admin:** dashboard → Akun Saya → Aktifkan 2FA → scan QR dengan aplikasi authenticator → simpan
   kode cadangan. Keluar lalu masuk lagi → diminta kode. Di app: login akun itu → muncul kolom Kode 2FA.
 - **Splash & sambutan (app):** buka app → logo berputar di latar hitam → layar sambutan (logo meluncur,
@@ -87,6 +87,65 @@ app lama di-uninstall sekali; APK berikutnya cukup "Perbarui".
   dan langsung memeriksa server. Bila sedang login ke organisasi lain: muncul penjelasan, sesi tidak diputus.
   Catatan: sebagian aplikasi kamera hanya menampilkan teks untuk tautan selain http(s); Google Lens biasanya bisa.
 - **Kunci tanda tangan tetap:** uninstall app lama sekali; APK berikutnya cukup "Perbarui".
+
+### Baru sejak APK dev.13 (belum pernah terpasang di HP)
+
+Siapkan dulu: dashboard jalan (`php artisan serve` + `npm run build`), akun contoh dari seeder,
+dan — untuk alur pendaftaran — **Pengaturan → Aplikasi → Buka pendaftaran**.
+
+**Kartu anggota & pendaftaran (app)**
+- **Kartu di halaman utama:** login `anggota@hmps.test` → tab **Kartu** menampilkan kartu ala ATM
+  (logo, chip, nomor, nama, divisi, berlaku s.d.). Cek di mode terang & gelap, dan dengan ukuran huruf
+  HP terbesar (kartu tetap utuh).
+- **Daftar akun → e-profil:** di layar Masuk muncul **Belum punya akun? Daftar** (hanya saat
+  pendaftaran dibuka) → buat akun → kartu **kosong** "Daftarkan keanggotaan dengan e-profil" → ketuk →
+  isi NIM, divisi, foto, centang persetujuan → **Kirim** → kartu jadi **Menunggu pengesahan**.
+  Tutup pendaftaran di dashboard → tombol Daftar hilang (buka ulang app).
+- **Pengesahan:** dashboard → **Anggota → Pendaftar** (ada angka di menu) → centang → *Ubah status →
+  Aktif* → di app tarik layar Kartu → kartu **aktif**, tombol *Tampilkan QR* muncul.
+- **Daftarkan kartu NFC sendiri (perlu kartu NTAG215 kosong):** kartu aktif → **Daftarkan kartu NFC
+  saya** → tempel kartu → "Kartu aktif" → scan kartu itu di kegiatan. Tombol hilang setelah sekali pakai.
+- **Kartu pengganti:** *Kartu hilang/rusak? Ajukan pengganti* → pilih **Hilang** → kartu lama langsung
+  ditolak saat discan; dashboard → **Kartu → Permintaan Pengganti** → Setujui → di app tombol daftarkan
+  kartu muncul lagi.
+- **Password sementara:** dashboard → Anggota → centang → **Buat akun app** → cetak lembar → masuk di
+  app dengan password sementara → wajib **Buat password baru** sebelum bisa memakai app.
+- **Lupa password (perlu SMTP diatur):** layar Masuk → *Lupa password?* → email → tautan → atur ulang.
+  Tanpa SMTP: muncul pesan "hubungi pengurus".
+- **Langganan jadwal:** tab Kegiatan → *Langganan jadwal ke kalender* → Salin tautan → tambahkan di
+  Google Calendar (Setelan → Tambahkan kalender → Dari URL) → kegiatan muncul.
+- **Ikon & hak cipta:** ikon launcher sama dengan favicon (kartu + centang); di layar sambutan ada
+  tulisan kecil "© 2026 Ranupane Rimba · GPL-3.0".
+
+**Portal web anggota (iPhone / tanpa app)**
+- Buka alamat server di Safari/Chrome HP → masuk sebagai anggota → `/saya`: kartu + QR (layar tidak
+  meredup), Kegiatan (ajukan izin + foto), Riwayat (rapor PDF), Akun (ganti password, langganan jadwal).
+- Akun tanpa e-profil → kartu kosong → **e-profil** versi web.
+- **Bagikan → Tambahkan ke Layar Utama** → ikon app di layar utama, terbuka di Kartu.
+- **Notifikasi push (perlu HTTPS + kunci VAPID):** Akun → Aktifkan notifikasi → terima notifikasi uji;
+  buat pengumuman di dashboard → notifikasi masuk; kegiatan ±1 jam lagi → pengingat.
+
+**Petugas tanpa NFC: pindai lewat browser**
+- Masuk web sebagai `petugas@hmps.test` → `/pindai` → pilih kegiatan yang Dibuka → izinkan kamera →
+  arahkan ke QR anggota (dari app/portal HP lain) → hijau Hadir, bunyi & getar; scan lagi → kuning
+  "Sudah tercatat". Kamera hanya jalan di `https://` atau `localhost`.
+
+**Dashboard pengurus**
+- **Kalender:** Kegiatan → tab Kalender → warna per divisi, tanda ⚠ Bentrok untuk dua kegiatan yang
+  tumpang-tindih; di HP tampil sebagai daftar agenda.
+- **Monitor langsung:** grafik Kedatangan (garis Batas telat) & Per divisi bertambah saat scan.
+- **Pencarian cepat:** **Ctrl+K** → ketik nama anggota/kegiatan → Enter.
+- **Tindakan massal:** Anggota → centang beberapa → Pindahkan divisi / Ubah status / Arsipkan /
+  Cetak kartu / Buat akun app; Pengajuan Izin → centang → Setujui/Tolak.
+- **Cetak desain kartu:** detail anggota → **Cetak kartu** (per kartu) atau massal **A4 · 10 kartu** →
+  cetak di kertas/PVC, cek ukuran 85,6 × 54 mm dan kesejajaran depan–belakang saat bolak-balik.
+- **Pendaftaran mandiri via tautan:** Pengaturan → Aplikasi → QR pendaftaran → isi dari HP →
+  muncul di Anggota → Pendaftar.
+- **Beranda:** kartu *Dibanding periode lalu* (perlu periode sebelumnya) dan grafik tren.
+- **Aksesibilitas formulir:** klik label kolom → kursor pindah ke kolomnya; simpan formulir kosong →
+  kursor ke kolom bergalat pertama.
+- **Email & push:** Pengaturan → Sistem → kartu Email & Notifikasi push (status, cara mengaktifkan,
+  *Kirim email uji*). Akun → Ringkasan mingguan → *Lihat contoh*.
 
 ## Belum diuji
 
