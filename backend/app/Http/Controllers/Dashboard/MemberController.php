@@ -109,7 +109,11 @@ class MemberController extends Controller
             'memberships' => $member->memberships->sortByDesc('term_id')->values()->map(fn ($ms) => [
                 'id' => $ms->id, 'term_id' => $ms->term_id, 'term' => $ms->term?->name, 'division' => $ms->division?->name, 'role' => $ms->role, 'status' => $ms->status,
             ]),
-            'cards' => $member->cards->sortByDesc('issued_at')->values()->map->only('id', 'public_id', 'status', 'issued_at', 'revoked_at'),
+            'cards' => $this->cardHistory($member),
+            // Laporan kartu (hilang/rusak/HP tanpa NFC) & jatah daftar kartu sendiri.
+            'cardRequests' => \App\Models\CardRequest::with('reviewer:id,name')->where('member_id', $member->id)->latest()->get()
+                ->map(fn ($q) => $q->only('id', 'reason', 'note', 'status', 'resolution', 'review_note', 'created_at', 'reviewed_at') + ['reviewer' => $q->reviewer?->name]),
+            'selfCardWritesLeft' => (int) $member->self_card_writes_left,
             'attendances' => $tab === 'riwayat'
                 ? Attendance::with('event:id,title,starts_at')->where('member_id', $member->id)->latest('scanned_at')->paginate(30)->withQueryString()
                 : null,
@@ -164,6 +168,33 @@ class MemberController extends Controller
         $what = ['division' => 'dipindahkan divisinya', 'status' => 'diubah statusnya', 'archive' => 'diarsipkan, kartunya diblokir'][$d['action']];
 
         return back()->with('status', "$n anggota $what.");
+    }
+
+    /** Kartu anggota + siapa yang menerbitkan (pengurus lewat app petugas, atau anggota sendiri). */
+    private function cardHistory(Member $member): \Illuminate\Support\Collection
+    {
+        $cards = $member->cards->sortByDesc('issued_at')->values();
+        $logs = \App\Models\AuditLog::where('entity', 'card')->whereIn('entity_id', $cards->pluck('id'))
+            ->whereIn('action', ['card.issued', 'card.self_issued'])->get()->keyBy('entity_id');
+        $names = User::whereIn('id', $logs->pluck('user_id')->filter())->pluck('name', 'id');
+
+        return $cards->map(fn ($c) => $c->only('id', 'public_id', 'status', 'issued_at', 'revoked_at') + [
+            'issued_by' => match ($logs[$c->id]->action ?? null) {
+                'card.self_issued' => 'Anggota sendiri',
+                'card.issued' => $names[$logs[$c->id]->user_id] ?? 'Pengurus',
+                default => null,
+            },
+        ]);
+    }
+
+    /** Beri 1 jatah daftar kartu NFC sendiri (maks. 3), mis. setelah dicek langsung oleh pengurus. */
+    public function grantSelfCard(Member $member)
+    {
+        abort_if($member->self_card_writes_left >= 3, 422, 'Jatah sudah maksimal (3).');
+        $member->increment('self_card_writes_left');
+        \App\Services\AuditLogger::log('card.self_write_granted', 'member', $member->id);
+
+        return back()->with('status', 'Jatah daftar kartu sendiri ditambah 1.');
     }
 
     /** Desain kartu siap cetak (PDF) untuk anggota terpilih; ?format=a4 (bawaan) atau kartu (printer PVC). */

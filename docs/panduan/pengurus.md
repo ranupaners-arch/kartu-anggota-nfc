@@ -76,6 +76,9 @@ e-profilnya **disahkan** dan saat laporan kartunya **diputuskan** (beserta catat
   (jatah +1) atau *Pengurus terbitkan* (tulis kartu lewat app petugas → Terbitkan Kartu, lalu serahkan),
   dengan catatan untuk anggota (mis. tempat & waktu pengambilan); atau *Tolak*. Laporan *hilang* sudah
   otomatis memblokir kartu lamanya.
+- **Riwayat kartu per anggota**: detail anggota → tab **Kartu** — semua kartu (siapa yang menerbitkan:
+  pengurus atau *anggota sendiri*), laporan kartu & keputusannya, sisa jatah daftar sendiri, dan
+  **Tambah jatah** (maks. 3) bila perlu memberi kesempatan tanpa laporan.
 
 ### Akun petugas & perangkat
 - **Pengguna & Peran** → **Tambah Pengguna** → peran *Petugas Scan* (atau *Anggota*, tautkan ke

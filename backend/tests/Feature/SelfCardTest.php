@@ -112,6 +112,27 @@ class SelfCardTest extends TestCase
             ->assertJsonPath('self_card.last_decision.review_note', 'Ambil di sekretariat Senin')->assertJsonPath('self_card.can_request', true);
     }
 
+    public function test_member_detail_shows_card_history_and_admin_can_grant_writes(): void
+    {
+        Sanctum::actingAs($this->user);
+        $this->write();
+        $this->postJson('/api/me/card/replacement', ['reason' => 'rusak', 'note' => 'Retak'])->assertCreated();
+        $admin = User::factory()->create(['organization_id' => $this->org->id, 'role' => 'super_admin']);
+        auth()->forgetGuards();
+
+        $this->actingAs($admin, 'web')->get("/anggota/{$this->budi->id}?tab=kartu")->assertInertia(fn (Assert $p) => $p
+            ->where('cards.0.issued_by', 'Anggota sendiri')->where('selfCardWritesLeft', 0)
+            ->has('cardRequests', 1)->where('cardRequests.0.reason', 'rusak')->where('cardRequests.0.note', 'Retak'));
+
+        $this->actingAs($admin, 'web')->post("/anggota/{$this->budi->id}/jatah-kartu")->assertSessionHas('status');
+        $this->assertSame(1, $this->budi->fresh()->self_card_writes_left);
+        $this->budi->update(['self_card_writes_left' => 3]);
+        $this->actingAs($admin, 'web')->post("/anggota/{$this->budi->id}/jatah-kartu")->assertStatus(422);
+
+        $da = User::factory()->create(['organization_id' => $this->org->id, 'role' => 'division_admin']);
+        $this->actingAs($da, 'web')->post("/anggota/{$this->budi->id}/jatah-kartu")->assertForbidden();
+    }
+
     public function test_only_super_admin_reviews_requests(): void
     {
         $req = CardRequest::create(['member_id' => $this->budi->id, 'user_id' => $this->user->id, 'reason' => 'rusak']);

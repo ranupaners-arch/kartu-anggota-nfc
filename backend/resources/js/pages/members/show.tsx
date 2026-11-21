@@ -25,6 +25,7 @@ import type { Paginated } from '@/types';
 type Member = { id: number; member_no: string; name: string; email: string | null; phone: string | null; cohort: string | null; photo_url: string | null };
 type Ms = { id: number; term_id: number; term: string | null; division: string | null; role: string | null; status: string };
 type Att = { id: number; status: string; source: string; voided_at: string | null; event: { title: string; starts_at: string } | null };
+type CardReq = { id: number; reason: string; note: string | null; status: string; resolution: string | null; review_note: string | null; created_at: string; reviewed_at: string | null; reviewer: string | null };
 type Privacy = { consentedAt: string | null; consentedBy: string | null; anonymizedAt: string | null; blocker: string | null };
 
 /** Hapus data pribadi (permanen): ketik nomor anggota + alasan. Kehadiran tetap tercatat di rekap. */
@@ -89,8 +90,8 @@ function PrivacyCard({ member, privacy }: { member: Member; privacy: Privacy }) 
     );
 }
 
-export default function MemberShow({ member, tab, memberships, cards, attendances, privacy, canManage, cardPreview }: {
-    member: Member; tab: string; memberships: Ms[]; cards: CardRow[]; attendances: Paginated<Att> | null; privacy: Privacy; canManage: boolean; cardPreview: MemberCardInfo;
+export default function MemberShow({ member, tab, memberships, cards, attendances, privacy, canManage, cardPreview, cardRequests, selfCardWritesLeft }: {
+    member: Member; tab: string; memberships: Ms[]; cards: CardRow[]; attendances: Paginated<Att> | null; privacy: Privacy; canManage: boolean; cardPreview: MemberCardInfo; cardRequests: CardReq[]; selfCardWritesLeft: number;
 }) {
     const anonymized = Boolean(privacy.anonymizedAt);
     const editable = canManage && !anonymized;
@@ -174,6 +175,36 @@ export default function MemberShow({ member, tab, memberships, cards, attendance
                     <div className="max-w-sm"><MemberCard info={cardPreview} /></div>
                     <p className="text-sm text-muted-foreground">Kartu baru diterbitkan lewat app petugas (mode Issue). Menerbitkan kartu baru otomatis memblokir kartu lama.</p>
                     <CardsTable cards={cards} showMember={false} />
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="text-base">Daftar kartu sendiri & laporan</CardTitle>
+                            <CardDescription>Sisa jatah anggota mendaftarkan kartu NFC sendiri lewat app: <b className="text-foreground">{selfCardWritesLeft}×</b>.</CardDescription>
+                        </CardHeader>
+                        <CardContent className="grid gap-3">
+                            {editable && selfCardWritesLeft < 3 && (
+                                <div><ConfirmAction size="sm" title="Tambah 1 jatah daftar kartu sendiri?" description="Anggota bisa mendaftarkan satu kartu NFC lagi lewat app-nya; kartu aktif lamanya diblokir saat kartu baru didaftarkan." href={`/anggota/${member.id}/jatah-kartu`} confirmLabel="Tambah jatah">Tambah jatah</ConfirmAction></div>
+                            )}
+                            {cardRequests.length === 0 ? <p className="text-sm text-muted-foreground">Belum ada laporan kartu.</p> : (
+                                <ul className="divide-y text-sm">
+                                    {cardRequests.map((q) => (
+                                        <li key={q.id} className="flex flex-wrap items-start gap-x-3 gap-y-1 py-2">
+                                            <span className="min-w-0 flex-1">
+                                                <b>{{ hilang: 'Kartu hilang', rusak: 'Kartu rusak', tanpa_nfc: 'HP tanpa NFC' }[q.reason] ?? q.reason}</b> · {fmtDateTime(q.created_at)}
+                                                {q.note && <span className="block text-muted-foreground">“{q.note}”</span>}
+                                                {q.review_note && <span className="block text-muted-foreground">Catatan pengurus: {q.review_note}</span>}
+                                            </span>
+                                            <span className="text-right text-xs text-muted-foreground">
+                                                <StatusBadge status={q.status} />
+                                                {q.resolution && <span className="block">{q.resolution === 'admin' ? 'Pengurus terbitkan' : 'Daftar sendiri'}</span>}
+                                                {q.reviewer && <span className="block">{q.reviewer}</span>}
+                                            </span>
+                                        </li>
+                                    ))}
+                                </ul>
+                            )}
+                            <Link href="/kartu?tab=pengganti" className="text-sm text-primary underline-offset-4 hover:underline">Semua permintaan pengganti →</Link>
+                        </CardContent>
+                    </Card>
                 </>
             )}
         </AppLayout>

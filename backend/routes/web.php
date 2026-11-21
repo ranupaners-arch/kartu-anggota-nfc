@@ -112,6 +112,7 @@ Route::middleware(['auth:web', 'dashboard'])->group(function () {
         Route::post('anggota/{member}/pulihkan', [Dashboard\MemberController::class, 'restore'])->withTrashed()->name('members.restore');
         Route::post('anggota/{member}/foto', [Dashboard\MemberController::class, 'uploadPhoto'])->name('members.photo.upload');
         Route::post('anggota/{member}/persetujuan', [Dashboard\MemberController::class, 'consent'])->name('members.consent');
+        Route::post('anggota/{member}/jatah-kartu', [Dashboard\MemberController::class, 'grantSelfCard'])->name('members.self-card');
         Route::post('anggota/{member}/hapus-data', [Dashboard\MemberController::class, 'anonymize'])->name('members.anonymize');
         Route::get('kartu', [Dashboard\CardController::class, 'index'])->name('cards.index');
         Route::post('kartu/{card}/blokir', [Dashboard\CardController::class, 'block'])->name('cards.block');
