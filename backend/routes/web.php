@@ -57,6 +57,10 @@ Route::middleware(['auth:web', 'dashboard'])->group(function () {
     Route::get('/', Dashboard\HomeController::class)->name('home');
     Route::get('cari', Dashboard\SearchController::class)->middleware('throttle:60,1')->name('search');
     Route::get('akun', [Dashboard\AccountController::class, 'edit'])->name('account');
+    // Notifikasi push dashboard (mis. pendaftar & laporan kartu baru) — endpoint sama dengan portal.
+    Route::post('akun/notifikasi', [App\Http\Controllers\Portal\PortalController::class, 'subscribePush'])->middleware('throttle:20,1')->name('account.push.subscribe');
+    Route::delete('akun/notifikasi', [App\Http\Controllers\Portal\PortalController::class, 'unsubscribePush'])->name('account.push.unsubscribe');
+    Route::post('akun/notifikasi/uji', [App\Http\Controllers\Portal\PortalController::class, 'testPush'])->middleware('throttle:5,1')->name('account.push.test');
     Route::put('akun/ringkasan', [Dashboard\AccountController::class, 'weeklySummary'])->name('account.weekly-summary');
     Route::get('akun/ringkasan/contoh', [Dashboard\AccountController::class, 'weeklySummaryPreview'])->name('account.weekly-summary.preview');
     Route::post('akun/kalender', [App\Http\Controllers\CalendarFeedController::class, 'reset'])->name('account.calendar.reset');

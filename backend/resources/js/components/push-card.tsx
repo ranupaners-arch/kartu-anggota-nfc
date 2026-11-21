@@ -20,7 +20,7 @@ function keyBytes(base64: string) {
 type State = 'loading' | 'unsupported' | 'ios-install' | 'denied' | 'off' | 'on';
 
 /** Aktifkan/matikan notifikasi push di perangkat ini (pengingat kegiatan & pengumuman). */
-export function PushCard({ publicKey }: { publicKey: string | null }) {
+export function PushCard({ publicKey, endpoint = '/saya/notifikasi', description = 'Pengingat ±1 jam sebelum kegiatan dan pengumuman baru, langsung ke HP ini.' }: { publicKey: string | null; endpoint?: string; description?: string }) {
     const [state, setState] = useState<State>('loading');
     const [busy, setBusy] = useState(false);
 
@@ -46,10 +46,10 @@ export function PushCard({ publicKey }: { publicKey: string | null }) {
             if ((await Notification.requestPermission()) !== 'granted') return setState('denied');
             const reg = await navigator.serviceWorker.ready;
             const sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: keyBytes(publicKey) });
-            const res = await send('POST', '/saya/notifikasi', sub.toJSON());
+            const res = await send('POST', endpoint, sub.toJSON());
             if (!res.ok) throw new Error();
             setState('on');
-            await send('POST', '/saya/notifikasi/uji');
+            await send('POST', `${endpoint}/uji`);
             toast.success('Notifikasi aktif di perangkat ini.');
         } catch {
             toast.error('Gagal mengaktifkan notifikasi. Coba lagi.');
@@ -63,7 +63,7 @@ export function PushCard({ publicKey }: { publicKey: string | null }) {
         try {
             const sub = await (await navigator.serviceWorker.ready).pushManager.getSubscription();
             if (sub) {
-                await send('DELETE', '/saya/notifikasi', { endpoint: sub.endpoint });
+                await send('DELETE', endpoint, { endpoint: sub.endpoint });
                 await sub.unsubscribe();
             }
             setState('off');
@@ -77,7 +77,7 @@ export function PushCard({ publicKey }: { publicKey: string | null }) {
         <Card>
             <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-base"><BellRing className="size-4" /> Notifikasi</CardTitle>
-                <CardDescription>Pengingat ±1 jam sebelum kegiatan dan pengumuman baru, langsung ke HP ini.</CardDescription>
+                <CardDescription>{description}</CardDescription>
             </CardHeader>
             <CardContent className="grid gap-3 text-sm">
                 {state === 'loading' && <p className="text-muted-foreground">Memeriksa…</p>}

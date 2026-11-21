@@ -32,6 +32,13 @@ Aktif setelah email server diatur (lihat *Pengaturan → Sistem → Email*; cara
   izin & tinjauan yang menunggu, anggota yang perlu perhatian, kegiatan pekan ini (Admin Divisi:
   divisinya saja). Atur di **Akun → Ringkasan mingguan** (ada **Lihat contoh**).
 
+## Pemberitahuan alur kartu
+
+Super Admin otomatis diberi tahu saat ada **pendaftar baru** (e-profil/formulir pendaftaran) dan
+**laporan kartu** baru (hilang/rusak/HP tanpa NFC) — lewat **email** (bila SMTP diatur) dan **push**
+(aktifkan di **Akun → Notifikasi**, bila server mengaktifkan push). Anggota diberi tahu saat
+e-profilnya **disahkan** dan saat laporan kartunya **diputuskan** (beserta catatan Anda).
+
 ## Menyiapkan data (Super Admin)
 
 ### Anggota

@@ -129,7 +129,7 @@ class PortalController extends Controller
 
     public function testPush(Request $r, \App\Services\Push\PushService $push)
     {
-        $n = $push->toUsers(collect([$r->user()->id]), 'Notifikasi aktif', 'Anda akan menerima pengingat kegiatan dan pengumuman di perangkat ini.', '/saya', 'uji');
+        $n = $push->toUsers(collect([$r->user()->id]), 'Notifikasi aktif', 'Pemberitahuan akan masuk ke perangkat ini.', '/saya', 'uji');
 
         return response()->json(['devices' => $n]);
     }
