@@ -105,9 +105,26 @@ dan — untuk alur pendaftaran — **Pengaturan → Aplikasi → Buka pendaftara
   Aktif* → di app tarik layar Kartu → kartu **aktif**, tombol *Tampilkan QR* muncul.
 - **Daftarkan kartu NFC sendiri (perlu kartu NTAG215 kosong):** kartu aktif → **Daftarkan kartu NFC
   saya** → tempel kartu → "Kartu aktif" → scan kartu itu di kegiatan. Tombol hilang setelah sekali pakai.
-- **Kartu pengganti:** *Kartu hilang/rusak? Ajukan pengganti* → pilih **Hilang** → kartu lama langsung
-  ditolak saat discan; dashboard → **Kartu → Permintaan Pengganti** → Setujui → di app tombol daftarkan
-  kartu muncul lagi.
+- **Deteksi NFC (tab Kartu, kartu aktif):** di HP ber-NFC yang **menyala** → tombol *Daftarkan kartu NFC
+  saya*. Matikan NFC di pengaturan HP → buka lagi tab Kartu → *NFC di HP ini sedang mati* → *Buka
+  pengaturan NFC* membuka layar NFC HP → nyalakan, kembali → tombol daftarkan muncul. Di HP **tanpa NFC**
+  → *HP ini tidak mendukung NFC* + *Minta pengurus terbitkan kartu*.
+- **Lapor kartu:** tab Kartu → *Lapor kartu hilang/rusak* → pilih **Kartu hilang** → kartu lama langsung
+  ditolak saat discan (app petugas: kartu diblokir/hilang); tab Kartu menampilkan *Laporan menunggu tindak
+  lanjut*. Dashboard → **Kartu → Permintaan Pengganti** (angka di menu) → **Tindak lanjuti**:
+  - *Izinkan daftar sendiri* → di app tombol daftarkan kartu muncul lagi;
+  - *Pengurus terbitkan* + catatan (mis. "ambil di sekretariat Senin") → app menampilkan *Pengurus akan
+    menerbitkan kartu Anda* beserta catatannya; terbitkan lewat app petugas → Terbitkan Kartu;
+  - *Tolak* + catatan → app menampilkan *Laporan kartu ditolak*.
+  Coba juga laporan **HP tanpa NFC** (bawaannya *Pengurus terbitkan*).
+- **Cetak kartu sendiri:** tab Kartu (aktif) → *Unduh kartu (PDF) untuk dicetak* → PDF terbuka (depan &
+  belakang, 85,6 × 54 mm). Portal: tombol yang sama di halaman Kartu. Kartu belum disahkan → ditolak.
+- **Denda absen QR:** Pengaturan → Organisasi → **Kebijakan denda** → aktifkan, nominal mis. 5000, jatah
+  gratis 1. Anggota yang **punya kartu aktif** absen pakai QR dua kali di dua kegiatan → pertama gratis,
+  kedua hasil scan petugas menyebut *Denda QR Rp5.000*. Anggota tanpa kartu / kartu dilapor hilang →
+  tidak didenda. Menu **Denda** → total belum lunas → centang → *Tandai lunas* / *Bebaskan*. Batalkan
+  absensinya di Daftar Hadir → dendanya otomatis dibebaskan. Anggota melihat denda di **Riwayat**
+  (app & portal).
 - **Password sementara:** dashboard → Anggota → centang → **Buat akun app** → cetak lembar → masuk di
   app dengan password sementara → wajib **Buat password baru** sebelum bisa memakai app.
 - **Lupa password (perlu SMTP diatur):** layar Masuk → *Lupa password?* → email → tautan → atur ulang.
