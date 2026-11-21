@@ -127,6 +127,31 @@ class FineTest extends TestCase
         $this->assertSame([false, 2000, 2], [$this->org->fresh()->fine_enabled, $this->org->fresh()->fine_amount, $this->org->fresh()->fine_free_per_term]);
     }
 
+    public function test_term_report_and_export_include_fines(): void
+    {
+        \Illuminate\Support\Facades\Storage::fake('local');
+        $this->policy(true, 5000);
+        $m = $this->member('A', true);
+        $this->member('B', false);
+        $this->scanQr($m, $this->event());
+        $this->scanQr($m, $this->event());
+        \App\Models\Fine::orderBy('id')->first()->update(['status' => Fine::PAID]);
+        auth()->forgetGuards();
+
+        $this->actingAs($this->admin, 'web')->get('/rekap?tab=periode')->assertInertia(fn (Assert $p) => $p
+            ->where('report.show_fines', true)->where('report.fines_unpaid_total', 5000)
+            ->where('report.rows', fn ($rows) => collect($rows)->firstWhere('member_no', 'A')['fines_count'] === 2
+                && collect($rows)->firstWhere('member_no', 'A')['fines_paid'] === 5000 && collect($rows)->firstWhere('member_no', 'B')['fines_count'] === 0));
+
+        $this->actingAs($this->admin, 'web')->post(route('exports.store'), ['report' => 'term', 'term_id' => $this->term->id, 'format' => 'pdf'])->assertRedirect();
+        $export = \App\Models\Export::sole();
+        $this->assertSame('ready', $export->fresh()->status);
+
+        $this->policy(false);
+        \App\Models\Fine::query()->delete();
+        $this->actingAs($this->admin, 'web')->get('/rekap?tab=periode')->assertInertia(fn (Assert $p) => $p->where('report.show_fines', false));
+    }
+
     public function test_only_super_admin_manages_fines(): void
     {
         $da = User::factory()->create(['organization_id' => $this->org->id, 'role' => 'division_admin']);

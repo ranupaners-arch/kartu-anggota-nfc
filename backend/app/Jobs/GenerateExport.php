@@ -53,8 +53,13 @@ class GenerateExport implements ShouldQueue
             $data = $reports->term($term, $p['division_id'] ?? null);
             $title = "Rekap Periode {$term->name}";
             $headings = ['No. Anggota', 'Nama', 'Divisi', 'Hadir', 'Telat', 'Izin', 'Sakit', 'Alpa', 'Total', '% Hadir'];
+            $fines = $data['show_fines'];
+            if ($fines) {
+                array_push($headings, 'Denda QR (kali)', 'Belum lunas (Rp)', 'Lunas (Rp)');
+            }
             $rows = collect($data['rows'])->map(fn ($r) => [$r['member_no'], $r['name'], $r['division'],
-                $r['hadir'], $r['telat'], $r['izin'], $r['sakit'], $r['alpa'], $r['total'], $r['attendance_rate']])->all();
+                $r['hadir'], $r['telat'], $r['izin'], $r['sakit'], $r['alpa'], $r['total'], $r['attendance_rate'],
+                ...($fines ? [$r['fines_count'], $r['fines_unpaid'], $r['fines_paid']] : [])])->all();
         }
 
         $path = sprintf('exports/%d/%s-%s.%s', $org->id, Str::slug($title), now()->format('Ymd-His'), $export->format);
