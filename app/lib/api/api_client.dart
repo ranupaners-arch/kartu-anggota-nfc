@@ -263,6 +263,12 @@ class ApiClient {
     return [for (final a in j['data'] as List) Announcement.fromJson(a as Map<String, dynamic>)];
   }
 
+  /// Kotak notifikasi anggota (pengumuman, keputusan izin/kartu, denda, pengingat), terbaru dulu.
+  Future<List<MemberNotice>> myNotifications() async {
+    final j = await _send('GET', '/api/me/notifications');
+    return [for (final n in j['data'] as List) MemberNotice.fromJson(n as Map<String, dynamic>)];
+  }
+
   /// Tautan langganan jadwal (.ics) milik akun ini; [reset] = buat tautan baru (yang lama mati).
   Future<String> calendarUrl({bool reset = false}) async {
     final j = await _send(reset ? 'POST' : 'GET', reset ? '/api/me/calendar/reset' : '/api/me/calendar');
@@ -390,6 +396,9 @@ class MemberEvent {
     this.canRequestExcuse = false,
     this.sessions = 1,
     this.presentSessions = 0,
+    this.endsAt,
+    this.checkinOpensAt,
+    this.lateAfter,
   });
 
   factory MemberEvent.fromJson(Map<String, dynamic> j) {
@@ -409,6 +418,9 @@ class MemberEvent {
       canRequestExcuse: j['can_request_excuse'] as bool? ?? false,
       sessions: j['sessions'] as int? ?? 1,
       presentSessions: j['present_sessions'] as int? ?? 0,
+      endsAt: _time(j['ends_at']),
+      checkinOpensAt: _time(j['checkin_opens_at']),
+      lateAfter: _time(j['late_after']),
     );
   }
 
@@ -421,6 +433,11 @@ class MemberEvent {
 
   /// Kegiatan multi-sesi: jumlah sesi & sesi yang dihadiri (tiap sesi = satu kehadiran).
   final int sessions, presentSessions;
+
+  /// Jadwal lengkap untuk halaman detail (opsional: server lama tidak mengirimnya).
+  final DateTime? endsAt, checkinOpensAt, lateAfter;
+
+  static DateTime? _time(Object? v) => v is String ? DateTime.tryParse(v)?.toLocal() : null;
 }
 
 /// Ringkasan kehadiran anggota (GET /api/me/history).
@@ -532,4 +549,25 @@ class MemberCardInfo {
       },
     );
   }
+}
+
+/// Satu notifikasi di kotak notifikasi anggota (GET /api/me/notifications).
+class MemberNotice {
+  const MemberNotice({required this.id, required this.type, required this.title, required this.at, this.body});
+
+  factory MemberNotice.fromJson(Map<String, dynamic> j) => MemberNotice(
+    id: j['id'] as String,
+    type: j['type'] as String,
+    title: j['title'] as String,
+    body: j['body'] as String?,
+    at: DateTime.parse(j['at'] as String).toLocal(),
+  );
+
+  final String id;
+
+  /// announcement | excuse | card | fine | reminder
+  final String type;
+  final String title;
+  final String? body;
+  final DateTime at;
 }

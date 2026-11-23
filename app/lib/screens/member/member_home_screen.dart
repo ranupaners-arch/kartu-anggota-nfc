@@ -10,9 +10,11 @@ import '../login_screen.dart';
 import 'account_tab.dart';
 import 'eprofile_screen.dart';
 import 'home_tab.dart';
+import 'member_pages.dart';
 import 'my_card_tab.dart';
 import 'my_events_tab.dart';
 import 'my_history_tab.dart';
+import 'notifications_page.dart';
 
 /// Layar utama anggota ala aplikasi bank: Beranda (kartu + menu cepat), Kegiatan, Riwayat, Akun.
 class MemberHomeScreen extends StatefulWidget {
@@ -35,12 +37,60 @@ class _MemberHomeScreenState extends State<MemberHomeScreen> {
   /// Nama organisasi untuk subjudul bilah atas (sama dengan portal web).
   String? _org;
 
+  /// Kotak notifikasi: daftar terbaru & kapan terakhir dibuka (angka di lonceng).
+  List<MemberNotice> _notices = const [];
+  DateTime? _seenAt;
+
   @override
   void initState() {
     super.initState();
     _api.myCard().then((c) {
       if (mounted) setState(() => _org = c.organization);
     }, onError: (_) {});
+    _loadNotices();
+  }
+
+  Future<void> _loadNotices() async {
+    try {
+      final seen = await NoticeSeen.load();
+      final list = await _api.myNotifications();
+      if (mounted) {
+        setState(() {
+          _notices = list;
+          _seenAt = seen;
+        });
+      }
+    } catch (_) {
+      // Belum anggota / tanpa koneksi: lonceng tanpa angka.
+    }
+  }
+
+  Future<void> _openNotices() async {
+    final before = _seenAt;
+    final now = DateTime.now();
+    await NoticeSeen.save(now);
+    setState(() => _seenAt = now);
+    if (!mounted) return;
+    await pushMemberPage<void>(context, 'Notifikasi', NotificationsPage(api: _api, seenBefore: before, onOpen: _openNotice));
+    _loadNotices();
+  }
+
+  /// Notifikasi diketuk → halaman terkait (bukan pindah tab).
+  Future<void> _openNotice(BuildContext context, MemberNotice n) async {
+    switch (n.type) {
+      case 'excuse' || 'reminder':
+        await pushMemberPage<void>(context, 'Ajukan izin', ExcuseListPage(api: _api));
+      case 'card':
+        await _openCard(context);
+      case 'fine':
+        await pushMemberPage<void>(context, 'Denda', FinesPage(api: _api));
+      case 'announcement':
+        final id = int.tryParse(n.id.split(':').last);
+        final all = await _api.myAnnouncements().catchError((_) => <Announcement>[]);
+        final a = all.where((x) => x.id == id).firstOrNull;
+        if (!context.mounted) return;
+        await pushMemberPage<void>(context, 'Pengumuman', AnnouncementPage(title: n.title, body: a?.body ?? n.body ?? '', at: a?.createdAt ?? n.at, division: a?.division));
+    }
   }
 
   Future<void> _confirmLogout() async {
@@ -64,7 +114,10 @@ class _MemberHomeScreenState extends State<MemberHomeScreen> {
     maxContentWidth: kWideContentWidth,
     subtitle: _org,
     brand: true,
-    actions: [ShadIconButton.ghost(icon: const Icon(LucideIcons.logOut, size: 18), onPressed: _confirmLogout)],
+    actions: [
+      NoticeBell(unread: NoticeSeen.unread(_notices, _seenAt), onPressed: _openNotices),
+      ShadIconButton.ghost(icon: const Icon(LucideIcons.logOut, size: 18), onPressed: _confirmLogout),
+    ],
     child: child,
   );
 
@@ -96,7 +149,10 @@ class _MemberHomeScreenState extends State<MemberHomeScreen> {
   static const _destinations = [(LucideIcons.house, 'Beranda'), (LucideIcons.calendarDays, 'Kegiatan'), (LucideIcons.history, 'Riwayat'), (LucideIcons.userRound, 'Akun')];
 
   void _select(int i) {
-    if (i == 0 && _tab != 0) _home.currentState?.refresh(); // kembali ke Beranda → data segar
+    if (i == 0 && _tab != 0) {
+      _home.currentState?.refresh(); // kembali ke Beranda → data segar
+      _loadNotices();
+    }
     setState(() => _tab = i);
   }
 

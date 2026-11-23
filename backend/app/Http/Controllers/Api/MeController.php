@@ -59,6 +59,12 @@ class MeController extends Controller
             ->map(fn ($a) => $a->only('id', 'title', 'body', 'pinned', 'created_at') + ['division' => $a->division?->name])];
     }
 
+    /** Kotak notifikasi anggota (lonceng di app). */
+    public function notifications(Request $r, \App\Services\MemberNotificationService $notifications)
+    {
+        return ['data' => $notifications->forMember($this->memberId($r))];
+    }
+
     /** Tampilan kartu anggota (status e-profil/pengesahan + data kartu). */
     public function card(Request $r, \App\Services\MemberCardService $cards)
     {

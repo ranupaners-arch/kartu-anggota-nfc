@@ -1,6 +1,9 @@
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shadcn_ui/shadcn_ui.dart';
+import 'package:kartuanggota/app/format.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:kartuanggota/api/api_client.dart';
@@ -9,14 +12,19 @@ import 'package:kartuanggota/app/session.dart';
 import 'package:kartuanggota/main.dart';
 import 'package:kartuanggota/screens/events_screen.dart';
 import 'package:kartuanggota/screens/member/account_tab.dart';
+import 'package:kartuanggota/screens/member/event_detail_page.dart';
 import 'package:kartuanggota/screens/member/excuse_screen.dart';
 import 'package:kartuanggota/screens/member/member_home_screen.dart';
 import 'package:kartuanggota/screens/member/my_events_tab.dart';
 import 'package:kartuanggota/screens/member/my_history_tab.dart';
 import 'package:kartuanggota/screens/member/my_qr_tab.dart';
+import 'package:kartuanggota/screens/member/notifications_page.dart';
 import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+
+/// Waktu notifikasi tiruan: tetap (bukan "sekarang" tiap permintaan), 30 detik sebelum tes dimulai.
+final noticeAt = DateTime.now().subtract(const Duration(seconds: 30));
 
 Session session(String role) => Session(baseUrl: 'http://srv', token: 't', userName: 'Budi', role: role);
 
@@ -83,6 +91,16 @@ MockClient server({List<http.Request>? seen, int qrCalls = 0, void Function()? o
         }),
         200,
       );
+    case '/api/me/notifications':
+      return http.Response(
+        jsonEncode({
+          'data': [
+            {'id': 'excuse:1', 'type': 'excuse', 'title': 'Izin disetujui: Rapat Pleno', 'body': 'Semoga lekas sembuh', 'at': noticeAt.toUtc().toIso8601String()},
+            {'id': 'announcement:1', 'type': 'announcement', 'title': 'Sekre tutup Jumat', 'body': 'Libur nasional.', 'at': '2026-11-01T02:00:00Z'},
+          ],
+        }),
+        200,
+      );
     case '/api/excuses':
       return http.Response(jsonEncode({'id': 1}), 201);
     case '/api/me/calendar':
@@ -101,6 +119,21 @@ void main() {
     for (final role in ['scanner', 'division_admin', 'super_admin']) {
       expect(homeFor(session(role)), isA<EventsScreen>(), reason: role);
     }
+  });
+
+  testWidgets('QR Saya: layar terang & menyala selama tampil, dikembalikan saat ditutup', (tester) async {
+    final modes = <bool>[];
+    await tester.pumpWidget(
+      KartuAnggotaApp(
+        home: Scaffold(
+          body: MyQrTab(api: api(server()), name: 'Budi', screenMode: (on) async => modes.add(on)),
+        ),
+      ),
+    );
+    await tester.pump();
+    expect(modes, [true]);
+    await tester.pumpWidget(const SizedBox());
+    expect(modes, [true, false]);
   });
 
   testWidgets('QR Saya tampil dan diperbarui otomatis', (tester) async {
@@ -458,5 +491,86 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Rapat Pleno'), findsOneWidget);
     expect(find.text('Belum ada kegiatan'), findsNothing);
+  });
+
+  testWidgets('Lonceng: angka belum dibaca, kotak notifikasi, lalu angka hilang', (tester) async {
+    SharedPreferences.setMockInitialValues({});
+    final semantics = tester.ensureSemantics();
+    tester.view.physicalSize = const Size(1080, 2400);
+    tester.view.devicePixelRatio = 2.5;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      KartuAnggotaApp(
+        home: MemberHomeScreen(session: session('member'), api: api(server())),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final bell = find.byType(NoticeBell).first;
+    expect(find.descendant(of: bell, matching: find.text('2')), findsOneWidget);
+    expect(tester.getSemantics(bell).label, 'Notifikasi, 2 belum dibaca');
+
+    await tester.tap(find.byIcon(LucideIcons.bell).first);
+    await tester.pumpAndSettle();
+    expect(find.text('Izin disetujui: Rapat Pleno'), findsOneWidget);
+    expect(find.text('baru saja'), findsOneWidget);
+
+    // Ketuk pengumuman → halaman pengumuman (bukan pindah tab).
+    await tester.tap(find.text('Sekre tutup Jumat'));
+    await tester.pumpAndSettle();
+    expect(find.text('Libur nasional.'), findsOneWidget);
+    await tester.tap(find.byType(BackButton));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byType(BackButton));
+    await tester.pumpAndSettle();
+    expect(find.descendant(of: find.byType(NoticeBell).first, matching: find.text('2')), findsNothing); // sudah dibaca
+    expect(tester.getSemantics(find.byType(NoticeBell).first).label, 'Notifikasi');
+    await tester.pumpWidget(const SizedBox());
+    semantics.dispose();
+  });
+
+  test('waktu relatif notifikasi', () {
+    final now = DateTime(2026, 11, 23, 12);
+    expect(fmtAgo(now.subtract(const Duration(seconds: 20)), now), 'baru saja');
+    expect(fmtAgo(now.subtract(const Duration(minutes: 5)), now), '5 menit lalu');
+    expect(fmtAgo(now.subtract(const Duration(hours: 3)), now), '3 jam lalu');
+    expect(fmtAgo(now.subtract(const Duration(days: 1, hours: 2)), now), 'kemarin');
+    expect(fmtAgo(now.subtract(const Duration(days: 4)), now), '4 hari lalu');
+    expect(fmtAgo(DateTime(2026, 10, 1), now), '1 Okt 2026');
+  });
+
+  test('tahap check-in kegiatan', () {
+    final e = MemberEvent.fromJson({
+      ...eventJson,
+      'starts_at': '2026-11-23T02:00:00Z',
+      'checkin_opens_at': '2026-11-23T01:30:00Z',
+      'late_after': '2026-11-23T02:15:00Z',
+      'checkin_closes_at': '2026-11-23T03:00:00Z',
+    });
+    DateTime at(String hm) => DateTime.parse('2026-11-23T$hm:00Z').toLocal();
+    expect(checkinPhase(e, at('01:00')), CheckinPhase.notYet);
+    expect(checkinPhase(e, at('02:00')), CheckinPhase.onTime);
+    expect(checkinPhase(e, at('02:30')), CheckinPhase.late);
+    expect(checkinPhase(e, at('03:30')), CheckinPhase.closed);
+    expect(checkinPhase(MemberEvent.fromJson({...eventJson, 'closed_at': '2026-11-23T02:00:00Z'}), at('01:00')), CheckinPhase.closed);
+  });
+
+  testWidgets('Kegiatan: ketuk kartu → halaman detail dengan jadwal, check-in, dan tombol izin', (tester) async {
+    tester.view.physicalSize = const Size(1080, 2400);
+    tester.view.devicePixelRatio = 2.5;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      KartuAnggotaApp(
+        home: Scaffold(body: MyEventsTab(api: api(server(announcements: false)))),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Rapat Pleno'));
+    await tester.pumpAndSettle();
+    expect(find.byType(EventDetailPage), findsOneWidget);
+    expect(find.text('Detail kegiatan'), findsOneWidget);
+    expect(find.text('Check-in'), findsOneWidget);
+    expect(find.text('Belum dibuka.'), findsOneWidget); // kegiatan 2099
+    expect(find.text('Ajukan izin / sakit'), findsOneWidget);
+    expect(find.text('Aula'), findsOneWidget);
   });
 }
