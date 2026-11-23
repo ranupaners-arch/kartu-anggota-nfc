@@ -57,7 +57,7 @@ function ReviewDialog({ c }: { c: Change }) {
                 </DialogHeader>
                 <div className="grid gap-4 text-sm">
                     <Diff c={c} withPhoto />
-                    <FormField label="Catatan untuk anggota (opsional)" hint="Wajib diisi bila ditolak agar anggota tahu alasannya." error={form.errors.note}>
+                    <FormField label="Catatan untuk anggota" hint="Wajib diisi bila ditolak, agar anggota tahu apa yang perlu diperbaiki." error={form.errors.note}>
                         <Textarea rows={2} maxLength={500} value={form.data.note} onChange={(e) => form.setData('note', e.target.value)} />
                     </FormField>
                 </div>

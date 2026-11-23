@@ -105,7 +105,7 @@ class ProfileChangeTest extends TestCase
         auth()->forgetGuards();
         Sanctum::actingAs($this->user);
         $this->getJson('/api/me/notifications')->assertJsonPath('data.0.type', 'profile')->assertJsonPath('data.0.title', 'Perubahan data disetujui');
-        $this->actingAs($this->admin, 'web')->post("/perubahan-data/{$change->id}", ['action' => 'reject'])->assertStatus(422);
+        $this->actingAs($this->admin, 'web')->post("/perubahan-data/{$change->id}", ['action' => 'reject', 'note' => 'Terlambat'])->assertStatus(422);
     }
 
     public function test_reject_keeps_old_data_and_deletes_submitted_photo(): void
@@ -116,6 +116,8 @@ class ProfileChangeTest extends TestCase
         $path = $change->photo_path;
 
         auth()->forgetGuards();
+        $this->actingAs($this->admin, 'web')->post("/perubahan-data/{$change->id}", ['action' => 'reject'])->assertSessionHasErrors('note'); // alasan wajib
+        $this->assertSame('pending', $change->fresh()->status);
         $this->actingAs($this->admin, 'web')->post("/perubahan-data/{$change->id}", ['action' => 'reject', 'note' => 'Foto buram'])->assertRedirect();
         $this->assertSame('0811111', $this->budi->fresh()->phone);
         Storage::disk('local')->assertMissing($path);

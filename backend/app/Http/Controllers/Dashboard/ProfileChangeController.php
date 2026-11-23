@@ -38,7 +38,10 @@ class ProfileChangeController extends Controller
 
     public function review(Request $r, ProfileChange $change, ProfileChangeService $changes)
     {
-        $d = $r->validate(['action' => 'required|in:approve,reject', 'note' => 'nullable|string|max:500']);
+        $d = $r->validate(
+            ['action' => 'required|in:approve,reject', 'note' => 'nullable|required_if:action,reject|string|max:500'],
+            ['note.required_if' => 'Tulis alasan penolakan agar anggota tahu apa yang perlu diperbaiki.'],
+        );
         $changes->review($r->user(), $change, $d['action'] === 'approve', $d['note'] ?? null);
 
         return back()->with('status', $d['action'] === 'approve' ? 'Perubahan data disetujui dan diterapkan.' : 'Perubahan data ditolak.');
