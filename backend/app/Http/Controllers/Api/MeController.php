@@ -65,6 +65,12 @@ class MeController extends Controller
         return ['data' => $notifications->forMember($this->memberId($r))];
     }
 
+    /** Poin & lencana keaktifan periode berjalan (hanya milik sendiri). */
+    public function achievements(Request $r, \App\Services\AchievementService $achievements)
+    {
+        return $achievements->forMember($this->memberId($r));
+    }
+
     /** Tampilan kartu anggota (status e-profil/pengesahan + data kartu). */
     public function card(Request $r, \App\Services\MemberCardService $cards)
     {
