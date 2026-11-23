@@ -75,7 +75,7 @@ export function DutyCard({ memberId, memberName, duty }: { memberId: number; mem
                         <EndDutyDialog dutyId={duty.current.id} name={memberName} />
                     </div>
                 ) : (
-                    <form onSubmit={submit} className="grid gap-3 sm:grid-cols-3 sm:items-end">
+                    <form onSubmit={submit} className="grid gap-3 sm:grid-cols-3 sm:items-start">
                         <FormField label="Jenis tugas" error={form.errors.type}>
                             <NativeSelect className="w-full" value={form.data.type} onChange={(e) => form.setData('type', e.target.value)}>
                                 <NativeSelectOption value="scanner">Petugas Scan</NativeSelectOption>
