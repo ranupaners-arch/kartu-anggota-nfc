@@ -144,7 +144,8 @@ Menemukan celah keamanan? Jangan buka issue publik — ikuti [SECURITY.md](SECUR
 ## Kontribusi
 
 - Kerja di branch (`feat/…`, `fix/…`, `docs/…`), lalu pull request ke `main`; merge setelah CI hijau.
-- Commit kecil dan atomik, pesan berbahasa Indonesia dengan format `Area: ringkasan` (mis. `Dashboard: …`, `App: …`).
+- Commit kecil dan atomik, pesan [Conventional Commits](https://www.conventionalcommits.org/) berbahasa Indonesia (mis. `fix(app): …`, `feat(dashboard): …`).
+- Panduan lengkap ada di [CONTRIBUTING.md](CONTRIBUTING.md).
 - Sertakan tes untuk perubahan perilaku: `php artisan test` (backend) dan `flutter test` (app).
 - Dengan mengirim kontribusi, Anda setuju kontribusi itu dirilis di bawah lisensi yang sama (GPL-3.0-or-later).
 
