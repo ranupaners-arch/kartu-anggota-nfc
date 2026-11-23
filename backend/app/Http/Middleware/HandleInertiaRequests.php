@@ -52,6 +52,7 @@ class HandleInertiaRequests extends Middleware
                 'reviews' => app(\App\Services\AttendanceService::class)->pendingReviewCount($user),
                 // Pendaftar baru menunggu keputusan (hanya Super Admin yang mengelola anggota).
                 'cardRequests' => $user->isSuperAdmin() ? \App\Models\CardRequest::where('status', 'pending')->count() : 0,
+                'profileChanges' => $user->isSuperAdmin() ? \App\Models\ProfileChange::where('status', 'pending')->count() : 0,
                 'applicants' => $user->isSuperAdmin() ? \App\Models\Membership::whereHas('term', fn ($t) => $t->where('is_current', true))->where('status', 'applicant')->count() : 0,
             ] : null,
             'flash' => fn () => ['status' => $request->session()->get('status')],

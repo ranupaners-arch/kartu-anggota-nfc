@@ -15,7 +15,8 @@ use Illuminate\Support\Collection;
 
 /**
  * Kotak notifikasi anggota (lonceng di app): dirangkum dari data yang sudah ada, tanpa tabel baru —
- * pengumuman, keputusan izin, keputusan laporan kartu, denda QR, dan pengingat kegiatan 24 jam ke depan.
+ * pengumuman, keputusan izin, keputusan laporan kartu & perubahan data, denda QR, dan pengingat kegiatan
+ * 24 jam ke depan.
  * Status "sudah dibaca" disimpan di perangkat anggota (berdasarkan waktu terakhir membuka kotak).
  */
 class MemberNotificationService
@@ -35,6 +36,7 @@ class MemberNotificationService
             ->merge($this->announcements($memberId, $term, $since))
             ->merge($this->excuses($memberId, $since))
             ->merge($this->cardRequests($memberId, $since))
+            ->merge($this->profileChanges($memberId, $since))
             ->merge($this->fines($memberId, $since))
             ->merge($this->reminders($memberId, $term));
 
@@ -72,6 +74,18 @@ class MemberNotificationService
                 'id' => "card:{$c->id}", 'type' => 'card',
                 'title' => $c->status === 'approved' ? 'Laporan kartu disetujui' : 'Laporan kartu ditolak',
                 'body' => $c->review_note ?: ($c->status === 'approved' ? 'Lihat menu Kartu untuk langkah berikutnya.' : 'Hubungi pengurus bila perlu.'),
+                'at' => $c->reviewed_at,
+            ]);
+    }
+
+    private function profileChanges(int $memberId, Carbon $since): Collection
+    {
+        return \App\Models\ProfileChange::where('member_id', $memberId)->whereIn('status', ['approved', 'rejected'])
+            ->where('reviewed_at', '>=', $since)->get()
+            ->map(fn (\App\Models\ProfileChange $c) => [
+                'id' => "profile:{$c->id}", 'type' => 'profile',
+                'title' => $c->status === 'approved' ? 'Perubahan data disetujui' : 'Perubahan data ditolak',
+                'body' => $c->review_note ?: ($c->status === 'approved' ? 'Data diri Anda sudah diperbarui.' : 'Data lama tetap dipakai.'),
                 'at' => $c->reviewed_at,
             ]);
     }

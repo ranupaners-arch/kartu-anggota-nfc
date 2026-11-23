@@ -37,7 +37,8 @@ Aktif setelah email server diatur (lihat *Pengaturan → Sistem → Email*; cara
 Super Admin otomatis diberi tahu saat ada **pendaftar baru** (e-profil/formulir pendaftaran) dan
 **laporan kartu** baru (hilang/rusak/HP tanpa NFC) — lewat **email** (bila SMTP diatur) dan **push**
 (aktifkan di **Akun → Notifikasi**, bila server mengaktifkan push). Anggota diberi tahu saat
-e-profilnya **disahkan** dan saat laporan kartunya **diputuskan** (beserta catatan Anda).
+e-profilnya **disahkan**, saat laporan kartunya **diputuskan**, dan saat **perubahan data**-nya
+disetujui/ditolak (beserta catatan Anda). Super Admin juga diberi tahu saat ada pengajuan perubahan data.
 
 ## Menyiapkan data (Super Admin)
 
@@ -76,6 +77,10 @@ e-profilnya **disahkan** dan saat laporan kartunya **diputuskan** (beserta catat
   (jatah +1) atau *Pengurus terbitkan* (tulis kartu lewat app petugas → Terbitkan Kartu, lalu serahkan),
   dengan catatan untuk anggota (mis. tempat & waktu pengambilan); atau *Tolak*. Laporan *hilang* sudah
   otomatis memblokir kartu lamanya.
+- **Perubahan data diri**: anggota bisa mengajukan perubahan **nama, no. HP, atau foto** dari app/portal.
+  Pengajuan muncul di **Perubahan Data** (angka di menu) dengan perbandingan lama → baru (termasuk foto
+  lama vs baru) → **Tinjau** → *Setujui & terapkan* (data langsung diperbarui) atau *Tolak* (wajib menulis
+  alasan; data lama tetap dipakai). NIM, divisi, dan status tetap hanya diubah pengurus lewat Anggota.
 - **Riwayat kartu per anggota**: detail anggota → tab **Kartu** — semua kartu (siapa yang menerbitkan:
   pengurus atau *anggota sendiri*), laporan kartu & keputusannya, sisa jatah daftar sendiri, dan
   **Tambah jatah** (maks. 3) bila perlu memberi kesempatan tanpa laporan.

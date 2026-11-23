@@ -85,6 +85,27 @@ class MeController extends Controller
         return $cards->check($this->member($r), $d['payload']);
     }
 
+    /** Status perubahan data diri: data saat ini, pengajuan menunggu, keputusan terakhir. */
+    public function profileChange(Request $r, \App\Services\ProfileChangeService $changes)
+    {
+        return $changes->status($this->member($r));
+    }
+
+    /** Ajukan perubahan nama / no. HP / foto (berlaku setelah disetujui Super Admin). */
+    public function requestProfileChange(Request $r, \App\Services\ProfileChangeService $changes)
+    {
+        $d = $r->validate([
+            'name' => 'nullable|string|max:150',
+            'phone' => ['nullable', 'string', 'max:30', 'regex:/^[0-9+()\-\s]{6,30}$/'],
+            'reason' => 'nullable|string|max:300',
+            'photo' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:5120',
+        ], ['phone.regex' => 'No. HP hanya boleh berisi angka, spasi, +, -, dan tanda kurung.']);
+        $member = $this->member($r);
+        $changes->request($member, $r->user(), $d, $r->file('photo'));
+
+        return response()->json($changes->status($member->fresh()), 201);
+    }
+
     private function member(Request $r): \App\Models\Member
     {
         return \App\Models\Member::findOrFail($this->memberId($r));

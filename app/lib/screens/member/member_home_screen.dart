@@ -15,6 +15,7 @@ import 'my_card_tab.dart';
 import 'my_events_tab.dart';
 import 'my_history_tab.dart';
 import 'notifications_page.dart';
+import 'profile_change_page.dart';
 
 /// Layar utama anggota ala aplikasi bank: Beranda (kartu + menu cepat), Kegiatan, Riwayat, Akun.
 class MemberHomeScreen extends StatefulWidget {
@@ -82,6 +83,8 @@ class _MemberHomeScreenState extends State<MemberHomeScreen> {
         await pushMemberPage<void>(context, 'Ajukan izin', ExcuseListPage(api: _api));
       case 'card':
         await _openCard(context);
+      case 'profile':
+        await pushMemberPage<void>(context, 'Ubah data diri', ProfileChangePage(api: _api));
       case 'fine':
         await pushMemberPage<void>(context, 'Denda', FinesPage(api: _api));
       case 'announcement':

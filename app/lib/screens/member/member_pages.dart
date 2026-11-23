@@ -9,6 +9,7 @@ import '../../widgets/ui.dart';
 import '../change_password_screen.dart' show passwordProblem;
 import 'excuse_screen.dart';
 import 'my_events_tab.dart';
+import 'profile_change_page.dart';
 
 /// Buka halaman anggota sendiri (bilah judul + tombol kembali), bukan pindah tab.
 Future<T?> pushMemberPage<T>(BuildContext context, String title, Widget child) => Navigator.of(context).push<T>(
@@ -119,7 +120,14 @@ class _MembershipPageState extends State<MembershipPage> {
               InfoRow('Kartu NFC', snap.data!.cardLast4 == null ? 'Belum terdaftar' : 'Aktif (…${snap.data!.cardLast4})'),
             ]),
             const SizedBox(height: 12),
-            Text('Ada data yang keliru? Hubungi pengurus organisasi untuk memperbaikinya.', style: theme.textTheme.muted),
+            Text('Ada data yang keliru? Ajukan perubahan nama, no. HP, atau foto — berlaku setelah disetujui pengurus.', style: theme.textTheme.muted),
+            const SizedBox(height: 12),
+            FlexButton(
+              label: 'Ajukan perubahan data',
+              icon: LucideIcons.userPen,
+              variant: ShadButtonVariant.outline,
+              onPressed: () => pushMemberPage<void>(context, 'Ubah data diri', ProfileChangePage(api: widget.api)),
+            ),
           ],
         ],
       ),
