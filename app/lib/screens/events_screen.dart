@@ -18,13 +18,17 @@ const _roleLabel = {'scanner': 'Petugas Scan', 'division_admin': 'Admin Divisi',
 /// Beranda petugas & pengurus (gaya sama dengan beranda anggota): sapaan & peran, menu cepat, scan offline
 /// yang belum tersinkron, dan kegiatan berlangsung dengan tombol "Mulai scan".
 class EventsScreen extends StatefulWidget {
-  const EventsScreen({super.key, required this.session, this.api, this.offlineStore});
+  const EventsScreen({super.key, required this.session, this.api, this.offlineStore, this.embedded = false});
 
   final Session session;
 
   /// Untuk tes.
   final ApiClient? api;
   final Future<OfflineStore> Function()? offlineStore;
+
+  /// Tersemat sebagai tab "Tugas" di layar anggota yang bertugas: judul "Tugas", tanpa tombol keluar
+  /// (sudah ada di bilah atas anggota) & tanpa cek sesi ganda.
+  final bool embedded;
 
   @override
   State<EventsScreen> createState() => _EventsScreenState();
@@ -38,6 +42,9 @@ class _EventsScreenState extends State<EventsScreen> with SessionWatch<EventsScr
 
   @override
   ApiClient get watchedApi => _api;
+
+  @override
+  bool get watchEnabled => !widget.embedded;
   late Future<List<EventSummary>> _events = _load();
   String? _org;
   int _pendingOffline = 0;
@@ -159,11 +166,11 @@ class _EventsScreenState extends State<EventsScreen> with SessionWatch<EventsScr
     final theme = ShadTheme.of(context);
     final superAdmin = widget.session.role == 'super_admin';
     return AppPage(
-      title: 'Beranda',
+      title: widget.embedded ? 'Tugas' : 'Beranda',
       subtitle: _org,
       brand: true,
       maxContentWidth: kWideContentWidth,
-      actions: [ShadIconButton.ghost(icon: const Icon(LucideIcons.logOut, size: 18), onPressed: _confirmLogout)],
+      actions: [if (!widget.embedded) ShadIconButton.ghost(icon: const Icon(LucideIcons.logOut, size: 18), onPressed: _confirmLogout)],
       child: RefreshIndicator(
         onRefresh: _refresh,
         child: FutureBuilder<List<EventSummary>>(

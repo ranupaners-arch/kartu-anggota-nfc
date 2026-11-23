@@ -79,6 +79,7 @@ Map<String, Future<Widget> Function()> screens() => {
           ])),
       'Terbitkan kartu': () async => IssueCardScreen(session: session, api: api()),
       'Anggota': () async => MemberHomeScreen(session: memberSession, api: api()),
+      'Anggota bertugas': () async => MemberHomeScreen(session: Session(baseUrl: 'http://srv', token: 't', userName: longName, role: 'scanner', hasMember: true), api: api()),
       'Ajukan izin': () async => ExcuseScreen(api: api(), event: MemberEvent.fromJson({'id': 7, 'title': 'Rapat Kerja Nasional Himpunan Mahasiswa', 'starts_at': '2099-01-01T02:00:00Z', 'checkin_closes_at': '2099-01-01T03:00:00Z'}), picker: () async => null),
     };
 

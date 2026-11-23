@@ -18,6 +18,9 @@ mixin SessionWatch<T extends StatefulWidget> on State<T> {
   Session get watchedSession;
   ApiClient get watchedApi;
 
+  /// false = layar tersemat di layar lain yang sudah mengecek (hindari cek ganda).
+  bool get watchEnabled => true;
+
   @override
   void initState() {
     super.initState();
@@ -32,15 +35,16 @@ mixin SessionWatch<T extends StatefulWidget> on State<T> {
   }
 
   Future<void> checkSession() async {
-    if (_checking || !mounted) return;
+    if (_checking || !mounted || !watchEnabled) return;
     _checking = true;
     try {
       final me = await watchedApi.me();
       final role = me['role'] as String?;
       final name = me['name'] as String? ?? watchedSession.userName;
+      final hasMember = me['member_id'] != null;
       if (role == null || !mounted) return;
-      if (role != watchedSession.role) {
-        final next = Session(baseUrl: watchedSession.baseUrl, token: watchedSession.token, userName: name, role: role);
+      if (role != watchedSession.role || hasMember != watchedSession.hasMember) {
+        final next = Session(baseUrl: watchedSession.baseUrl, token: watchedSession.token, userName: name, role: role, hasMember: hasMember);
         await next.save();
         if (!mounted) return;
         Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute<void>(builder: (_) => homeFor(next)), (_) => false);

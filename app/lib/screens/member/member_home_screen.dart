@@ -7,6 +7,7 @@ import '../../app/session.dart';
 import '../../app/session_watch.dart';
 import '../../widgets/ui.dart';
 import '../connect_screen.dart';
+import '../events_screen.dart';
 import '../login_screen.dart';
 import 'account_tab.dart';
 import 'eprofile_screen.dart';
@@ -156,7 +157,14 @@ class _MemberHomeScreenState extends State<MemberHomeScreen> with SessionWatch<M
 
   void _openTab(int i) => setState(() => _tab = i);
 
-  static const _destinations = [(LucideIcons.house, 'Beranda'), (LucideIcons.calendarDays, 'Kegiatan'), (LucideIcons.history, 'Riwayat'), (LucideIcons.userRound, 'Akun')];
+  /// Tab bawah; anggota yang sedang bertugas mendapat tab "Tugas" (beranda petugas) sebelum Akun.
+  List<(IconData, String)> get _destinations => [
+    (LucideIcons.house, 'Beranda'),
+    (LucideIcons.calendarDays, 'Kegiatan'),
+    (LucideIcons.history, 'Riwayat'),
+    if (widget.session.isMemberOnDuty) (LucideIcons.scanLine, 'Tugas'),
+    (LucideIcons.userRound, 'Akun'),
+  ];
 
   void _select(int i) {
     if (i == 0 && _tab != 0) {
@@ -175,6 +183,7 @@ class _MemberHomeScreenState extends State<MemberHomeScreen> with SessionWatch<M
         _tabPage('Beranda', HomeTab(key: _home, api: _api, name: widget.session.userName, onRegister: _register, onOpenTab: _openTab, onOpenCard: _openCard)),
         _tabPage('Kegiatan', MyEventsTab(api: _api)),
         _tabPage('Riwayat', MyHistoryTab(api: _api)),
+        if (widget.session.isMemberOnDuty) EventsScreen(session: widget.session, api: _api, embedded: true),
         _tabPage('Akun', AccountTab(api: _api, name: widget.session.userName, onLogout: _logout, onOpenCard: _openCard)),
       ],
     );
