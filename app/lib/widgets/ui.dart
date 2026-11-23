@@ -335,7 +335,7 @@ class QuickAction extends StatelessWidget {
                   child: Icon(icon, size: 24, color: accent),
                 ),
                 const SizedBox(height: 6),
-                Text(label, style: theme.textTheme.small, maxLines: 1, overflow: TextOverflow.ellipsis, textAlign: TextAlign.center),
+                Text(label, style: theme.textTheme.small, maxLines: 2, overflow: TextOverflow.ellipsis, textAlign: TextAlign.center),
               ],
             ),
           ),
