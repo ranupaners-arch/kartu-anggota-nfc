@@ -98,6 +98,7 @@ class MemberController extends Controller
             'member' => $member->only('id', 'member_no', 'name', 'email', 'phone', 'cohort')
                 + ['photo_url' => $member->photoUrl('members.photo')],
             'canManage' => $r->user()->isSuperAdmin(),
+            'duty' => $r->user()->isSuperAdmin() ? DutyController::forMember($member) : null,
             'cardPreview' => app(\App\Services\MemberCardService::class)->forMember($member, $r->user()->organization?->name),
             'privacy' => [
                 'consentedAt' => $member->consented_at,

@@ -50,7 +50,7 @@ class _LoginScreenState extends State<LoginScreen> {
     try {
       final api = ApiClient(baseUrl: widget.server.url);
       final user = await api.login(_email.text.trim(), _password.text, deviceUuid: await deviceUuid(), otp: _needOtp ? _otp.text.trim() : null);
-      final session = Session(baseUrl: widget.server.url, token: api.token!, userName: user['name'] as String? ?? '', role: user['role'] as String? ?? '');
+      final session = Session(baseUrl: widget.server.url, token: api.token!, userName: user['name'] as String? ?? '', role: user['role'] as String? ?? '', hasMember: user['member_id'] != null);
       // Password sementara dari pengurus: ganti dulu; sesi baru disimpan setelah berhasil.
       if (user['must_change_password'] == true) {
         if (!mounted) return;

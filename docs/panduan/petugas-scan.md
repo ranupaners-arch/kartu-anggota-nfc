@@ -11,6 +11,16 @@ Tugas Anda: mencatat kehadiran anggota dengan menempelkan kartu ke HP (atau memi
 3. **Masuk** dengan email & password dari pengurus.
 4. Aktifkan **NFC** di pengaturan HP.
 
+## Akun petugas = akun anggota Anda
+
+- Tugas Petugas Scan diberikan Super Admin **per periode** pada akun anggota Anda — tidak perlu akun lain.
+  Di app Anda tetap melihat kartu, QR, izin, dan riwayat sebagai anggota, ditambah tab **Tugas** berisi
+  beranda petugas di bawah ini. (HP bersama, mis. milik sekretariat, memakai akun petugas khusus dan
+  langsung membuka beranda petugas.)
+- Saat tugas diberi atau berakhir (dicabut, mengundurkan diri, tanggal berakhir, atau periode berganti),
+  Anda menerima notifikasi dan **dikeluarkan dari app** — masuk lagi, tab Tugas muncul/hilang sesuai.
+- Anda **tidak bisa memindai kartu/QR sendiri**; minta petugas lain mencatat kehadiran Anda.
+
 ## Beranda petugas
 
 - Sapaan & peran Anda, lalu menu cepat **Pindai · Alat NFC · Panduan** (Super Admin juga **Terbitkan
@@ -41,6 +51,7 @@ Tugas Anda: mencatat kehadiran anggota dengan menempelkan kartu ke HP (atau memi
 | Merah **Kartu diblokir** | Kartu dilaporkan hilang/diganti | Arahkan ke pengurus |
 | Merah **Tidak dikenali** | Bukan kartu anggota organisasi ini | Minta kartu yang benar atau pakai QR |
 | Merah **Bukan peserta** | Anggota bukan target kegiatan ini | Arahkan ke pengurus |
+| Merah **Kartu sendiri** | Petugas memindai kartu/QR miliknya sendiri | Minta petugas lain |
 | Merah **Di luar jam check-in** | Check-in belum dibuka / sudah ditutup | Arahkan ke pengurus |
 | Merah **Jam HP tidak sesuai** | Jam HP berbeda jauh dari server | Aktifkan jam otomatis di HP |
 

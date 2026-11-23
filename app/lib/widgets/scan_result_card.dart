@@ -23,6 +23,7 @@ class ScanResultCard extends StatelessWidget {
     'blocked': 'Kartu diblokir',
     'invalid': 'Tidak dikenali',
     'not_target': 'Bukan peserta',
+    'self_scan': 'Kartu sendiri',
     'outside_window': 'Di luar jam check-in',
     'clock_drift': 'Jam HP tidak sesuai',
     'error': 'Gagal',

@@ -19,7 +19,7 @@ class Notifier
 {
     public function __construct(private PushService $push) {}
 
-    public const EVENTS = ['membershipApproved', 'cardRequestDecided', 'newApplicant', 'newCardRequest', 'newProfileChange', 'profileChangeDecided'];
+    public const EVENTS = ['membershipApproved', 'cardRequestDecided', 'newApplicant', 'newCardRequest', 'newProfileChange', 'profileChangeDecided', 'dutyGranted', 'dutyEnded'];
 
     /** Jadwalkan lewat antrean sesudah commit (data sudah tersimpan saat dikirim). */
     public static function later(string $event, int $id): void
@@ -87,9 +87,29 @@ class Notifier
         $this->send($this->memberUsers($c->member_id), $title, $body, '/saya');
     }
 
+    public function dutyGranted(int $dutyId): void
+    {
+        $d = \App\Models\Duty::withoutGlobalScopes()->with(['user' => fn ($q) => $q->withoutGlobalScopes(), 'division' => fn ($q) => $q->withoutGlobalScopes()])->find($dutyId);
+        if ($d?->user && ! $d->ended_at) {
+            $what = DutyService::LABELS[$d->type] ?? $d->type;
+            $until = $d->ends_on ? ' sampai '.$d->ends_on->locale('id')->translatedFormat('j F Y') : ' sampai akhir periode';
+            $this->send(collect([$d->user]), "Anda ditugaskan sebagai {$what}", "Tugas {$what}".($d->division ? " divisi {$d->division->name}" : '')."{$until}. Masuk lagi di app untuk membuka menu tugas.", '/');
+        }
+    }
+
+    public function dutyEnded(int $dutyId): void
+    {
+        $d = \App\Models\Duty::withoutGlobalScopes()->with(['user' => fn ($q) => $q->withoutGlobalScopes()])->find($dutyId);
+        if ($d?->user && $d->end_reason !== 'Diganti tugas baru') {
+            $what = DutyService::LABELS[$d->type] ?? $d->type;
+            $this->send(collect([$d->user]), "Tugas {$what} berakhir", "Terima kasih atas tugas Anda. Akun Anda kembali sebagai anggota ({$d->end_reason}).", '/saya');
+        }
+    }
+
+    /** Semua akun tertaut ke anggota itu — termasuk anggota yang sedang bertugas (petugas/admin divisi). */
     private function memberUsers(int $memberId): Collection
     {
-        return User::where('member_id', $memberId)->where('role', User::MEMBER)->whereNull('disabled_at')->get();
+        return User::where('member_id', $memberId)->whereNull('disabled_at')->get();
     }
 
     private function superAdmins(int $organizationId): Collection
