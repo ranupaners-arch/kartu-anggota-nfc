@@ -58,7 +58,8 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
       await widget.api.changePassword(widget.currentPassword, _next.text);
       await widget.session.save();
       if (!mounted) return;
-      Navigator.of(context).pushReplacement(MaterialPageRoute<void>(builder: (_) => homeFor(widget.session)));
+      // Bersihkan tumpukan layar (sambutan/masuk) agar layar utama tidak punya tombol kembali ke login.
+      Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute<void>(builder: (_) => homeFor(widget.session)), (_) => false);
     } on ApiException catch (e) {
       setState(() => _error = e.message);
     } catch (_) {

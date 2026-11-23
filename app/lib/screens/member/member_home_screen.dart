@@ -36,38 +36,68 @@ class _MemberHomeScreenState extends State<MemberHomeScreen> {
     await Session.clear();
     final server = await ServerConfig.load();
     if (!mounted) return;
-    Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute<void>(builder: (_) => server == null ? const ConnectScreen() : LoginScreen(server: server)), (_) => false);
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute<void>(
+        builder: (_) => server == null
+            ? const ConnectScreen()
+            : LoginScreen(server: server),
+      ),
+      (_) => false,
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = ShadTheme.of(context);
-    return Scaffold(
-      backgroundColor: theme.colorScheme.background,
-      body: AppPage(
-        title: _titles[_tab],
-        actions: [ShadIconButton.ghost(icon: const Icon(LucideIcons.logOut, size: 18), onPressed: _logout)],
-        child: IndexedStack(
-          index: _tab,
-          children: [
-            MyCardTab(
-              api: _api,
-              name: widget.session.userName,
-              onRegister: (context) => Navigator.of(context).push<bool>(MaterialPageRoute(builder: (_) => EProfileScreen(api: _api))),
+    // Tombol kembali HP: dari tab lain → kembali ke tab pertama dulu; di tab pertama → keluar app.
+    return PopScope(
+      canPop: _tab == 0,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) setState(() => _tab = 0);
+      },
+      child: Scaffold(
+        backgroundColor: theme.colorScheme.background,
+        body: AppPage(
+          title: _titles[_tab],
+          actions: [
+            ShadIconButton.ghost(
+              icon: const Icon(LucideIcons.logOut, size: 18),
+              onPressed: _logout,
             ),
-            MyEventsTab(api: _api),
-            MyHistoryTab(api: _api),
+          ],
+          child: IndexedStack(
+            index: _tab,
+            children: [
+              MyCardTab(
+                api: _api,
+                name: widget.session.userName,
+                onRegister: (context) => Navigator.of(context).push<bool>(
+                  MaterialPageRoute(builder: (_) => EProfileScreen(api: _api)),
+                ),
+              ),
+              MyEventsTab(api: _api),
+              MyHistoryTab(api: _api),
+            ],
+          ),
+        ),
+        bottomNavigationBar: NavigationBar(
+          selectedIndex: _tab,
+          onDestinationSelected: (i) => setState(() => _tab = i),
+          destinations: const [
+            NavigationDestination(
+              icon: Icon(LucideIcons.creditCard),
+              label: 'Kartu',
+            ),
+            NavigationDestination(
+              icon: Icon(LucideIcons.calendarDays),
+              label: 'Kegiatan',
+            ),
+            NavigationDestination(
+              icon: Icon(LucideIcons.chartColumn),
+              label: 'Riwayat',
+            ),
           ],
         ),
-      ),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _tab,
-        onDestinationSelected: (i) => setState(() => _tab = i),
-        destinations: const [
-          NavigationDestination(icon: Icon(LucideIcons.creditCard), label: 'Kartu'),
-          NavigationDestination(icon: Icon(LucideIcons.calendarDays), label: 'Kegiatan'),
-          NavigationDestination(icon: Icon(LucideIcons.chartColumn), label: 'Riwayat'),
-        ],
       ),
     );
   }
