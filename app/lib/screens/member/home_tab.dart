@@ -3,6 +3,7 @@ import 'package:shadcn_ui/shadcn_ui.dart';
 
 import '../../api/api_client.dart';
 import '../../app/format.dart';
+import '../../widgets/badges.dart';
 import '../../widgets/member_card.dart';
 import '../../widgets/ui.dart';
 import 'event_detail_page.dart';
@@ -35,6 +36,7 @@ class HomeTabState extends State<HomeTab> {
   late Future<MemberCardInfo> _card;
   late Future<List<MemberEvent>> _events;
   late Future<MemberHistory?> _history;
+  late Future<Achievements?> _achievements;
   late Future<List<Announcement>> _anns;
 
   @override
@@ -47,6 +49,7 @@ class HomeTabState extends State<HomeTab> {
     _card = widget.api.myCard();
     _events = widget.api.myEvents().catchError((_) => <MemberEvent>[]);
     _history = widget.api.myHistory().then<MemberHistory?>((h) => h).catchError((_) => null);
+    _achievements = widget.api.myAchievements().then<Achievements?>((a) => a).catchError((_) => null);
     _anns = widget.api.myAnnouncements().catchError((_) => <Announcement>[]);
   }
 
@@ -361,6 +364,33 @@ class HomeTabState extends State<HomeTab> {
                       style: theme.textTheme.small,
                     ),
                     if (h.atRisk) ...[const SizedBox(height: 6), Text('Kehadiran Anda perlu perhatian.', style: theme.textTheme.small.copyWith(color: theme.colorScheme.destructive))],
+                    // Poin & lencana (ketuk → halaman lencana).
+                    FutureBuilder<Achievements?>(
+                      future: _achievements,
+                      builder: (context, a) => a.data == null
+                          ? const SizedBox.shrink()
+                          : Padding(
+                              padding: const EdgeInsets.only(top: 10),
+                              child: InkWell(
+                                borderRadius: BorderRadius.circular(8),
+                                onTap: () => _open(
+                                  'Poin & lencana',
+                                  ListView(padding: const EdgeInsets.all(16), children: [SectionCard(child: BadgesView(data: a.data!))]),
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(vertical: 4),
+                                  child: Row(
+                                    children: [
+                                      Icon(LucideIcons.award, size: 16, color: theme.colorScheme.foreground),
+                                      const SizedBox(width: 6),
+                                      Expanded(child: Text('${a.data!.points} poin · ${a.data!.earned} lencana', style: theme.textTheme.small.copyWith(fontWeight: FontWeight.w600))),
+                                      Icon(LucideIcons.chevronRight, size: 16, color: theme.colorScheme.mutedForeground),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                    ),
                   ],
                 ),
               ),
