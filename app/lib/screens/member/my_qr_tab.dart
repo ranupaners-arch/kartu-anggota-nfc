@@ -5,15 +5,19 @@ import 'package:qr_flutter/qr_flutter.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
 import '../../api/api_client.dart';
+import '../../app/device_settings.dart';
 import '../../widgets/ui.dart';
 
 /// QR pribadi anggota. Server merotasi QR tiap menit; app memuat ulang sebelum kedaluwarsa.
 class MyQrTab extends StatefulWidget {
-  const MyQrTab({super.key, required this.api, required this.name, this.refreshEvery = const Duration(seconds: 50)});
+  const MyQrTab({super.key, required this.api, required this.name, this.refreshEvery = const Duration(seconds: 50), this.screenMode = setQrScreenMode});
 
   final ApiClient api;
   final String name;
   final Duration refreshEvery;
+
+  /// Untuk tes: atur layar tetap menyala & kecerahan maksimal selama QR tampil.
+  final Future<void> Function(bool on) screenMode;
 
   @override
   State<MyQrTab> createState() => _MyQrTabState();
@@ -31,6 +35,7 @@ class _MyQrTabState extends State<MyQrTab> {
   @override
   void initState() {
     super.initState();
+    widget.screenMode(true);
     _load();
     widget.api.myCard().then((c) {
       if (mounted) setState(() => _info = c);
@@ -44,6 +49,7 @@ class _MyQrTabState extends State<MyQrTab> {
   void dispose() {
     _refresh?.cancel();
     _tick?.cancel();
+    widget.screenMode(false); // kembalikan kecerahan & izinkan layar mati lagi
     super.dispose();
   }
 
@@ -144,7 +150,7 @@ class _MyQrTabState extends State<MyQrTab> {
               children: [
                 Icon(LucideIcons.sun, size: 16, color: theme.colorScheme.mutedForeground),
                 const SizedBox(width: 8),
-                Expanded(child: Text('Naikkan kecerahan layar agar mudah dipindai.', style: theme.textTheme.muted.copyWith(fontSize: 12))),
+                Expanded(child: Text('Layar dibuat paling terang & tetap menyala selama QR tampil.', style: theme.textTheme.muted.copyWith(fontSize: 12))),
               ],
             ),
             const SizedBox(height: 8),

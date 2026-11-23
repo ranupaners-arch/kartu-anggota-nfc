@@ -103,6 +103,21 @@ void main() {
     }
   });
 
+  testWidgets('QR Saya: layar terang & menyala selama tampil, dikembalikan saat ditutup', (tester) async {
+    final modes = <bool>[];
+    await tester.pumpWidget(
+      KartuAnggotaApp(
+        home: Scaffold(
+          body: MyQrTab(api: api(server()), name: 'Budi', screenMode: (on) async => modes.add(on)),
+        ),
+      ),
+    );
+    await tester.pump();
+    expect(modes, [true]);
+    await tester.pumpWidget(const SizedBox());
+    expect(modes, [true, false]);
+  });
+
   testWidgets('QR Saya tampil dan diperbarui otomatis', (tester) async {
     var calls = 0;
     await tester.pumpWidget(
