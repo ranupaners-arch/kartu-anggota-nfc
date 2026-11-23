@@ -121,6 +121,21 @@ class MemberAppTest extends TestCase
             ->assertJsonPath('recent.0.event', 'K0')->assertJsonCount(4, 'recent');
     }
 
+    public function test_history_monthly_breakdown_in_time_order(): void
+    {
+        $thisMonth = now()->startOfMonth()->addHours(12);
+        $lastMonth = now()->subMonthNoOverflow()->startOfMonth()->addDays(5)->addHours(12);
+        foreach ([[$thisMonth, 'hadir'], [$lastMonth, 'telat'], [$lastMonth->copy()->addDay(), 'alpa'], [$lastMonth->copy()->addDays(2), 'hadir']] as $i => [$at, $status]) {
+            $e = $this->event("M$i", $at);
+            Attendance::create(['event_id' => $e->id, 'session_id' => $e->defaultSession()->id, 'member_id' => $this->me->id, 'status' => $status]);
+        }
+        $monthly = $this->as()->getJson('/api/me/history')->assertOk()->json('monthly');
+
+        $this->assertSame([$lastMonth->format('Y-m'), $thisMonth->format('Y-m')], array_column($monthly, 'month'));
+        $this->assertSame(['total' => 3, 'hadir' => 1, 'telat' => 1, 'alpa' => 1], array_intersect_key($monthly[0], array_flip(['total', 'hadir', 'telat', 'alpa'])));
+        $this->assertSame([1, 1, 0], [$monthly[1]['total'], $monthly[1]['hadir'], $monthly[1]['izin']]);
+    }
+
     public function test_account_without_member_link_gets_clear_error(): void
     {
         $u = User::factory()->create(['organization_id' => $this->org->id, 'role' => 'member', 'member_id' => null]);

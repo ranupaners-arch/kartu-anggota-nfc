@@ -4,6 +4,7 @@ import 'package:shadcn_ui/shadcn_ui.dart';
 import '../../api/api_client.dart';
 import '../../app/format.dart';
 import '../../app/pdf.dart';
+import '../../widgets/attendance_chart.dart';
 import '../../widgets/ui.dart';
 
 Future<String?> _saveAndOpenPdf(List<int> bytes) => saveAndOpenPdf(bytes, fileName: 'rapor-kehadiran.pdf');
@@ -127,6 +128,10 @@ class _MyHistoryTabState extends State<MyHistoryTab> {
             );
             if (_downloadError != null) left.addAll([const SizedBox(height: 8), ErrorBanner(_downloadError!)]);
             left.add(const SizedBox(height: 12));
+            if (h.monthly.isNotEmpty) {
+              left.add(SectionCard(title: 'Kehadiran per bulan', icon: LucideIcons.chartColumn, child: MonthlyAttendanceChart(months: h.monthly)));
+              left.add(const SizedBox(height: 12));
+            }
             if (h.fines.isNotEmpty) {
               const label = {'unpaid': 'Belum lunas', 'paid': 'Lunas', 'waived': 'Dibebaskan'};
               left.add(

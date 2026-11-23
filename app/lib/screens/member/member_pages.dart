@@ -4,6 +4,7 @@ import 'package:shadcn_ui/shadcn_ui.dart';
 import '../../api/api_client.dart';
 import '../../app/format.dart';
 import '../../app/pdf.dart';
+import '../../widgets/attendance_chart.dart';
 import '../../widgets/ui.dart';
 import '../change_password_screen.dart' show passwordProblem;
 import 'excuse_screen.dart';
@@ -197,6 +198,10 @@ class _ReportPageState extends State<ReportPage> {
                     ),
                   ),
               ]),
+              if (h.monthly.isNotEmpty) ...[
+                const SizedBox(height: 16),
+                SectionCard(title: 'Kehadiran per bulan', icon: LucideIcons.chartColumn, child: MonthlyAttendanceChart(months: h.monthly)),
+              ],
               const SizedBox(height: 16),
               FlexButton(label: _downloading ? 'Mengunduh rapor…' : 'Unduh rapor PDF', icon: LucideIcons.fileDown, enabled: !_downloading, onPressed: _download),
               if (_error != null) ...[const SizedBox(height: 8), ErrorBanner(_error!)],

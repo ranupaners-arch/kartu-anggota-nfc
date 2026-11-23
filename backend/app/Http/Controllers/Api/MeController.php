@@ -193,6 +193,13 @@ class MeController extends Controller
             'warning' => $term ? app(\App\Services\StatsService::class)->memberRisk($memberId, $term) : null,
             // Denda absen pakai QR (kartu tertinggal) periode ini.
             'fines' => app(\App\Services\FineService::class)->forMember($memberId, $term?->id),
+            // Rekap per bulan (urut waktu) untuk grafik kehadiran di app.
+            'monthly' => $rows->filter(fn (Attendance $a) => $a->event?->starts_at)
+                ->groupBy(fn (Attendance $a) => $a->event->starts_at->timezone(config('app.timezone'))->format('Y-m'))
+                ->sortKeys()
+                ->map(fn ($g, $month) => ['month' => $month, 'total' => $g->count()]
+                    + collect(['hadir', 'telat', 'izin', 'sakit', 'alpa'])->mapWithKeys(fn ($s) => [$s => $g->where('status', $s)->count()])->all())
+                ->values(),
             'recent' => $rows->take(50)->map(fn (Attendance $a) => [
                 'event' => $a->event?->title, 'date' => $a->event?->starts_at, 'status' => $a->status, 'source' => $a->source,
             ]),

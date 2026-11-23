@@ -448,7 +448,7 @@ class MemberEvent {
 
 /// Ringkasan kehadiran anggota (GET /api/me/history).
 class MemberHistory {
-  const MemberHistory({required this.byStatus, required this.total, this.term, this.rate, this.recent = const [], this.atRisk = false, this.alpaStreak = 0, this.finesUnpaid = 0, this.fines = const []});
+  const MemberHistory({required this.byStatus, required this.total, this.term, this.rate, this.recent = const [], this.atRisk = false, this.alpaStreak = 0, this.finesUnpaid = 0, this.fines = const [], this.monthly = const []});
 
   factory MemberHistory.fromJson(Map<String, dynamic> j) => MemberHistory(
     term: j['term'] as String?,
@@ -460,6 +460,14 @@ class MemberHistory {
     recent: [
       for (final r in j['recent'] as List)
         (event: (r as Map<String, dynamic>)['event'] as String? ?? '-', date: DateTime.tryParse(r['date'] as String? ?? '')?.toLocal(), status: r['status'] as String),
+    ],
+    monthly: [
+      for (final m in (j['monthly'] as List?) ?? const [])
+        (
+          month: DateTime.parse('${(m as Map<String, dynamic>)['month']}-01'),
+          total: (m['total'] as num).toInt(),
+          present: ((m['hadir'] as num?) ?? 0).toInt() + ((m['telat'] as num?) ?? 0).toInt(),
+        ),
     ],
     finesUnpaid: ((j['fines'] as Map<String, dynamic>?)?['unpaid_total'] as num?)?.toInt() ?? 0,
     fines: [
@@ -482,6 +490,9 @@ class MemberHistory {
   final bool atRisk;
   final int alpaStreak;
   final List<({String event, DateTime? date, String status})> recent;
+
+  /// Rekap per bulan (urut waktu): jumlah kegiatan & yang dihadiri (hadir + telat).
+  final List<({DateTime month, int total, int present})> monthly;
 
   /// Denda absen pakai QR (kartu tertinggal) periode ini.
   final int finesUnpaid;

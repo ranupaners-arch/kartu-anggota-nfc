@@ -105,6 +105,8 @@ mengajukan izin).
 
 Tab **Riwayat** menampilkan persentase kehadiran periode berjalan dan daftar kehadiran Anda. Bila
 Anda Alpa beberapa kali berturut-turut atau kehadirannya rendah, muncul peringatan di sini.
+**Kehadiran per bulan** menampilkan grafik persentase hadir tiap bulan; ketuk batang untuk melihat
+angka bulan itu (juga ada di menu **Rapor**).
 Tombol **Unduh rapor PDF** (juga di menu **Rapor**) membuka rapor kehadiran periode berjalan (mis. untuk
 syarat sertifikat).
 
