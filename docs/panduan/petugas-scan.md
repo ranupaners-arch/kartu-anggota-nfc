@@ -11,10 +11,20 @@ Tugas Anda: mencatat kehadiran anggota dengan menempelkan kartu ke HP (atau memi
 3. **Masuk** dengan email & password dari pengurus.
 4. Aktifkan **NFC** di pengaturan HP.
 
+## Beranda petugas
+
+- Sapaan & peran Anda, lalu menu cepat **Pindai · Alat NFC · Panduan** (Super Admin juga **Terbitkan
+  Kartu**).
+- Bila ada **scan offline yang belum tersinkron**, jumlahnya tampil di Beranda — buka kegiatannya saat
+  ada sinyal agar terkirim.
+- **Panduan** berisi tips singkat (scan kartu, kartu tertinggal, tanpa sinyal, kartu ditolak, NFC
+  tidak membaca). Di tablet, menu di kiri dan kegiatan di kanan.
+
 ## Saat acara
 
-1. Di layar **Kegiatan Berlangsung**, ketuk kegiatan yang sedang berjalan.
-   Kegiatan baru muncul saat jam check-in dibuka — tarik layar ke bawah untuk memuat ulang.
+1. Di **Beranda**, bagian **Kegiatan berlangsung**, ketuk **Mulai scan** pada kegiatan yang sedang
+   berjalan (atau menu cepat **Pindai**: langsung ke kegiatan bila hanya satu, atau pilih dulu bila
+   lebih). Kegiatan baru muncul saat jam check-in dibuka — tarik layar ke bawah atau ketuk **Muat ulang**.
 2. Bila kegiatan punya beberapa **Sesi** (mis. Hari 1, Hari 2), pastikan sesi yang terpilih benar.
    App otomatis memilih sesi yang sedang buka.
 3. Pilih **Kartu NFC**, lalu minta anggota **menempelkan kartu ke bagian belakang HP** sampai

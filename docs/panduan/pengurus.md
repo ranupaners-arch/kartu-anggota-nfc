@@ -63,7 +63,7 @@ e-profilnya **disahkan** dan saat laporan kartunya **diputuskan** (beserta catat
   di akhir periode), atau **Arsipkan**. Selalu ada konfirmasi dulu.
 
 ### Kartu
-- Kartu diterbitkan lewat **app** (login Super Admin): ikon kartu di kanan atas → cari anggota →
+- Kartu diterbitkan lewat **app** (login Super Admin): Beranda → menu **Terbitkan Kartu** → cari anggota →
   **Terbitkan & tulis kartu** → tempel kartu NTAG215 kosong. Kartu lama anggota itu otomatis diblokir.
 - **Cetak desain kartu (PDF)**: detail anggota → **Cetak kartu**, atau centang banyak anggota →
   **Cetak kartu** di bilah bawah. Format **A4 · 10 kartu** (garis potong; halaman belakang kolomnya

@@ -24,7 +24,7 @@ Cetak atau buka di HP penanggung jawab. Centang tiap butir.
 
 ## Hari-H
 
-- [ ] Sebelum check-in dibuka: petugas di posisi, kegiatan muncul di **Kegiatan Berlangsung**.
+- [ ] Sebelum check-in dibuka: petugas di posisi, kegiatan muncul di Beranda app → **Kegiatan berlangsung**.
 - [ ] Uji satu kartu (mis. kartu pengurus) — hasil **Hadir** & bunyi terdengar.
 - [ ] Buka **Monitor langsung**; pantau jumlah hadir & daftar yang belum datang.
 - [ ] Kartu tertinggal → anggota menunjukkan **QR Saya** (butuh internet).

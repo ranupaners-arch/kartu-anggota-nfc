@@ -22,8 +22,8 @@ import 'package:kartuanggota/screens/member/member_home_screen.dart';
 import 'package:kartuanggota/screens/scan_screen.dart';
 import 'package:kartuanggota/screens/welcome_screen.dart';
 import 'package:kartuanggota/widgets/scan_result_card.dart';
+import 'package:kartuanggota/widgets/ui.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'nfc_service_test.dart' show FakeNfc;
@@ -128,8 +128,12 @@ void main() {
     tester.view.physicalSize = sizes['tablet']!;
     await tester.pumpWidget(KartuAnggotaApp(home: EventsScreen(session: session, api: api())));
     await tester.pumpAndSettle();
-    final card = tester.getRect(find.ancestor(of: find.text('Rapat Kerja Nasional Himpunan Mahasiswa 1'), matching: find.byType(ShadCard)).first);
-    expect(card.width, lessThanOrEqualTo(720));
-    expect(card.center.dx, closeTo(400, 1), reason: 'rata tengah');
+    // Tablet: dua kolom — sapaan & menu di kiri, kartu kegiatan di kanan; tepi kiri & kanan simetris (16 px).
+    final greet = tester.getRect(find.textContaining('Halo,'));
+    final card = tester.getRect(find.ancestor(of: find.text('Rapat Kerja Nasional Himpunan Mahasiswa 1'), matching: find.byType(SectionCard)).first);
+    expect(greet.left, closeTo(16, 1));
+    expect(card.right, closeTo(800 - 16, 1));
+    expect(card.left, greaterThan(greet.left + 250), reason: 'kegiatan di kolom kanan');
+    expect(card.top, lessThan(200), reason: 'kolom kanan mulai di atas, tidak di bawah sapaan');
   });
 }
