@@ -47,7 +47,7 @@ class AchievementService
             $this->badge('on_time_5', 'Tepat Waktu', 'Hadir tepat waktu 5× berturut-turut.', $bestOnTime, 5, $nowOnTime),
             $this->badge('streak_10', 'Beruntun', 'Hadir (termasuk telat) 10 kegiatan berturut-turut.', $bestPresent, 10, $nowPresent),
             $this->badge('diligent', 'Rajin', 'Kehadiran minimal 90% (setelah '.self::MIN_EVENTS.' kegiatan).', $total >= self::MIN_EVENTS ? (int) floor($rate) : 0, 90,
-                hint: $total < self::MIN_EVENTS ? 'Dinilai setelah '.self::MIN_EVENTS.' kegiatan' : null, earned: $total >= self::MIN_EVENTS && $rate >= 90),
+                hint: $total < self::MIN_EVENTS ? 'Dinilai setelah '.self::MIN_EVENTS.' kegiatan' : null, earned: $total >= self::MIN_EVENTS && $rate >= 90, unit: 'percent'),
             $this->badge('no_alpa', 'Tanpa Alpa', 'Tidak pernah Alpa (setelah '.self::MIN_EVENTS.' kegiatan).', min($total, self::MIN_EVENTS), self::MIN_EVENTS,
                 hint: $alpa > 0 ? "Tercatat Alpa {$alpa}× periode ini" : null, earned: $alpa === 0 && $total >= self::MIN_EVENTS),
             $this->badge('card_loyal', 'Kartu Setia', 'Selalu absen dengan kartu NFC, bukan QR (min. 5×).', $viaCard === $scanned->count() ? $viaCard : 0, 5,
@@ -74,13 +74,13 @@ class AchievementService
         return [$best, $run];
     }
 
-    private function badge(string $key, string $title, string $description, int $progress, int $target, ?int $current = null, ?string $hint = null, ?bool $earned = null): array
+    private function badge(string $key, string $title, string $description, int $progress, int $target, ?int $current = null, ?string $hint = null, ?bool $earned = null, string $unit = 'count'): array
     {
         return [
             'key' => $key, 'title' => $title, 'description' => $description,
             'earned' => $earned ?? $progress >= $target,
             // Progres ditampilkan dari runtun berjalan bila ada (yang bisa dikejar), dibatasi target.
-            'progress' => min($target, $current ?? $progress), 'target' => $target, 'hint' => $hint,
+            'progress' => min($target, $current ?? $progress), 'target' => $target, 'hint' => $hint, 'unit' => $unit,
         ];
     }
 }

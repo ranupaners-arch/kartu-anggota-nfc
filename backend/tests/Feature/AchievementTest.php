@@ -75,7 +75,7 @@ class AchievementTest extends TestCase
         $this->assertFalse($b['streak_10']['earned']);
         $this->assertSame(0, $b['streak_10']['progress']); // izin memutus runtun hadir
         $this->assertFalse($b['diligent']['earned']); // 6/7 = 85%
-        $this->assertSame(85, $b['diligent']['progress']);
+        $this->assertSame([85, 'percent'], [$b['diligent']['progress'], $b['diligent']['unit']]);
         $this->assertTrue($b['no_alpa']['earned']);
         $this->assertTrue($b['card_loyal']['earned']);
         $this->assertSame(4, $r['earned']);
