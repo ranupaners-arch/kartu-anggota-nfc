@@ -117,6 +117,13 @@ tidak dibawa) dikenai denda sesuai kebijakan (bisa ada jatah gratis per periode)
 **Denda** (atau **Riwayat**); bayar ke pengurus. Kartu hilang? **Lapor** dulu di menu Kartu — kartu diblokir
 dan absen QR Anda tidak didenda.
 
+## Ubah data diri
+
+Nama salah ketik, ganti nomor HP, atau ingin mengganti foto? **Akun → Ubah data diri** (atau **Data Diri →
+Ajukan perubahan data**) → ubah isian → **Kirim pengajuan**. Data baru berlaku setelah disetujui
+pengurus; keputusannya (beserta catatan) muncul di lonceng notifikasi. Selama menunggu, mengirim
+pengajuan baru akan menggantikan yang lama. NIM, divisi, dan status keanggotaan hanya bisa diubah pengurus.
+
 ## Data pribadi
 
 Data Anda (termasuk foto) hanya dipakai untuk absensi organisasi. Anda berhak meminta data pribadi
