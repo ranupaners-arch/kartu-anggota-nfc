@@ -63,7 +63,7 @@ void main() {
     });
   }
 
-  // Tiga tombol navigasi bawah layar anggota: sebelumnya abu gelap di atas hitam pada mode gelap.
+  // Tombol navigasi bawah layar anggota: sebelumnya abu gelap di atas hitam pada mode gelap.
   for (final brightness in [Brightness.light, Brightness.dark]) {
     testWidgets('navigasi bawah anggota terbaca di mode ${brightness.name}', (tester) async {
       tester.platformDispatcher.platformBrightnessTestValue = brightness;
@@ -75,7 +75,7 @@ void main() {
       );
       await tester.pump();
       final bg = Theme.of(tester.element(find.byType(NavigationBar))).navigationBarTheme.backgroundColor!;
-      for (final label in ['Kartu', 'Kegiatan', 'Riwayat']) {
+      for (final label in ['Beranda', 'Kegiatan', 'Riwayat', 'Akun']) {
         final p = tester.renderObject<RenderParagraph>(find.descendant(of: find.byType(NavigationBar), matching: find.text(label)));
         final ratio = contrast(p.text.style!.color!, bg);
         expect(ratio, greaterThanOrEqualTo(4.5), reason: '"$label" kontras ${ratio.toStringAsFixed(2)}:1 di mode ${brightness.name}');
