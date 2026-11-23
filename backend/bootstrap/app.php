@@ -20,6 +20,13 @@ return Application::configure(basePath: dirname(__DIR__))
             'portal' => \App\Http\Middleware\EnsureMemberPortal::class,
             'password.changed' => \App\Http\Middleware\EnsurePasswordChanged::class,
         ]);
+        // Di belakang Caddy (jaringan docker) dan opsional Nginx/Cloudflare: percayai X-Forwarded-*
+        // dari alamat privat supaya skema https, host, dan IP klien asli dikenali.
+        // TRUSTED_PROXIES: daftar IP/CIDR dipisah koma, atau "*".
+        $trustedProxies = env('TRUSTED_PROXIES', '127.0.0.1,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16');
+        $middleware->trustProxies(
+            at: trim($trustedProxies) === '*' ? '*' : array_values(array_filter(array_map('trim', explode(',', $trustedProxies)))),
+        );
         $middleware->redirectUsersTo('/');
         $middleware->prepend(\App\Http\Middleware\AssignRequestId::class);
         $middleware->web(append: [\App\Http\Middleware\HandleInertiaRequests::class]);
