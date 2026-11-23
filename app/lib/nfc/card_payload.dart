@@ -34,12 +34,4 @@ class CardPayload {
 
   /// sha256 hex dari payload; sama dengan `payload_sha256` di roster.
   static String fingerprint(String payload) => sha256.convert(utf8.encode(payload.trim())).toString();
-
-  /// Token dari payload QR `<prefix>:qr:<token>`; null bila bukan QR.
-  static String? qrToken(String raw, {String prefix = defaultPrefix}) {
-    final head = '$prefix:qr:';
-    final s = raw.trim();
-    if (!s.startsWith(head) || s.length == head.length) return null;
-    return s.substring(head.length);
-  }
 }

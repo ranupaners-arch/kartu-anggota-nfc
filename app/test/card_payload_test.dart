@@ -33,10 +33,4 @@ void main() {
     expect(CardPayload.fingerprint(valid), hasLength(64));
     expect(CardPayload.fingerprint(' $valid\n'), CardPayload.fingerprint(valid));
   });
-
-  test('token QR', () {
-    expect(CardPayload.qrToken('card:qr:abc123'), 'abc123');
-    expect(CardPayload.qrToken('card:qr:'), isNull);
-    expect(CardPayload.qrToken(valid), isNull);
-  });
 }
