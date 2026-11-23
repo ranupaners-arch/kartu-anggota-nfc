@@ -25,10 +25,16 @@ class _MyQrTabState extends State<MyQrTab> {
   Timer? _refresh, _tick;
   DateTime _nextAt = DateTime.now();
 
+  /// Identitas di bawah QR (nama, nomor, divisi) — sama dengan portal web.
+  MemberCardInfo? _info;
+
   @override
   void initState() {
     super.initState();
     _load();
+    widget.api.myCard().then((c) {
+      if (mounted) setState(() => _info = c);
+    }, onError: (_) {});
     _tick = Timer.periodic(const Duration(seconds: 1), (_) {
       if (mounted) setState(() {});
     });
@@ -62,41 +68,104 @@ class _MyQrTabState extends State<MyQrTab> {
   Widget build(BuildContext context) {
     final theme = ShadTheme.of(context);
     final left = _nextAt.difference(DateTime.now()).inSeconds.clamp(0, 999);
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
-        if (_error != null) ...[ErrorBanner(_error!), const SizedBox(height: 12)],
-        ShadCard(
-          child: Column(
-            spacing: 12,
-            children: [
-              Text(widget.name, style: theme.textTheme.large),
-              Container(
-                // Latar putih selalu (juga di mode gelap) agar mudah dipindai kamera.
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(color: Colors.white, borderRadius: theme.radius),
-                child: _payload == null
-                    ? const SizedBox(width: 240, height: 240, child: Center(child: CircularProgressIndicator()))
-                    : QrImageView(
-                        data: _payload!,
-                        size: 240,
-                        padding: EdgeInsets.zero,
-                        backgroundColor: Colors.white,
-                        errorCorrectionLevel: QrErrorCorrectLevel.M,
-                        semanticsLabel: 'QR absensi ${widget.name}',
+    final total = widget.refreshEvery.inSeconds.clamp(1, 999);
+    final name = _info?.name ?? widget.name;
+    final sub = [if (_info?.memberNo != null) _info!.memberNo!, if (_info?.division != null) _info!.division!].join(' · ');
+    return LayoutBuilder(
+      builder: (context, box) {
+        // QR sebesar mungkin tapi tetap muat: lebar layar dikurangi tepi, maksimal 280.
+        final size = (box.maxWidth - 32 - 32 - 32).clamp(160.0, 280.0);
+        return ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            if (_error != null) ...[ErrorBanner(_error!), const SizedBox(height: 12)],
+            SectionCard(
+              child: Column(
+                children: [
+                  const SizedBox(height: 8),
+                  // Latar putih selalu (juga di mode gelap) agar mudah dipindai kamera.
+                  AnimatedOpacity(
+                    duration: const Duration(milliseconds: 200),
+                    opacity: _error != null ? 0.3 : 1,
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: theme.colorScheme.border),
                       ),
+                      child: _payload == null
+                          ? SizedBox(
+                              width: size,
+                              height: size,
+                              child: const Center(child: CircularProgressIndicator()),
+                            )
+                          : QrImageView(
+                              data: _payload!,
+                              size: size,
+                              padding: EdgeInsets.zero,
+                              backgroundColor: Colors.white,
+                              errorCorrectionLevel: QrErrorCorrectLevel.M,
+                              semanticsLabel: 'QR absensi $name',
+                            ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(name, style: theme.textTheme.large, textAlign: TextAlign.center, maxLines: 2, overflow: TextOverflow.ellipsis),
+                  if (sub.isNotEmpty) Text(sub, style: theme.textTheme.muted, textAlign: TextAlign.center),
+                  const SizedBox(height: 12),
+                  Text('Tunjukkan ke petugas untuk dipindai.', style: theme.textTheme.small, textAlign: TextAlign.center),
+                  const SizedBox(height: 12),
+                  // Hitung mundur QR berikutnya.
+                  SizedBox(
+                    width: size,
+                    child: Column(
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(4),
+                          child: LinearProgressIndicator(value: _payload == null ? null : left / total, minHeight: 4, backgroundColor: theme.colorScheme.muted, color: theme.colorScheme.primary),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          _payload == null ? 'Memuat…' : 'QR baru dalam $left detik',
+                          style: theme.textTheme.muted.copyWith(fontSize: 12, fontFeatures: const [FontFeature.tabularFigures()]),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                ],
               ),
-              Text(_payload == null ? 'Memuat…' : 'Diperbarui otomatis dalam $left detik', style: theme.textTheme.muted),
-            ],
-          ),
-        ),
-        const SizedBox(height: 12),
-        ShadAlert(
-          icon: const Icon(LucideIcons.info),
-          title: const Text('Cadangan saat kartu tertinggal'),
-          description: const Text('Tunjukkan QR ini ke petugas. QR berganti tiap menit, jadi tangkapan layar tidak bisa dipakai. Butuh koneksi internet.'),
-        ),
-      ],
+            ),
+            const SizedBox(height: 16),
+            // Tips rata tengah agar simetris dengan kartu QR di atasnya.
+            for (final (icon, text) in const [
+              (LucideIcons.sun, 'Naikkan kecerahan layar agar mudah dipindai.'),
+              (LucideIcons.shieldAlert, 'QR berganti tiap menit dan butuh internet — tangkapan layar tidak bisa dipakai. Absen dengan QR bisa dikenai denda; bawa kartu anggota.'),
+            ])
+              Padding(
+                padding: const EdgeInsets.only(bottom: 6),
+                child: Text.rich(
+                  TextSpan(
+                    children: [
+                      WidgetSpan(
+                        alignment: PlaceholderAlignment.middle,
+                        child: Padding(
+                          padding: const EdgeInsets.only(right: 6),
+                          child: Icon(icon, size: 14, color: theme.colorScheme.mutedForeground),
+                        ),
+                      ),
+                      TextSpan(text: text),
+                    ],
+                  ),
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.muted.copyWith(fontSize: 12),
+                ),
+              ),
+          ],
+        );
+      },
     );
   }
 }

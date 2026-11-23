@@ -139,7 +139,7 @@ class _MyCardTabState extends State<MyCardTab> {
   void _showQr() => Navigator.of(context).push(
     MaterialPageRoute<void>(
       builder: (_) => Scaffold(
-        body: AppPage(title: 'QR Saya', child: MyQrTab(api: widget.api, name: widget.name)),
+        body: AppPage(title: 'QR Saya', maxContentWidth: 520, child: MyQrTab(api: widget.api, name: widget.name)),
       ),
     ),
   );
