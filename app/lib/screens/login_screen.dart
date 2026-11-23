@@ -13,9 +13,12 @@ import '../widgets/ui.dart';
 import 'splash_screen.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key, required this.server});
+  const LoginScreen({super.key, required this.server, this.notice});
 
   final ServerConfig server;
+
+  /// Pesan info di atas formulir (mis. sesi dicabut karena peran berubah).
+  final String? notice;
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -102,6 +105,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       spacing: 12,
                       children: [
+                        if (widget.notice != null && _error == null) ShadAlert(icon: const Icon(LucideIcons.info), description: Text(widget.notice!)),
                         if (_error != null) ShadAlert.destructive(icon: const Icon(LucideIcons.circleAlert), description: Text(_error!)),
                         _field(
                           'Email',

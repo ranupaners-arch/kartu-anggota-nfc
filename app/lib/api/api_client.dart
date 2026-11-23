@@ -144,6 +144,9 @@ class ApiClient {
     return j['message'] as String? ?? 'Tautan dikirim bila email terdaftar.';
   }
 
+  /// Data akun yang sedang masuk (nama, peran, tautan anggota) — dipakai app untuk cek ulang peran.
+  Future<Map<String, dynamic>> me() => _send('GET', '/api/me');
+
   /// Ganti password (wajib bila akun masih memakai password sementara dari pengurus).
   Future<void> changePassword(String current, String next) async {
     await _send('PUT', '/api/me/password', {'current_password': current, 'password': next, 'password_confirmation': next});

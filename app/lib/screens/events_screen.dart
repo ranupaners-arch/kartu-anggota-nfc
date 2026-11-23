@@ -4,6 +4,7 @@ import 'package:shadcn_ui/shadcn_ui.dart';
 import '../api/api_client.dart';
 import '../app/server_config.dart';
 import '../app/session.dart';
+import '../app/session_watch.dart';
 import '../offline/offline_store.dart';
 import '../widgets/ui.dart';
 import 'connect_screen.dart';
@@ -29,8 +30,14 @@ class EventsScreen extends StatefulWidget {
   State<EventsScreen> createState() => _EventsScreenState();
 }
 
-class _EventsScreenState extends State<EventsScreen> {
+class _EventsScreenState extends State<EventsScreen> with SessionWatch<EventsScreen> {
   late final ApiClient _api = widget.api ?? widget.session.client();
+
+  @override
+  Session get watchedSession => widget.session;
+
+  @override
+  ApiClient get watchedApi => _api;
   late Future<List<EventSummary>> _events = _load();
   String? _org;
   int _pendingOffline = 0;
