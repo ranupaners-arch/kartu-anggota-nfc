@@ -32,6 +32,8 @@ class MemberCardMenuTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        // Kunci HMAC tes sendiri — jangan bergantung pada CARD_KEY_* di .env lokal (CI tidak punya).
+        config(['attendance.card_keys.k1' => 'test-secret', 'attendance.payload_prefix' => 'card']);
         $this->org = Organization::create(['name' => 'HMPS', 'slug' => 'hmps']);
         $this->term = Term::create(['organization_id' => $this->org->id, 'name' => '2026', 'starts_on' => '2026-01-01', 'ends_on' => '2026-12-31', 'is_current' => true]);
         $this->budi = $this->member('01', 'Budi');
