@@ -58,7 +58,8 @@ class _LoginScreenState extends State<LoginScreen> {
       }
       await session.save();
       if (!mounted) return;
-      Navigator.of(context).pushReplacement(MaterialPageRoute<void>(builder: (_) => homeFor(session)));
+      // Bersihkan tumpukan layar (sambutan/masuk) agar layar utama tidak punya tombol kembali ke login.
+      Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute<void>(builder: (_) => homeFor(session)), (_) => false);
     } on ApiException catch (e) {
       setState(() {
         // Kolom kode 2FA muncul saat pertama diminta; pesan hanya ditampilkan bila kode sudah diisi.

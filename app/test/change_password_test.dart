@@ -42,9 +42,18 @@ void main() {
 
     await tester.pumpWidget(
       KartuAnggotaApp(
-        home: ChangePasswordScreen(api: api, session: session, currentPassword: 'Kq7m-Xt3a-Pw9e', server: const ServerConfig(url: 'http://srv', name: 'HMPS')),
+        home: Builder(
+          builder: (context) => Scaffold(
+            body: TextButton(
+              onPressed: () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => ChangePasswordScreen(api: api, session: session, currentPassword: 'Kq7m-Xt3a-Pw9e', server: const ServerConfig(url: 'http://srv', name: 'HMPS')))),
+              child: const Text('buka'),
+            ),
+          ),
+        ),
       ),
     );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('buka'));
     await tester.pumpAndSettle();
     expect(find.text('Buat password baru'), findsOneWidget);
 
@@ -76,6 +85,8 @@ void main() {
     expect(sent.last, {'current_password': 'Kq7m-Xt3a-Pw9e', 'password': 'RahasiaBaru123', 'password_confirmation': 'RahasiaBaru123'});
     expect((await Session.load())?.token, 'T');
     expect(find.byType(MemberHomeScreen), findsOneWidget);
+    // Tumpukan layar dibersihkan: layar utama tidak bisa "kembali" ke layar ganti password/masuk.
+    expect(Navigator.of(tester.element(find.byType(MemberHomeScreen))).canPop(), isFalse);
     await tester.pumpWidget(const SizedBox());
   });
 }
