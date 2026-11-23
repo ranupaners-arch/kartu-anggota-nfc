@@ -89,6 +89,8 @@ disetujui/ditolak (beserta catatan Anda). Super Admin juga diberi tahu saat ada 
 - **Pengguna & Peran** → **Tambah Pengguna** → peran *Petugas Scan* (atau *Anggota*, tautkan ke
   nomor anggota). Password sementara tampil sekali dan **wajib diganti** pemiliknya saat pertama
   masuk (app & dashboard); begitu juga setelah **Reset password**.
+- **Mengubah peran/divisi** akun (mis. petugas berhenti bertugas → *Anggota*) langsung
+  **mengeluarkan akun itu dari semua HP**; saat masuk lagi, app tampil sesuai peran barunya.
 - **Akun app anggota sekaligus**: **Anggota** → centang anggota (atau *Pilih semua*) → **Buat akun
   app**. Login memakai email anggota; yang belum punya email atau sudah punya akun dilewati
   beserta alasannya. Halaman berikutnya berisi **lembar akun** (email + password sementara) —

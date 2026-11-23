@@ -47,8 +47,15 @@ class UserService
         if ($user->is($actor) && isset($d['role']) && $d['role'] !== $user->role) {
             throw ValidationException::withMessages(['role' => 'Tidak bisa mengubah peran akun sendiri.']);
         }
-        $user->update(array_intersect_key($d, array_flip(['name', 'email', 'role', 'division_id', 'member_id'])));
-        AuditLogger::log('user.updated', 'user', $user->id, ['fields' => array_keys($d)]);
+        $user->fill(array_intersect_key($d, array_flip(['name', 'email', 'role', 'division_id', 'member_id'])));
+        // Peran/divisi/tautan anggota berubah → keluarkan dari semua perangkat agar app & portal memakai
+        // hak akses baru (mis. petugas yang tugasnya dicabut tidak lagi melihat tampilan petugas).
+        $accessChanged = $user->isDirty(['role', 'division_id', 'member_id']);
+        $user->save();
+        if ($accessChanged) {
+            $user->tokens()->delete();
+        }
+        AuditLogger::log('user.updated', 'user', $user->id, ['fields' => array_keys($d)] + ($accessChanged ? ['signed_out' => true] : []));
 
         return $user->fresh();
     }

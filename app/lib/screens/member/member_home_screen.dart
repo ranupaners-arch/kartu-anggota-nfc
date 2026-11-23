@@ -4,6 +4,7 @@ import 'package:shadcn_ui/shadcn_ui.dart';
 import '../../api/api_client.dart';
 import '../../app/server_config.dart';
 import '../../app/session.dart';
+import '../../app/session_watch.dart';
 import '../../widgets/ui.dart';
 import '../connect_screen.dart';
 import '../login_screen.dart';
@@ -30,8 +31,14 @@ class MemberHomeScreen extends StatefulWidget {
   State<MemberHomeScreen> createState() => _MemberHomeScreenState();
 }
 
-class _MemberHomeScreenState extends State<MemberHomeScreen> {
+class _MemberHomeScreenState extends State<MemberHomeScreen> with SessionWatch<MemberHomeScreen> {
   late final ApiClient _api = widget.api ?? widget.session.client();
+
+  @override
+  Session get watchedSession => widget.session;
+
+  @override
+  ApiClient get watchedApi => _api;
   final _home = GlobalKey<HomeTabState>();
   int _tab = 0;
 
