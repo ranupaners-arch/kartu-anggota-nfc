@@ -60,10 +60,13 @@ class _MyEventsTabState extends State<MyEventsTab> {
         Padding(
           padding: const EdgeInsets.only(bottom: 12),
           child: ShadCard(
+            padding: const EdgeInsets.all(16),
             title: Row(
               children: [
                 if (a.pinned) ...[const Icon(LucideIcons.pin, size: 16), const SizedBox(width: 6)],
-                Expanded(child: Text(a.title)),
+                Expanded(
+                  child: Text(a.title, style: theme.textTheme.p.copyWith(fontWeight: FontWeight.w600, fontSize: 16)),
+                ),
               ],
             ),
             description: Text([if (a.createdAt != null) fmtDate(a.createdAt!), if (a.division != null) 'Divisi ${a.division}'].join(' · ')),
@@ -97,28 +100,53 @@ class _MyEventsTabState extends State<MyEventsTab> {
           } else {
             // Pengingat & pengumuman di atas, lalu kegiatan.
             children.addAll(_top(context, snap.data!, _anns));
-            if (children.isEmpty) {
+            if (snap.data!.isEmpty && children.isEmpty) {
               children.add(const ShadCard(title: Text('Belum ada kegiatan'), description: Text('Kegiatan yang Anda ikuti akan muncul di sini.')));
             }
+            final cards = <Widget>[];
             for (final e in snap.data!) {
-              children.add(
+              cards.add(
                 Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
+                  padding: EdgeInsets.zero,
                   child: ShadCard(
-                    title: Text(e.title),
-                    description: Text([fmtDateTime(e.startsAt), if (e.location != null) e.location!].join(' · ')),
+                    padding: const EdgeInsets.all(16),
+                    title: Text(e.title, style: theme.textTheme.p.copyWith(fontWeight: FontWeight.w600, fontSize: 16)),
+                    description: Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: Wrap(
+                        spacing: 12,
+                        runSpacing: 2,
+                        children: [
+                          Row(mainAxisSize: MainAxisSize.min, spacing: 4, children: [const Icon(LucideIcons.calendarDays, size: 14), Text(fmtDateTime(e.startsAt))]),
+                          if (e.location != null)
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              spacing: 4,
+                              children: [
+                                const Icon(LucideIcons.mapPin, size: 14),
+                                Flexible(child: Text(e.location!, overflow: TextOverflow.ellipsis)),
+                              ],
+                            ),
+                        ],
+                      ),
+                    ),
                     child: Padding(
                       padding: const EdgeInsets.only(top: 10),
                       child: Row(
                         children: [
-                          ShadBadge.secondary(child: Text(MyEventsTabStatus.of(e))),
-                          if (e.excuseNote != null) ...[
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Text(e.excuseNote!, style: theme.textTheme.muted, overflow: TextOverflow.ellipsis),
+                          // Lencana & catatan boleh turun baris; tombol izin tetap rata kanan.
+                          Expanded(
+                            child: Wrap(
+                              spacing: 8,
+                              runSpacing: 4,
+                              crossAxisAlignment: WrapCrossAlignment.center,
+                              children: [
+                                StatusBadge(status: e.myStatus ?? e.excuseStatus, label: MyEventsTabStatus.of(e)),
+                                if (e.excuseNote != null) Text(e.excuseNote!, style: theme.textTheme.muted, maxLines: 2, overflow: TextOverflow.ellipsis),
+                              ],
                             ),
-                          ],
-                          const Spacer(),
+                          ),
+                          const SizedBox(width: 8),
                           if (e.canRequestExcuse)
                             ShadButton.outline(
                               size: ShadButtonSize.sm,
@@ -139,16 +167,21 @@ class _MyEventsTabState extends State<MyEventsTab> {
                 ),
               );
             }
+            // Kartu kegiatan: 1 kolom di HP, 2–3 kolom sama tinggi di tablet/laptop.
+            children.add(ResponsiveGrid(minItemWidth: 400, children: cards));
+            children.add(const SizedBox(height: 12));
           }
           if (snap.connectionState == ConnectionState.done && !snap.hasError) {
             children.add(
-              Padding(
-                padding: const EdgeInsets.only(top: 4),
-                child: FlexButton(
-                  label: 'Langganan jadwal ke kalender',
-                  icon: LucideIcons.calendarPlus,
-                  variant: ShadButtonVariant.outline,
-                  onPressed: () => showCalendarSubscription(context, widget.api),
+              Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 420),
+                  child: FlexButton(
+                    label: 'Langganan jadwal ke kalender',
+                    icon: LucideIcons.calendarPlus,
+                    variant: ShadButtonVariant.outline,
+                    onPressed: () => showCalendarSubscription(context, widget.api),
+                  ),
                 ),
               ),
             );
@@ -215,7 +248,9 @@ class _CalendarDialogState extends State<_CalendarDialog> {
                 if (snap.hasError)
                   ErrorBanner(snap.error is ApiException ? (snap.error as ApiException).message : 'Tidak bisa memuat tautan. Coba lagi nanti.')
                 else if (url == null)
-                  const Center(child: Padding(padding: EdgeInsets.all(12), child: CircularProgressIndicator()))
+                  const Center(
+                    child: Padding(padding: EdgeInsets.all(12), child: CircularProgressIndicator()),
+                  )
                 else ...[
                   SelectableText(url, style: theme.textTheme.small.copyWith(fontFamily: 'monospace')),
                   const SizedBox(height: 12),

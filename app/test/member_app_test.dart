@@ -8,6 +8,7 @@ import 'package:kartuanggota/app/home.dart';
 import 'package:kartuanggota/app/session.dart';
 import 'package:kartuanggota/main.dart';
 import 'package:kartuanggota/screens/events_screen.dart';
+import 'package:kartuanggota/screens/member/account_tab.dart';
 import 'package:kartuanggota/screens/member/excuse_screen.dart';
 import 'package:kartuanggota/screens/member/member_home_screen.dart';
 import 'package:kartuanggota/screens/member/my_events_tab.dart';
@@ -32,7 +33,7 @@ final eventJson = {
   'can_request_excuse': true,
 };
 
-MockClient server({List<http.Request>? seen, int qrCalls = 0, void Function()? onQr}) => MockClient((req) async {
+MockClient server({List<http.Request>? seen, int qrCalls = 0, void Function()? onQr, bool announcements = true}) => MockClient((req) async {
   seen?.add(req);
   switch (req.url.path) {
     case '/api/me/qr':
@@ -59,11 +60,26 @@ MockClient server({List<http.Request>? seen, int qrCalls = 0, void Function()? o
         200,
       );
     case '/api/me/announcements':
+      if (!announcements) return http.Response(jsonEncode({'data': []}), 200);
       return http.Response(
         jsonEncode({
           'data': [
             {'id': 1, 'title': 'Sekre tutup Jumat', 'body': 'Libur nasional.', 'pinned': true, 'created_at': '2026-11-01T02:00:00Z', 'division': null},
           ],
+        }),
+        200,
+      );
+    case '/api/me/card':
+      return http.Response(
+        jsonEncode({
+          'state': 'active',
+          'status': 'active',
+          'organization': 'HMPS',
+          'term': '2026',
+          'valid_until': '2027-07-31',
+          'member': {'name': 'Budi Santoso', 'member_no': '2401005', 'division': 'Inti', 'cohort': '2024', 'photo_url': null},
+          'card': {'last4': 'ABCD'},
+          'self_card': {'can_write': false, 'can_request': true, 'pending_request': null},
         }),
         200,
       );
@@ -196,7 +212,7 @@ void main() {
     });
   });
 
-  testWidgets('layar anggota: tiga tab, riwayat tampil', (tester) async {
+  testWidgets('layar anggota: empat tab, riwayat tampil', (tester) async {
     await tester.pumpWidget(
       KartuAnggotaApp(
         home: MemberHomeScreen(session: session('member'), api: api(server())),
@@ -206,7 +222,9 @@ void main() {
     await tester.tap(find.text('Riwayat').last);
     await tester.pumpAndSettle();
     expect(find.text('100%'), findsOneWidget);
-    expect(find.text('Hadir 3'), findsOneWidget);
+    // Kotak status ala portal: label "Hadir" + angka 3.
+    expect(find.descendant(of: find.byType(MyHistoryTab), matching: find.text('3')), findsOneWidget);
+    expect(find.text('Rapat Pleno'), findsWidgets); // riwayat terbaru
     expect(find.text('Kehadiran Anda perlu perhatian'), findsNothing); // tanpa peringatan dari server
     await tester.pumpWidget(const SizedBox());
   });
@@ -259,7 +277,9 @@ void main() {
     addTearDown(() => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(SystemChannels.platform, null));
     await tester.pumpWidget(
       KartuAnggotaApp(
-        home: Scaffold(body: MyEventsTab(api: api(server(seen: seen)))),
+        home: Scaffold(
+          body: MyEventsTab(api: api(server(seen: seen))),
+        ),
       ),
     );
     await tester.pumpAndSettle();
@@ -286,7 +306,16 @@ void main() {
       seen.add(req);
       if (req.url.path == '/api/me/report-card') return http.Response.bytes([0x25, 0x50, 0x44, 0x46], 200, headers: {'content-type': 'application/pdf'});
       // Jawab langsung (request yang sudah difinalisasi tidak bisa diteruskan ke mock lain).
-      return http.Response(jsonEncode({'term': '2026', 'by_status': {'hadir': 1}, 'total': 1, 'attendance_rate': 100, 'recent': []}), 200);
+      return http.Response(
+        jsonEncode({
+          'term': '2026',
+          'by_status': {'hadir': 1},
+          'total': 1,
+          'attendance_rate': 100,
+          'recent': [],
+        }),
+        200,
+      );
     });
     await tester.pumpWidget(
       KartuAnggotaApp(
@@ -315,14 +344,119 @@ void main() {
   });
 
   testWidgets('Riwayat menampilkan denda QR', (tester) async {
-    final c = MockClient((req) async => http.Response(jsonEncode({
-          'term': '2026', 'by_status': {'hadir': 1}, 'total': 1, 'attendance_rate': 100, 'recent': [],
-          'fines': {'unpaid_total': 7500, 'items': [{'id': 1, 'amount': 7500, 'status': 'unpaid', 'event': 'Rapat Pleno', 'date': '2026-11-01T02:00:00Z'}]},
-        }), 200));
-    await tester.pumpWidget(KartuAnggotaApp(home: Scaffold(body: MyHistoryTab(api: api(c)))));
+    final c = MockClient(
+      (req) async => http.Response(
+        jsonEncode({
+          'term': '2026',
+          'by_status': {'hadir': 1},
+          'total': 1,
+          'attendance_rate': 100,
+          'recent': [],
+          'fines': {
+            'unpaid_total': 7500,
+            'items': [
+              {'id': 1, 'amount': 7500, 'status': 'unpaid', 'event': 'Rapat Pleno', 'date': '2026-11-01T02:00:00Z'},
+            ],
+          },
+        }),
+        200,
+      ),
+    );
+    await tester.pumpWidget(
+      KartuAnggotaApp(
+        home: Scaffold(body: MyHistoryTab(api: api(c))),
+      ),
+    );
     await tester.pumpAndSettle();
     expect(find.text('Denda absen pakai QR'), findsOneWidget);
     expect(find.textContaining('Rp7.500'), findsWidgets);
     expect(find.text('Belum lunas'), findsOneWidget);
+  });
+
+  testWidgets('Beranda: kartu, menu cepat membuka halaman sendiri (bukan pindah tab)', (tester) async {
+    tester.view.physicalSize = const Size(1080, 2400);
+    tester.view.devicePixelRatio = 2.5;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      KartuAnggotaApp(
+        home: MemberHomeScreen(session: session('member'), api: api(server())),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Halo, Budi 👋'), findsOneWidget);
+    expect(find.text('HMPS'), findsWidgets); // subjudul bilah atas
+    for (final m in ['QR Saya', 'Izin', 'Rapor', 'Kartu', 'Denda', 'Jadwal', 'Data Diri', 'Panduan']) {
+      expect(find.text(m), findsOneWidget, reason: m);
+    }
+    await tester.scrollUntilVisible(find.text('Sekre tutup Jumat'), 200, scrollable: find.byType(Scrollable).first);
+    expect(find.text('Kegiatan terdekat'), findsOneWidget);
+    await tester.drag(find.byType(Scrollable).first, const Offset(0, 2000));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Denda'));
+    await tester.pumpAndSettle();
+    expect(find.text('Tidak ada denda'), findsOneWidget);
+    expect(find.byType(BackButton), findsOneWidget); // halaman baru, bisa kembali
+    await tester.tap(find.byType(BackButton));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Data Diri'));
+    await tester.pumpAndSettle();
+    expect(find.text('2401005'), findsOneWidget);
+    await tester.pumpWidget(const SizedBox());
+  });
+
+  testWidgets('Akun: hanya menu, tiap menu membuka halamannya sendiri', (tester) async {
+    tester.view.physicalSize = const Size(1080, 2400);
+    tester.view.devicePixelRatio = 2.5;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      KartuAnggotaApp(
+        home: MemberHomeScreen(session: session('member'), api: api(server())),
+      ),
+    );
+    await tester.pump();
+    await tester.tap(find.text('Akun').last);
+    await tester.pumpAndSettle();
+    // Hanya menu — tidak ada form di halaman Akun.
+    for (final m in ['Data keanggotaan', 'Kartu saya', 'Ajukan izin', 'Rapor kehadiran']) {
+      expect(find.text(m), findsOneWidget, reason: m);
+    }
+    expect(find.text('Password saat ini'), findsNothing);
+    await tester.scrollUntilVisible(
+      find.text('Rapor kehadiran'),
+      200,
+      scrollable: find.descendant(of: find.byType(AccountTab), matching: find.byType(Scrollable)).first,
+    );
+    await tester.ensureVisible(find.text('Rapor kehadiran'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Rapor kehadiran'));
+    await tester.pumpAndSettle();
+    expect(find.text('tingkat kehadiran dari 4 kegiatan'), findsOneWidget);
+    expect(find.byType(BackButton), findsOneWidget);
+    await tester.tap(find.byType(BackButton));
+    await tester.pumpAndSettle();
+
+    // Ganti password: halaman tersendiri.
+    final scroll = find.descendant(of: find.byType(AccountTab), matching: find.byType(Scrollable)).first;
+    await tester.scrollUntilVisible(find.text('Ganti password'), 200, scrollable: scroll);
+    await tester.ensureVisible(find.text('Ganti password'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Ganti password'));
+    await tester.pumpAndSettle();
+    expect(find.text('Password saat ini'), findsOneWidget);
+    expect(find.byType(BackButton), findsOneWidget);
+    await tester.pumpWidget(const SizedBox());
+  });
+
+  testWidgets('Kegiatan tanpa pengumuman: kegiatan tampil, tanpa tulisan "Belum ada kegiatan"', (tester) async {
+    await tester.pumpWidget(
+      KartuAnggotaApp(
+        home: Scaffold(body: MyEventsTab(api: api(server(announcements: false)))),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Rapat Pleno'), findsOneWidget);
+    expect(find.text('Belum ada kegiatan'), findsNothing);
   });
 }

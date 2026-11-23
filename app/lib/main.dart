@@ -70,6 +70,15 @@ class _KartuAnggotaAppState extends State<KartuAnggotaApp> {
               iconTheme: bySelected(IconThemeData(color: c.foreground), IconThemeData(color: c.mutedForeground)),
               labelTextStyle: bySelected(TextStyle(color: c.foreground, fontSize: 12, fontWeight: FontWeight.w600), TextStyle(color: c.mutedForeground, fontSize: 12)),
             ),
+            // Navigasi samping di layar lebar (laptop/tablet mendatar): warna sama dengan navigasi bawah.
+            navigationRailTheme: NavigationRailThemeData(
+              backgroundColor: c.background,
+              indicatorColor: c.secondary,
+              selectedIconTheme: IconThemeData(color: c.foreground),
+              unselectedIconTheme: IconThemeData(color: c.mutedForeground),
+              selectedLabelTextStyle: TextStyle(color: c.foreground, fontSize: 12, fontWeight: FontWeight.w600),
+              unselectedLabelTextStyle: TextStyle(color: c.mutedForeground, fontSize: 12),
+            ),
           );
         }(),
         home: widget.home ?? const _StartGate(),

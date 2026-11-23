@@ -85,42 +85,56 @@ class _MyHistoryTabState extends State<MyHistoryTab> {
                 const SizedBox(height: 12),
               ]);
             }
-            children.add(
-              ShadCard(
-                title: Text(h.rate == null ? '–' : '${h.rate!.toStringAsFixed(h.rate! % 1 == 0 ? 0 : 1)}%', style: theme.textTheme.h2),
-                description: Text('Kehadiran${h.term != null ? ' periode ${h.term}' : ''} · ${h.total} kegiatan'),
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 12),
-                  child: Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: [
-                      for (final s in ['hadir', 'telat', 'izin', 'sakit', 'alpa']) ShadBadge.secondary(child: Text('${statusLabel[s]} ${h.byStatus[s] ?? 0}')),
-                    ],
-                  ),
+            // Sama dengan portal web: persen besar, lima kotak status, tombol rapor.
+            final left = <Widget>[], right = <Widget>[];
+            left.add(
+              SectionCard(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text('Kehadiran${h.term != null ? ' periode ${h.term}' : ''}', style: theme.textTheme.muted),
+                    Text(h.rate == null ? '–' : '${h.rate!.toStringAsFixed(h.rate! % 1 == 0 ? 0 : 1)}%', style: theme.textTheme.h2),
+                    const SizedBox(height: 12),
+                    Row(
+                      spacing: 6,
+                      children: [
+                        for (final s in ['hadir', 'telat', 'izin', 'sakit', 'alpa'])
+                          Expanded(
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 2),
+                              decoration: BoxDecoration(color: theme.colorScheme.muted, borderRadius: BorderRadius.circular(8)),
+                              child: Column(
+                                children: [
+                                  Text(statusLabel[s]!, style: theme.textTheme.muted.copyWith(fontSize: 11), maxLines: 1, overflow: TextOverflow.ellipsis),
+                                  Text('${h.byStatus[s] ?? 0}', style: theme.textTheme.large),
+                                ],
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    FlexButton(
+                      variant: ShadButtonVariant.outline,
+                      icon: LucideIcons.fileDown,
+                      enabled: !_downloading,
+                      onPressed: _downloadReport,
+                      label: _downloading ? 'Mengunduh rapor…' : 'Unduh rapor PDF',
+                    ),
+                  ],
                 ),
               ),
             );
-            children.add(const SizedBox(height: 12));
-            children.add(
-              FlexButton(
-                variant: ShadButtonVariant.outline,
-                icon: LucideIcons.fileDown,
-                enabled: !_downloading,
-                onPressed: _downloadReport,
-                label: _downloading ? 'Mengunduh rapor…' : 'Unduh rapor PDF',
-              ),
-            );
-            if (_downloadError != null) children.addAll([const SizedBox(height: 8), ErrorBanner(_downloadError!)]);
-            children.add(const SizedBox(height: 12));
+            if (_downloadError != null) left.addAll([const SizedBox(height: 8), ErrorBanner(_downloadError!)]);
+            left.add(const SizedBox(height: 12));
             if (h.fines.isNotEmpty) {
               const label = {'unpaid': 'Belum lunas', 'paid': 'Lunas', 'waived': 'Dibebaskan'};
-              children.add(
-                ShadCard(
-                  title: const Text('Denda absen pakai QR'),
-                  description: Text('Belum lunas: ${rupiah(h.finesUnpaid)} — bayar ke pengurus. Bawa kartu agar tidak didenda.'),
+              left.add(
+                SectionCard(
+                  title: 'Denda absen pakai QR',
+                  description: 'Belum lunas: ${rupiah(h.finesUnpaid)} — bayar ke pengurus. Bawa kartu agar tidak didenda.',
                   child: Padding(
-                    padding: const EdgeInsets.only(top: 8),
+                    padding: EdgeInsets.zero,
                     child: Column(
                       children: [
                         for (final f in h.fines)
@@ -132,7 +146,7 @@ class _MyHistoryTabState extends State<MyHistoryTab> {
                                 const SizedBox(width: 8),
                                 Text(rupiah(f.amount), style: theme.textTheme.small),
                                 const SizedBox(width: 8),
-                                ShadBadge.secondary(child: Text(label[f.status] ?? f.status)),
+                                StatusBadge(status: f.status, label: label[f.status] ?? f.status),
                               ],
                             ),
                           ),
@@ -141,24 +155,45 @@ class _MyHistoryTabState extends State<MyHistoryTab> {
                   ),
                 ),
               );
-              children.add(const SizedBox(height: 12));
+              left.add(const SizedBox(height: 12));
             }
-            if (h.recent.isEmpty) {
-              children.add(Text('Belum ada riwayat kehadiran.', style: theme.textTheme.muted));
-            }
-            for (final r in h.recent) {
-              children.add(
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: ShadCard(
-                    padding: const EdgeInsets.all(12),
-                    title: Text(r.event),
-                    description: Text(r.date == null ? '' : fmtDate(r.date!)),
-                    trailing: ShadBadge.outline(child: Text(statusLabel[r.status] ?? r.status)),
-                  ),
+            right.add(
+              SectionCard(
+                title: 'Riwayat terbaru',
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    if (h.recent.isEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8),
+                        child: Text('Belum ada riwayat kehadiran.', style: theme.textTheme.muted),
+                      ),
+                    for (var k = 0; k < h.recent.length; k++) ...[
+                      if (k > 0) Divider(height: 1, color: theme.colorScheme.border),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(h.recent[k].event, style: theme.textTheme.small, maxLines: 2, overflow: TextOverflow.ellipsis),
+                                  if (h.recent[k].date != null) Text(fmtDate(h.recent[k].date!), style: theme.textTheme.muted.copyWith(fontSize: 12)),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            StatusBadge(status: h.recent[k].status, label: statusLabel[h.recent[k].status] ?? h.recent[k].status),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
-              );
-            }
+              ),
+            );
+            children.add(ResponsiveColumns(left: left, right: right));
           }
           return ListView(padding: const EdgeInsets.all(16), physics: const AlwaysScrollableScrollPhysics(), children: children);
         },

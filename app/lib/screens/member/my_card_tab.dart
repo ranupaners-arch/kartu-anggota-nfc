@@ -39,7 +39,15 @@ class _MyCardTabState extends State<MyCardTab> {
   late Future<MemberCardInfo> _card = widget.api.myCard();
   late Future<NfcAvailability> _nfc = _checkNfc();
 
-  Future<NfcAvailability> _checkNfc() => (widget.nfcAvailability ?? () => NfcService().availability())().catchError((_) => NfcAvailability.unsupported);
+  /// Status NFC HP. Di perangkat tanpa dukungan NFC, plugin bisa langsung melempar error (bukan Future
+  /// gagal) — tangkap keduanya agar halaman tetap tampil dengan pilihan "HP tidak mendukung NFC".
+  Future<NfcAvailability> _checkNfc() async {
+    try {
+      return await (widget.nfcAvailability ?? () => NfcService().availability())();
+    } catch (_) {
+      return NfcAvailability.unsupported;
+    }
+  }
 
   Future<void> _refresh() async {
     setState(() {
@@ -50,14 +58,15 @@ class _MyCardTabState extends State<MyCardTab> {
   }
 
   Future<void> _registerOwnCard() async {
-    final ok = await Navigator.of(context).push<bool>(
-      MaterialPageRoute(builder: (_) => widget.selfCardScreen?.call(widget.api) ?? SelfCardScreen(api: widget.api)),
-    );
+    final ok = await Navigator.of(context).push<bool>(MaterialPageRoute(builder: (_) => widget.selfCardScreen?.call(widget.api) ?? SelfCardScreen(api: widget.api)));
     if (ok == true) _refresh();
   }
 
   Future<void> _report([String reason = 'hilang']) async {
-    final sent = await showShadDialog<bool>(context: context, builder: (_) => _ReportDialog(api: widget.api, initialReason: reason));
+    final sent = await showShadDialog<bool>(
+      context: context,
+      builder: (_) => _ReportDialog(api: widget.api, initialReason: reason),
+    );
     if (sent == true) _refresh();
   }
 
@@ -101,7 +110,7 @@ class _MyCardTabState extends State<MyCardTab> {
             spacing: 8,
             children: [
               const Text('Nyalakan NFC untuk mendaftarkan kartu Anda sendiri.'),
-              ShadButton.outline(size: ShadButtonSize.sm, onPressed: _turnOnNfc, child: const Text('Buka pengaturan NFC')),
+              FlexButton(label: 'Buka pengaturan NFC', variant: ShadButtonVariant.outline, small: true, onPressed: _turnOnNfc),
             ],
           ),
         ),
@@ -112,8 +121,10 @@ class _MyCardTabState extends State<MyCardTab> {
             crossAxisAlignment: CrossAxisAlignment.start,
             spacing: 8,
             children: [
-              const Text('Pilihan: minta pengurus menerbitkan kartu Anda, atau masuk dengan akun Anda di HP lain yang ber-NFC (mis. HP teman/sekretariat) untuk mendaftarkan kartu. Sementara itu absen pakai QR.'),
-              ShadButton.outline(size: ShadButtonSize.sm, onPressed: () => _report('tanpa_nfc'), child: const Text('Minta pengurus terbitkan kartu')),
+              const Text(
+                'Pilihan: minta pengurus menerbitkan kartu Anda, atau masuk dengan akun Anda di HP lain yang ber-NFC (mis. HP teman/sekretariat) untuk mendaftarkan kartu. Sementara itu absen pakai QR.',
+              ),
+              FlexButton(label: 'Minta pengurus terbitkan kartu', variant: ShadButtonVariant.outline, small: true, onPressed: () => _report('tanpa_nfc')),
             ],
           ),
         ),
@@ -139,7 +150,11 @@ class _MyCardTabState extends State<MyCardTab> {
   void _showQr() => Navigator.of(context).push(
     MaterialPageRoute<void>(
       builder: (_) => Scaffold(
-        body: AppPage(title: 'QR Saya', child: MyQrTab(api: widget.api, name: widget.name)),
+        body: AppPage(
+          title: 'QR Saya',
+          maxContentWidth: 520,
+          child: MyQrTab(api: widget.api, name: widget.name),
+        ),
       ),
     ),
   );
@@ -154,7 +169,12 @@ class _MyCardTabState extends State<MyCardTab> {
         builder: (context, snap) {
           final children = <Widget>[];
           if (snap.connectionState != ConnectionState.done) {
-            children.add(const Padding(padding: EdgeInsets.all(32), child: Center(child: CircularProgressIndicator())));
+            children.add(
+              const Padding(
+                padding: EdgeInsets.all(32),
+                child: Center(child: CircularProgressIndicator()),
+              ),
+            );
           } else if (snap.hasError) {
             children.add(ErrorBanner(snap.error is ApiException ? (snap.error as ApiException).message : 'Tidak bisa memuat kartu. Tarik untuk mencoba lagi.'));
           } else {
