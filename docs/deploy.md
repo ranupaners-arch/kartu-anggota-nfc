@@ -44,6 +44,71 @@ docker compose exec app php artisan app:setup
 
 Hubungkan app petugas: dashboard → **Pengaturan → Aplikasi** → scan QR dari app.
 
+## Deploy dari image GHCR (tanpa build di server)
+
+Workflow **Image (GHCR)** membangun `deploy/Dockerfile` (target `app` dan `web`) di setiap push ke
+`main` yang menyentuh `backend/` atau `deploy/`, lalu mendorongnya ke
+`ghcr.io/ranupaners-arch/kartu-anggota-app` dan `ghcr.io/ranupaners-arch/kartu-anggota-web`
+(tag `latest` dan SHA commit). Server tidak perlu source repo dan **tidak pernah build**.
+
+Folder server (mis. `/srv/kartu-anggota`) cukup berisi `compose.yaml`, `backup.sh`, dan `.env`
+(salin dari `deploy/`, isi `.env` seperti di atas, `chmod 600 .env`):
+
+```bash
+docker login ghcr.io              # repo private: token dengan izin read:packages
+docker compose pull
+docker compose up -d --no-build --wait
+docker compose exec app php artisan app:setup   # sekali saja, pada pemasangan pertama
+```
+
+Pin ke versi tertentu dengan `APP_IMAGE=ghcr.io/ranupaners-arch/kartu-anggota-app:<sha>` dan
+`WEB_IMAGE=...-web:<sha>` di `.env`. Pembaruan versi: tunggu workflow selesai, lalu
+`docker compose pull && docker compose up -d --no-build --wait`.
+
+Deploy otomatis (opsional): isi secret repo `VPS_HOST`, `VPS_USER`, `VPS_SSH_KEY`,
+`VPS_KNOWN_HOSTS` (hasil `ssh-keyscan` yang sudah diverifikasi), dan opsional `VPS_PORT`. Job
+`deploy` lalu menjalankan perintah pull + up di atas lewat SSH (`sudo docker compose`, folder
+`/srv/kartu-anggota`). Tanpa secret itu, job dilewati dan deploy dilakukan manual.
+
+## Di belakang reverse proxy (Nginx/Cloudflare)
+
+Bila port 80/443 sudah dipegang Nginx di host (beberapa situs di satu VPS), Caddy jangan memakai
+port publik. Di `.env`:
+
+```env
+SITE_ADDRESS=:80                      # Caddy hanya HTTP; TLS di Nginx/Cloudflare
+APP_URL=https://absen.organisasi.id
+HTTP_PORT=127.0.0.1:8085              # hanya loopback
+HTTPS_PORT=127.0.0.1:8445
+CADDY_TRUSTED_PROXIES=private_ranges  # teruskan X-Forwarded-Proto/For dari Nginx ke PHP
+# TRUSTED_PROXIES=...                 # proxy yang dipercaya Laravel; bawaan jaringan privat
+```
+
+Contoh vhost Nginx (TLS: sertifikat origin Cloudflare atau certbot):
+
+```nginx
+server {
+    listen 443 ssl;
+    server_name absen.organisasi.id;
+    ssl_certificate     /etc/ssl/...;
+    ssl_certificate_key /etc/ssl/...;
+    client_max_body_size 12m;
+
+    location / {
+        proxy_pass http://127.0.0.1:8085;
+        proxy_set_header Host              $host;
+        proxy_set_header X-Real-IP         $remote_addr;
+        proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto https;
+    }
+}
+```
+
+Laravel mempercayai `X-Forwarded-*` hanya dari alamat di `TRUSTED_PROXIES` (bawaan
+`127.0.0.1,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16`), sehingga skema `https`, cookie aman, dan
+QR hubungkan app tetap benar. Bila memakai Cloudflare, aktifkan `real_ip` di Nginx agar IP klien asli
+tercatat.
+
 ## Simpan di tempat aman (di luar VPS)
 
 - Isi `deploy/.env` — terutama `APP_KEY` dan `CARD_KEY_k1`. Tanpa `CARD_KEY_k1` yang sama,
@@ -51,6 +116,9 @@ Hubungkan app petugas: dashboard → **Pengaturan → Aplikasi** → scan QR dar
 - Salinan backup (lihat di bawah).
 
 ## Pembaruan versi
+
+Dari image GHCR: lihat bagian di atas (`docker compose pull && docker compose up -d --no-build --wait`).
+Build dari source:
 
 ```bash
 cd kartu-anggota-nfc && git pull
