@@ -263,6 +263,12 @@ class ApiClient {
     return [for (final a in j['data'] as List) Announcement.fromJson(a as Map<String, dynamic>)];
   }
 
+  /// Kotak notifikasi anggota (pengumuman, keputusan izin/kartu, denda, pengingat), terbaru dulu.
+  Future<List<MemberNotice>> myNotifications() async {
+    final j = await _send('GET', '/api/me/notifications');
+    return [for (final n in j['data'] as List) MemberNotice.fromJson(n as Map<String, dynamic>)];
+  }
+
   /// Tautan langganan jadwal (.ics) milik akun ini; [reset] = buat tautan baru (yang lama mati).
   Future<String> calendarUrl({bool reset = false}) async {
     final j = await _send(reset ? 'POST' : 'GET', reset ? '/api/me/calendar/reset' : '/api/me/calendar');
@@ -532,4 +538,25 @@ class MemberCardInfo {
       },
     );
   }
+}
+
+/// Satu notifikasi di kotak notifikasi anggota (GET /api/me/notifications).
+class MemberNotice {
+  const MemberNotice({required this.id, required this.type, required this.title, required this.at, this.body});
+
+  factory MemberNotice.fromJson(Map<String, dynamic> j) => MemberNotice(
+    id: j['id'] as String,
+    type: j['type'] as String,
+    title: j['title'] as String,
+    body: j['body'] as String?,
+    at: DateTime.parse(j['at'] as String).toLocal(),
+  );
+
+  final String id;
+
+  /// announcement | excuse | card | fine | reminder
+  final String type;
+  final String title;
+  final String? body;
+  final DateTime at;
 }

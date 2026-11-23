@@ -522,3 +522,28 @@ class AboutPage extends StatelessWidget {
     );
   }
 }
+
+// ───────────────────────────── Pengumuman ─────────────────────────────
+
+class AnnouncementPage extends StatelessWidget {
+  const AnnouncementPage({super.key, required this.title, required this.body, required this.at, this.division});
+
+  final String title, body;
+  final DateTime at;
+  final String? division;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = ShadTheme.of(context);
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        Text(title, style: theme.textTheme.h4),
+        const SizedBox(height: 4),
+        Text([fmtDate(at), if (division != null) 'Divisi $division'].join(' · '), style: theme.textTheme.muted),
+        const SizedBox(height: 16),
+        SelectableText(body, style: theme.textTheme.p),
+      ],
+    );
+  }
+}
