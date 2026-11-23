@@ -164,6 +164,18 @@ dan — untuk alur pendaftaran — **Pengaturan → Aplikasi → Buka pendaftara
 - **Email & push:** Pengaturan → Sistem → kartu Email & Notifikasi push (status, cara mengaktifkan,
   *Kirim email uji*). Akun → Ringkasan mingguan → *Lihat contoh*.
 
+## Siap diuji: tugas petugas/pengurus (belum terpasang di HP)
+
+- Dashboard (Super Admin) → Anggota → detail anggota yang punya akun app → **Tugas** → *Petugas Scan* →
+  *Beri tugas*. Di HP anggota itu: app keluar sendiri → masuk lagi → ada tab **Tugas** (beranda petugas),
+  tab anggota lain tetap ada. Coba scan kartu/QR **miliknya sendiri** → merah *Kartu sendiri*.
+- **Cabut tugas** (alasan wajib) → HP-nya keluar → masuk lagi → tab Tugas hilang; notifikasi "Tugas … berakhir".
+- Beri tugas dengan tanggal berakhir kemarin… (tidak bisa: ditolak); beri tanggal hari ini → besok
+  (scheduler `tugas:kedaluwarsa` tiap jam) akun kembali jadi anggota.
+- Pengaturan → jadikan periode lain *berjalan* → tugas periode lama berakhir → **Petugas & Pengurus** →
+  *Periode sebelumnya* → centang → *Perpanjang*.
+- Ubah peran akun di Pengguna & Peran → HP akun itu keluar sendiri, layar Masuk menampilkan penjelasan.
+
 ## Belum diuji
 
 - Baca/tulis kartu NTAG215 (kartu belum ada).

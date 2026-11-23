@@ -85,6 +85,18 @@ disetujui/ditolak (beserta catatan Anda). Super Admin juga diberi tahu saat ada 
   pengurus atau *anggota sendiri*), laporan kartu & keputusannya, sisa jatah daftar sendiri, dan
   **Tambah jatah** (maks. 3) bila perlu memberi kesempatan tanpa laporan.
 
+### Petugas & Pengurus (tugas per periode)
+- Petugas Scan & Admin Divisi adalah **anggota yang diberi tugas**, satu akun per orang. Beri tugas di
+  **Anggota → detail → Tugas** (Petugas Scan, atau Admin Divisi + divisinya; tanggal berakhir opsional —
+  kosong = akhir periode). Anggota harus sudah punya **akun app** (Anggota → Buat akun app).
+- **Cabut tugas** (mengundurkan diri / tidak bertugas lagi) di bagian yang sama atau di **Petugas &
+  Pengurus** → *Cabut tugas* + alasan. Akun langsung kembali menjadi anggota biasa, dikeluarkan dari
+  HP-nya, dan diberi tahu. Data kehadiran & kartunya tetap.
+- Tugas **berakhir otomatis** pada tanggal berakhir atau saat **periode berjalan diganti**. Setelah ganti
+  periode, **Petugas & Pengurus → Periode sebelumnya** → centang yang tetap bertugas → *Perpanjang*.
+- Petugas tidak bisa memindai kartu/QR miliknya sendiri (mencegah titip absen).
+- Akun **bersama** tanpa data anggota (mis. HP sekretariat) tetap diatur di Pengguna & Peran.
+
 ### Akun petugas & perangkat
 - **Pengguna & Peran** → **Tambah Pengguna** → peran *Petugas Scan* (atau *Anggota*, tautkan ke
   nomor anggota). Password sementara tampil sekali dan **wajib diganti** pemiliknya saat pertama
