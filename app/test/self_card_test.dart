@@ -13,10 +13,17 @@ import 'package:material_ui/material_ui.dart';
 import 'package:nfc_manager/nfc_manager.dart' show NfcAvailability;
 
 Map<String, dynamic> card({required bool canWrite, bool canRequest = false, String? pending, bool hasCard = false, Map<String, dynamic>? decision}) => {
-  'state': 'active', 'organization': 'HMPS', 'valid_until': '2027-07-31',
+  'state': 'active',
+  'organization': 'HMPS',
+  'valid_until': '2027-07-31',
   'member': {'name': 'Budi', 'member_no': 'B01', 'division': 'Humas', 'photo_url': null},
   'card': hasCard ? {'last4': 'ABCD'} : null,
-  'self_card': {'can_write': canWrite, 'can_request': canRequest, 'pending_request': pending == null ? null : {'reason': pending}, 'last_decision': decision},
+  'self_card': {
+    'can_write': canWrite,
+    'can_request': canRequest,
+    'pending_request': pending == null ? null : {'reason': pending},
+    'last_decision': decision,
+  },
 };
 
 void main() {
@@ -34,7 +41,14 @@ void main() {
           case '/api/me/card':
             return http.Response(jsonEncode(card(canWrite: !written, canRequest: written, hasCard: written)), 200);
           case '/api/me/card/init':
-            return http.Response(jsonEncode({'id': 9, 'payload': 'card:k1:X:SIG', 'ntag': {'pwd': '01020304', 'pack': '0506'}}), 201);
+            return http.Response(
+              jsonEncode({
+                'id': 9,
+                'payload': 'card:k1:X:SIG',
+                'ntag': {'pwd': '01020304', 'pack': '0506'},
+              }),
+              201,
+            );
           case '/api/me/card/9/assign':
             written = true;
             expect((jsonDecode(req.body) as Map)['hw_uid'], '04AABB');
@@ -50,7 +64,10 @@ void main() {
             api: api,
             name: 'Budi',
             nfcAvailability: () async => NfcAvailability.enabled,
-            selfCardScreen: (api) => SelfCardScreen(api: api, writer: (init) async => const WriteResult(model: NtagModel.ntag215, uidHex: '04AABB', protectedNow: true)),
+            selfCardScreen: (api) => SelfCardScreen(
+              api: api,
+              writer: (init) async => const WriteResult(model: NtagModel.ntag215, uidHex: '04AABB', protectedNow: true),
+            ),
           ),
         ),
       ),
@@ -85,7 +102,13 @@ void main() {
         return http.Response(jsonEncode(card(canWrite: false, canRequest: reason == null, pending: reason)), 200);
       }),
     )..token = 't';
-    await tester.pumpWidget(KartuAnggotaApp(home: Scaffold(body: MyCardTab(api: api, name: 'Budi', nfcAvailability: () async => NfcAvailability.enabled))));
+    await tester.pumpWidget(
+      KartuAnggotaApp(
+        home: Scaffold(
+          body: MyCardTab(api: api, name: 'Budi', nfcAvailability: () async => NfcAvailability.enabled),
+        ),
+      ),
+    );
     await tester.pumpAndSettle();
     await tester.tap(find.text('Lapor kartu hilang/rusak'));
     await tester.pumpAndSettle();
@@ -109,9 +132,33 @@ void main() {
         return http.Response(jsonEncode(json), 200);
       }),
     )..token = 't';
-    await tester.pumpWidget(KartuAnggotaApp(home: Scaffold(body: MyCardTab(api: api, name: 'Budi', nfcAvailability: () async => nfc))));
+    await tester.pumpWidget(
+      KartuAnggotaApp(
+        home: Scaffold(
+          body: MyCardTab(api: api, name: 'Budi', nfcAvailability: () async => nfc),
+        ),
+      ),
+    );
     await tester.pumpAndSettle();
   }
+
+  testWidgets('plugin NFC melempar error langsung (perangkat tak didukung): halaman tetap tampil', (tester) async {
+    tester.view.physicalSize = const Size(1080, 2400);
+    tester.view.devicePixelRatio = 2.5;
+    addTearDown(tester.view.reset);
+    final api = ApiClient(baseUrl: 'http://srv', client: MockClient((req) async => http.Response(jsonEncode(card(canWrite: true, canRequest: true)), 200)))..token = 't';
+    await tester.pumpWidget(
+      KartuAnggotaApp(
+        home: Scaffold(
+          body: MyCardTab(api: api, name: 'Budi', nfcAvailability: () => throw UnsupportedError('linux is not supported')),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    expect(find.text('HP ini tidak mendukung NFC'), findsOneWidget);
+    expect(find.text('Tampilkan QR (kartu tertinggal)'), findsOneWidget);
+  });
 
   testWidgets('HP tanpa NFC: arahkan ke minta pengurus terbitkan kartu', (tester) async {
     final reasons = <String>[];
@@ -132,7 +179,11 @@ void main() {
   });
 
   testWidgets('keputusan pengurus tampil: pengurus menerbitkan + catatan', (tester) async {
-    await pumpTab(tester, NfcAvailability.unsupported, card(canWrite: false, canRequest: true, decision: {'reason': 'tanpa_nfc', 'status': 'approved', 'resolution': 'admin', 'review_note': 'Ambil di sekretariat Senin'}));
+    await pumpTab(
+      tester,
+      NfcAvailability.unsupported,
+      card(canWrite: false, canRequest: true, decision: {'reason': 'tanpa_nfc', 'status': 'approved', 'resolution': 'admin', 'review_note': 'Ambil di sekretariat Senin'}),
+    );
     expect(find.text('Pengurus akan menerbitkan kartu Anda'), findsOneWidget);
     expect(find.textContaining('Ambil di sekretariat Senin'), findsOneWidget);
   });
@@ -144,14 +195,27 @@ void main() {
     List<int>? opened;
     final api = ApiClient(
       baseUrl: 'http://srv',
-      client: MockClient((req) async => req.url.path == '/api/me/card.pdf'
-          ? http.Response.bytes([37, 80, 68, 70], 200, headers: {'content-type': 'application/pdf'})
-          : http.Response(jsonEncode(card(canWrite: false, canRequest: true, hasCard: true)), 200)),
+      client: MockClient(
+        (req) async => req.url.path == '/api/me/card.pdf'
+            ? http.Response.bytes([37, 80, 68, 70], 200, headers: {'content-type': 'application/pdf'})
+            : http.Response(jsonEncode(card(canWrite: false, canRequest: true, hasCard: true)), 200),
+      ),
     )..token = 't';
-    await tester.pumpWidget(KartuAnggotaApp(home: Scaffold(body: MyCardTab(api: api, name: 'Budi', nfcAvailability: () async => NfcAvailability.enabled, openPdf: (b) async {
-      opened = b;
-      return null;
-    }))));
+    await tester.pumpWidget(
+      KartuAnggotaApp(
+        home: Scaffold(
+          body: MyCardTab(
+            api: api,
+            name: 'Budi',
+            nfcAvailability: () async => NfcAvailability.enabled,
+            openPdf: (b) async {
+              opened = b;
+              return null;
+            },
+          ),
+        ),
+      ),
+    );
     await tester.pumpAndSettle();
     await tester.tap(find.text('Unduh kartu (PDF) untuk dicetak'));
     await tester.pumpAndSettle();
