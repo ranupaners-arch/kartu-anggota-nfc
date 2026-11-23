@@ -278,6 +278,12 @@ class ApiClient {
   /// Tampilan kartu anggota: status e-profil/pengesahan + data kartu.
   Future<MemberCardInfo> myCard() async => MemberCardInfo.fromJson(await _send('GET', '/api/me/card'));
 
+  /// Riwayat kartu anggota sendiri: semua kartu & laporan kartu.
+  Future<CardHistory> myCardHistory() async => CardHistory.fromJson(await _send('GET', '/api/me/card/history'));
+
+  /// Cek kartu NFC yang ditempel ke HP: mine | mine_inactive | other | unknown | invalid.
+  Future<String> checkMyCard(String payload) async => (await _send('POST', '/api/me/card/check', {'payload': payload}))['result'] as String;
+
   Future<MemberHistory> myHistory() async => MemberHistory.fromJson(await _send('GET', '/api/me/history'));
 
   /// Ajukan izin/sakit; lampiran opsional (gambar/PDF, maks. 5 MB).
@@ -509,7 +515,7 @@ class Announcement {
 enum CardState { none, pending, active, inactive }
 
 class MemberCardInfo {
-  MemberCardInfo({required this.state, this.status, this.organization, this.term, this.validUntil, this.name, this.memberNo, this.division, this.cohort, this.photoUrl, this.cardLast4, this.canWriteCard = false, this.canRequestCard = false, this.pendingRequestReason, this.lastDecision});
+  MemberCardInfo({required this.state, this.status, this.organization, this.term, this.validUntil, this.name, this.memberNo, this.division, this.cohort, this.photoUrl, this.cardLast4, this.canWriteCard = false, this.canRequestCard = false, this.pendingRequestReason, this.lastDecision, this.cardIssuedAt, this.cardIssuedBy, this.selfWritesLeft = 0});
 
   final CardState state;
   final String? status, organization, term, name, memberNo, division, cohort, photoUrl, cardLast4;
@@ -523,6 +529,13 @@ class MemberCardInfo {
 
   /// Keputusan pengurus atas laporan kartu terakhir (30 hari): status approved/rejected, tindak lanjut self/admin, catatan.
   final ({String reason, String status, String? resolution, String? note})? lastDecision;
+
+  /// Kartu NFC aktif: tanggal terbit & cara terbit ("self" = didaftarkan sendiri, "admin" = pengurus).
+  final DateTime? cardIssuedAt;
+  final String? cardIssuedBy;
+
+  /// Sisa jatah mendaftarkan kartu NFC sendiri.
+  final int selfWritesLeft;
 
   factory MemberCardInfo.fromJson(Map<String, dynamic> j) {
     final m = j['member'] as Map<String, dynamic>?;
@@ -540,6 +553,9 @@ class MemberCardInfo {
       cohort: m?['cohort'] as String?,
       photoUrl: m?['photo_url'] as String?,
       cardLast4: c?['last4'] as String?,
+      cardIssuedAt: DateTime.tryParse(c?['issued_at'] as String? ?? '')?.toLocal(),
+      cardIssuedBy: c?['issued_by'] as String?,
+      selfWritesLeft: (sc?['writes_left'] as num?)?.toInt() ?? 0,
       canWriteCard: sc?['can_write'] == true,
       canRequestCard: sc?['can_request'] == true,
       pendingRequestReason: (sc?['pending_request'] as Map<String, dynamic>?)?['reason'] as String?,
@@ -570,4 +586,36 @@ class MemberNotice {
   final String title;
   final String? body;
   final DateTime at;
+}
+
+/// Riwayat kartu anggota (GET /api/me/card/history).
+class CardHistory {
+  const CardHistory({this.cards = const [], this.requests = const []});
+
+  factory CardHistory.fromJson(Map<String, dynamic> j) => CardHistory(
+    cards: [
+      for (final c in (j['cards'] as List? ?? const []))
+        (
+          last4: (c as Map<String, dynamic>)['last4'] as String,
+          status: c['status'] as String,
+          issuedAt: DateTime.tryParse(c['issued_at'] as String? ?? '')?.toLocal(),
+          revokedAt: DateTime.tryParse(c['revoked_at'] as String? ?? '')?.toLocal(),
+          issuedBy: c['issued_by'] as String?,
+        ),
+    ],
+    requests: [
+      for (final r in (j['requests'] as List? ?? const []))
+        (
+          reason: (r as Map<String, dynamic>)['reason'] as String,
+          status: r['status'] as String,
+          note: r['note'] as String?,
+          reviewNote: r['review_note'] as String?,
+          resolution: r['resolution'] as String?,
+          createdAt: DateTime.tryParse(r['created_at'] as String? ?? '')?.toLocal(),
+        ),
+    ],
+  );
+
+  final List<({String last4, String status, DateTime? issuedAt, DateTime? revokedAt, String? issuedBy})> cards;
+  final List<({String reason, String status, String? note, String? reviewNote, String? resolution, DateTime? createdAt})> requests;
 }

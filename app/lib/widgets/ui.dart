@@ -298,3 +298,49 @@ class SectionCard extends StatelessWidget {
     );
   }
 }
+
+/// Satu tombol menu cepat: ikon dalam kotak membulat + label di bawahnya.
+class QuickAction extends StatelessWidget {
+  const QuickAction({super.key, required this.icon, required this.label, required this.onTap});
+
+  final IconData icon;
+  final String label;
+
+  /// null = nonaktif (diredupkan).
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = ShadTheme.of(context);
+    // Warna indigo kartu anggota, lebih terang di mode gelap agar kontras.
+    final accent = ShadTheme.of(context).brightness == Brightness.dark ? const Color(0xFFA5B4FC) : const Color(0xFF4F46E5);
+    return Semantics(
+      button: true,
+      enabled: onTap != null,
+      label: label,
+      excludeSemantics: true,
+      child: Opacity(
+        opacity: onTap == null ? 0.4 : 1,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(14),
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 2),
+            child: Column(
+              children: [
+                Container(
+                  width: 52,
+                  height: 52,
+                  decoration: BoxDecoration(color: accent.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(14)),
+                  child: Icon(icon, size: 24, color: accent),
+                ),
+                const SizedBox(height: 6),
+                Text(label, style: theme.textTheme.small, maxLines: 1, overflow: TextOverflow.ellipsis, textAlign: TextAlign.center),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}

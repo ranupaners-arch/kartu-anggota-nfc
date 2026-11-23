@@ -157,7 +157,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
     expect(find.text('HP ini tidak mendukung NFC'), findsOneWidget);
-    expect(find.text('Tampilkan QR (kartu tertinggal)'), findsOneWidget);
+    expect(find.text('QR Saya'), findsOneWidget);
   });
 
   testWidgets('HP tanpa NFC: arahkan ke minta pengurus terbitkan kartu', (tester) async {
@@ -217,7 +217,7 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Unduh kartu (PDF) untuk dicetak'));
+    await tester.tap(find.text('Unduh PDF'));
     await tester.pumpAndSettle();
     expect(opened, [37, 80, 68, 70]);
   });

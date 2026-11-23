@@ -8,13 +8,15 @@ import '../../app/pdf.dart';
 import '../../nfc/nfc_service.dart';
 import '../../widgets/member_card.dart';
 import '../../widgets/ui.dart';
+import 'card_pages.dart';
+import 'member_pages.dart' show pushMemberPage;
 import 'my_qr_tab.dart';
 import 'self_card_screen.dart';
 
 /// Tab "Kartu": kartu anggota di halaman utama. Kosong → ajakan isi e-profil; menunggu → info
 /// pengesahan; aktif → kartu lengkap + QR cadangan (kartu tertinggal).
 class MyCardTab extends StatefulWidget {
-  const MyCardTab({super.key, required this.api, required this.name, this.onRegister, this.selfCardScreen, this.nfcAvailability, this.openPdf});
+  const MyCardTab({super.key, required this.api, required this.name, this.onRegister, this.selfCardScreen, this.nfcAvailability, this.openPdf, this.readCard});
 
   final ApiClient api;
   final String name;
@@ -30,6 +32,9 @@ class MyCardTab extends StatefulWidget {
 
   /// Untuk tes: penyimpan/pembuka PDF (bawaan: simpan sementara lalu buka penampil PDF HP).
   final Future<String?> Function(List<int> bytes)? openPdf;
+
+  /// Untuk tes: pembaca kartu di halaman Cek kartu NFC (bawaan: NFC HP).
+  final Future<String?> Function()? readCard;
 
   @override
   State<MyCardTab> createState() => _MyCardTabState();
@@ -147,6 +152,40 @@ class _MyCardTabState extends State<MyCardTab> {
     );
   }
 
+  Future<void> _open(String title, Widget page) async {
+    await pushMemberPage<void>(context, title, page);
+    if (mounted) _refresh();
+  }
+
+  Widget _menu(BuildContext context, IconData icon, String title, String subtitle, VoidCallback? onTap) {
+    final theme = ShadTheme.of(context);
+    return Opacity(
+      opacity: onTap == null ? 0.5 : 1,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 14),
+          child: Row(
+            children: [
+              Icon(icon, size: 20, color: theme.colorScheme.foreground),
+              const SizedBox(width: 18),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(title, style: theme.textTheme.small.copyWith(fontWeight: FontWeight.w600)),
+                    Text(subtitle, style: theme.textTheme.muted.copyWith(fontSize: 12), maxLines: 2, overflow: TextOverflow.ellipsis),
+                  ],
+                ),
+              ),
+              if (onTap != null) Icon(LucideIcons.chevronRight, size: 18, color: theme.colorScheme.mutedForeground),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   void _showQr() => Navigator.of(context).push(
     MaterialPageRoute<void>(
       builder: (_) => Scaffold(
@@ -179,18 +218,29 @@ class _MyCardTabState extends State<MyCardTab> {
             children.add(ErrorBanner(snap.error is ApiException ? (snap.error as ApiException).message : 'Tidak bisa memuat kartu. Tarik untuk mencoba lagi.'));
           } else {
             final info = snap.data!;
-            children.add(
-              MemberCardView(
-                info: info,
-                token: widget.api.token,
-                onRegister: widget.onRegister == null
-                    ? null
-                    : () async {
-                        final sent = await widget.onRegister!(context);
-                        if (sent == true) _refresh();
-                      },
-              ),
+            final front = MemberCardView(
+              info: info,
+              token: widget.api.token,
+              onRegister: widget.onRegister == null
+                  ? null
+                  : () async {
+                      final sent = await widget.onRegister!(context);
+                      if (sent == true) _refresh();
+                    },
             );
+            if (info.state == CardState.active) {
+              // Kartu aktif bisa dibalik untuk melihat sisi belakang (sama dengan kartu cetak).
+              children.addAll([
+                FlippableMemberCard(
+                  front: front,
+                  back: MemberCardBack(info: info),
+                ),
+                const SizedBox(height: 8),
+                Text('Ketuk kartu untuk membalik', style: theme.textTheme.muted.copyWith(fontSize: 12), textAlign: TextAlign.center),
+              ]);
+            } else {
+              children.add(front);
+            }
             children.add(const SizedBox(height: 16));
             switch (info.state) {
               case CardState.none:
@@ -218,27 +268,37 @@ class _MyCardTabState extends State<MyCardTab> {
                   ),
                 );
               case CardState.active:
-                if (info.lastDecision case final d?) {
-                  children.add(_decision(d, info.canWriteCard));
-                  children.add(const SizedBox(height: 8));
-                }
-                if (info.canWriteCard && info.pendingRequestReason == null) {
-                  children.add(_ownCardSection(context));
-                  children.add(const SizedBox(height: 8));
-                }
-                children.add(FlexButton(label: 'Tampilkan QR (kartu tertinggal)', icon: LucideIcons.qrCode, variant: ShadButtonVariant.outline, onPressed: _showQr));
-                children.add(const SizedBox(height: 8));
+                final canReport = info.canRequestCard && info.pendingRequestReason == null;
+                // Aksi kartu ala aplikasi bank.
                 children.add(
-                  FlexButton(
-                    label: _downloading ? 'Mengunduh kartu…' : 'Unduh kartu (PDF) untuk dicetak',
-                    icon: LucideIcons.fileDown,
-                    variant: ShadButtonVariant.outline,
-                    enabled: !_downloading,
-                    onPressed: _downloadCard,
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: QuickAction(icon: LucideIcons.qrCode, label: 'QR Saya', onTap: _showQr),
+                      ),
+                      Expanded(
+                        child: QuickAction(icon: LucideIcons.fileDown, label: _downloading ? 'Mengunduh…' : 'Unduh PDF', onTap: _downloading ? null : _downloadCard),
+                      ),
+                      Expanded(
+                        child: QuickAction(
+                          icon: LucideIcons.nfc,
+                          label: 'Cek NFC',
+                          onTap: () => _open('Cek kartu NFC', CardCheckPage(api: widget.api, readCard: widget.readCard)),
+                        ),
+                      ),
+                      Expanded(
+                        child: QuickAction(icon: LucideIcons.triangleAlert, label: 'Lapor', onTap: canReport ? _report : null),
+                      ),
+                    ],
                   ),
                 );
-                if (_downloadError != null) children.addAll([const SizedBox(height: 8), ErrorBanner(_downloadError!)]);
-                children.add(const SizedBox(height: 8));
+                children.add(const SizedBox(height: 16));
+                if (_downloadError != null) children.addAll([ErrorBanner(_downloadError!), const SizedBox(height: 12)]);
+                if (info.lastDecision case final d?) {
+                  children.add(_decision(d, info.canWriteCard));
+                  children.add(const SizedBox(height: 12));
+                }
                 if (info.pendingRequestReason != null) {
                   children.add(
                     ShadAlert(
@@ -247,11 +307,42 @@ class _MyCardTabState extends State<MyCardTab> {
                       description: Text('Laporan: ${_reasonLabel[info.pendingRequestReason] ?? info.pendingRequestReason}. Keputusan pengurus akan tampil di sini.'),
                     ),
                   );
-                  children.add(const SizedBox(height: 8));
-                } else if (info.canRequestCard) {
-                  children.add(FlexButton(label: 'Lapor kartu hilang/rusak', icon: LucideIcons.triangleAlert, variant: ShadButtonVariant.ghost, small: true, onPressed: _report));
-                  children.add(const SizedBox(height: 8));
+                  children.add(const SizedBox(height: 12));
                 }
+                if (info.canWriteCard && info.pendingRequestReason == null) {
+                  children.add(_ownCardSection(context));
+                  children.add(const SizedBox(height: 12));
+                }
+                // Menu kartu.
+                children.add(
+                  Container(
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.card,
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: theme.colorScheme.border),
+                    ),
+                    clipBehavior: Clip.antiAlias,
+                    child: Material(
+                      type: MaterialType.transparency,
+                      child: Column(
+                        children: [
+                          _menu(context, LucideIcons.idCard, 'Detail kartu', 'Status, nomor kartu, tanggal terbit, jatah', () => _open('Detail kartu', CardDetailPage(info: info))),
+                          Divider(height: 1, indent: 52, color: theme.colorScheme.border),
+                          _menu(context, LucideIcons.history, 'Riwayat kartu', 'Kartu lama & laporan beserta keputusan', () => _open('Riwayat kartu', CardHistoryPage(api: widget.api))),
+                          Divider(height: 1, indent: 52, color: theme.colorScheme.border),
+                          _menu(
+                            context,
+                            LucideIcons.triangleAlert,
+                            'Lapor kartu hilang/rusak',
+                            canReport ? 'Kartu hilang langsung diblokir' : (info.pendingRequestReason != null ? 'Laporan sedang diproses' : 'Tidak tersedia'),
+                            canReport ? _report : null,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+                children.add(const SizedBox(height: 16));
                 children.add(
                   Text(
                     info.cardLast4 != null ? 'Kartu NFC aktif (…${info.cardLast4}). Tempelkan ke HP petugas saat absensi.' : 'Kartu NFC fisik belum diterbitkan. Sementara gunakan QR.',
