@@ -41,6 +41,7 @@ Route::middleware(['auth:sanctum', 'password.changed'])->group(function () {
     Route::get('me/photo', [MeController::class, 'photo'])->name('api.me.photo');
     Route::get('me/events', [MeController::class, 'events']);
     Route::get('me/history', [MeController::class, 'history']);
+    Route::get('me/achievements', [MeController::class, 'achievements']);
     Route::get('me/announcements', [MeController::class, 'announcements']);
     Route::get('me/notifications', [MeController::class, 'notifications']);
     Route::get('me/profile-change', [MeController::class, 'profileChange']);

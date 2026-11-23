@@ -110,6 +110,14 @@ angka bulan itu (juga ada di menu **Rapor**).
 Tombol **Unduh rapor PDF** (juga di menu **Rapor**) membuka rapor kehadiran periode berjalan (mis. untuk
 syarat sertifikat).
 
+## Poin & lencana
+
+Kehadiran Anda periode ini dihitung menjadi **poin** (hadir 10, telat 6, izin/sakit 2, alpa 0) dan
+**lencana**: *Langkah Pertama*, *Tepat Waktu* (5× tepat waktu berturut-turut), *Beruntun* (10× hadir
+berturut-turut), *Rajin* (kehadiran ≥ 90%), *Tanpa Alpa*, dan *Kartu Setia* (selalu absen dengan kartu NFC,
+bukan QR). Lihat di **Riwayat → Poin & lencana** atau ketuk baris poin di kartu kehadiran **Beranda**;
+ketuk lencana untuk melihat syarat & progresnya. Hanya Anda yang bisa melihatnya (tidak ada papan peringkat).
+
 ## Denda
 
 Bila organisasi mengaktifkan denda: absen memakai **QR padahal Anda punya kartu NFC aktif** (kartu

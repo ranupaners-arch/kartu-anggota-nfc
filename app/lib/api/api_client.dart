@@ -314,6 +314,9 @@ class ApiClient {
   /// Cek kartu NFC yang ditempel ke HP: mine | mine_inactive | other | unknown | invalid.
   Future<String> checkMyCard(String payload) async => (await _send('POST', '/api/me/card/check', {'payload': payload}))['result'] as String;
 
+  /// Poin & lencana keaktifan periode berjalan.
+  Future<Achievements> myAchievements() async => Achievements.fromJson(await _send('GET', '/api/me/achievements'));
+
   Future<MemberHistory> myHistory() async => MemberHistory.fromJson(await _send('GET', '/api/me/history'));
 
   /// Ajukan izin/sakit; lampiran opsional (gambar/PDF, maks. 5 MB).
@@ -688,4 +691,30 @@ class ProfileChangeStatus {
 
   /// Keputusan terakhir (30 hari): status approved/rejected + catatan pengurus.
   final ({String? name, String? phone, bool photo, String status, String? note, DateTime? at})? lastDecision;
+}
+
+/// Poin & lencana keaktifan anggota (GET /api/me/achievements).
+class Achievements {
+  const Achievements({this.points = 0, this.earned = 0, this.badges = const []});
+
+  factory Achievements.fromJson(Map<String, dynamic> j) => Achievements(
+    points: (j['points'] as num?)?.toInt() ?? 0,
+    earned: (j['earned'] as num?)?.toInt() ?? 0,
+    badges: [
+      for (final b in (j['badges'] as List?) ?? const [])
+        (
+          key: (b as Map<String, dynamic>)['key'] as String,
+          title: b['title'] as String,
+          description: b['description'] as String? ?? '',
+          earned: b['earned'] == true,
+          progress: (b['progress'] as num?)?.toInt() ?? 0,
+          target: (b['target'] as num?)?.toInt() ?? 1,
+          hint: b['hint'] as String?,
+          percent: b['unit'] == 'percent',
+        ),
+    ],
+  );
+
+  final int points, earned;
+  final List<({String key, String title, String description, bool earned, int progress, int target, String? hint, bool percent})> badges;
 }

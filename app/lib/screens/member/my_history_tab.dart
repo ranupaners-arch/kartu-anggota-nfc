@@ -5,6 +5,7 @@ import '../../api/api_client.dart';
 import '../../app/format.dart';
 import '../../app/pdf.dart';
 import '../../widgets/attendance_chart.dart';
+import '../../widgets/badges.dart';
 import '../../widgets/ui.dart';
 
 Future<String?> _saveAndOpenPdf(List<int> bytes) => saveAndOpenPdf(bytes, fileName: 'rapor-kehadiran.pdf');
@@ -24,6 +25,10 @@ class MyHistoryTab extends StatefulWidget {
 
 class _MyHistoryTabState extends State<MyHistoryTab> {
   late Future<MemberHistory> _history = widget.api.myHistory();
+  late Future<Achievements?> _achievements = _loadAchievements();
+
+  /// Poin & lencana (opsional: server lama tanpa endpoint ini → disembunyikan).
+  Future<Achievements?> _loadAchievements() => widget.api.myAchievements().then<Achievements?>((a) => a).catchError((_) => null);
   bool _downloading = false;
   String? _downloadError;
 
@@ -48,6 +53,7 @@ class _MyHistoryTabState extends State<MyHistoryTab> {
   Future<void> _refresh() async {
     setState(() {
       _history = widget.api.myHistory();
+      _achievements = _loadAchievements();
     });
     await _history.catchError((_) => const MemberHistory(byStatus: {}, total: 0));
   }
@@ -162,6 +168,17 @@ class _MyHistoryTabState extends State<MyHistoryTab> {
               );
               left.add(const SizedBox(height: 12));
             }
+            right.add(
+              FutureBuilder<Achievements?>(
+                future: _achievements,
+                builder: (context, a) => a.data == null
+                    ? const SizedBox.shrink()
+                    : Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: SectionCard(title: 'Poin & lencana', icon: LucideIcons.award, child: BadgesView(data: a.data!)),
+                      ),
+              ),
+            );
             right.add(
               SectionCard(
                 title: 'Riwayat terbaru',
