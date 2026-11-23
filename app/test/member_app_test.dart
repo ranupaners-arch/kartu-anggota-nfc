@@ -12,6 +12,7 @@ import 'package:kartuanggota/app/session.dart';
 import 'package:kartuanggota/main.dart';
 import 'package:kartuanggota/screens/events_screen.dart';
 import 'package:kartuanggota/screens/member/account_tab.dart';
+import 'package:kartuanggota/screens/member/event_detail_page.dart';
 import 'package:kartuanggota/screens/member/excuse_screen.dart';
 import 'package:kartuanggota/screens/member/member_home_screen.dart';
 import 'package:kartuanggota/screens/member/my_events_tab.dart';
@@ -535,5 +536,41 @@ void main() {
     expect(fmtAgo(now.subtract(const Duration(days: 1, hours: 2)), now), 'kemarin');
     expect(fmtAgo(now.subtract(const Duration(days: 4)), now), '4 hari lalu');
     expect(fmtAgo(DateTime(2026, 10, 1), now), '1 Okt 2026');
+  });
+
+  test('tahap check-in kegiatan', () {
+    final e = MemberEvent.fromJson({
+      ...eventJson,
+      'starts_at': '2026-11-23T02:00:00Z',
+      'checkin_opens_at': '2026-11-23T01:30:00Z',
+      'late_after': '2026-11-23T02:15:00Z',
+      'checkin_closes_at': '2026-11-23T03:00:00Z',
+    });
+    DateTime at(String hm) => DateTime.parse('2026-11-23T$hm:00Z').toLocal();
+    expect(checkinPhase(e, at('01:00')), CheckinPhase.notYet);
+    expect(checkinPhase(e, at('02:00')), CheckinPhase.onTime);
+    expect(checkinPhase(e, at('02:30')), CheckinPhase.late);
+    expect(checkinPhase(e, at('03:30')), CheckinPhase.closed);
+    expect(checkinPhase(MemberEvent.fromJson({...eventJson, 'closed_at': '2026-11-23T02:00:00Z'}), at('01:00')), CheckinPhase.closed);
+  });
+
+  testWidgets('Kegiatan: ketuk kartu → halaman detail dengan jadwal, check-in, dan tombol izin', (tester) async {
+    tester.view.physicalSize = const Size(1080, 2400);
+    tester.view.devicePixelRatio = 2.5;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      KartuAnggotaApp(
+        home: Scaffold(body: MyEventsTab(api: api(server(announcements: false)))),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Rapat Pleno'));
+    await tester.pumpAndSettle();
+    expect(find.byType(EventDetailPage), findsOneWidget);
+    expect(find.text('Detail kegiatan'), findsOneWidget);
+    expect(find.text('Check-in'), findsOneWidget);
+    expect(find.text('Belum dibuka.'), findsOneWidget); // kegiatan 2099
+    expect(find.text('Ajukan izin / sakit'), findsOneWidget);
+    expect(find.text('Aula'), findsOneWidget);
   });
 }

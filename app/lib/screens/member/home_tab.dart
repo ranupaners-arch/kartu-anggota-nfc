@@ -5,7 +5,7 @@ import '../../api/api_client.dart';
 import '../../app/format.dart';
 import '../../widgets/member_card.dart';
 import '../../widgets/ui.dart';
-import 'excuse_screen.dart';
+import 'event_detail_page.dart';
 import 'member_pages.dart';
 import 'my_events_tab.dart';
 import 'my_qr_tab.dart';
@@ -72,48 +72,10 @@ class HomeTabState extends State<HomeTab> {
     if (mounted) refresh(); // mis. izin baru diajukan → Beranda ikut diperbarui
   }
 
-  /// Detail kegiatan di lembar bawah: waktu, lokasi, status, dan tombol izin bila masih bisa.
-  void _eventDetail(MemberEvent e) {
-    showModalBottomSheet<void>(
-      context: context,
-      showDragHandle: true,
-      builder: (sheet) {
-        final theme = ShadTheme.of(sheet);
-        return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(e.title, style: theme.textTheme.h4),
-                const SizedBox(height: 12),
-                InfoRow('Waktu', '${fmtDateTime(e.startsAt)} · check-in s.d. ${fmtTime(e.checkinClosesAt)}'),
-                if (e.location != null) InfoRow('Lokasi', e.location!),
-                InfoRow('Status', MyEventsTabStatus.of(e) + (e.mandatory ? '' : ' · tidak wajib')),
-                if (e.excuseNote != null) InfoRow('Catatan pengurus', e.excuseNote!),
-                const SizedBox(height: 12),
-                if (e.canRequestExcuse)
-                  FlexButton(
-                    label: e.excuseStatus == 'pending' ? 'Ubah izin' : 'Ajukan izin',
-                    icon: LucideIcons.calendarPlus,
-                    onPressed: () async {
-                      Navigator.of(sheet).pop();
-                      final sent = await Navigator.of(context).push<bool>(
-                        MaterialPageRoute(
-                          builder: (_) => ExcuseScreen(api: widget.api, event: e),
-                        ),
-                      );
-                      if (sent == true && mounted) refresh();
-                    },
-                  ),
-                if (!e.closed) Text('Bawa kartu anggota. Lupa kartu? Tunjukkan QR Saya ke petugas.', style: theme.textTheme.muted, textAlign: TextAlign.center),
-              ],
-            ),
-          ),
-        );
-      },
-    );
+  /// Detail kegiatan di halaman sendiri (jadwal, check-in, izin).
+  Future<void> _eventDetail(MemberEvent e) async {
+    await pushMemberPage<void>(context, 'Detail kegiatan', EventDetailPage(api: widget.api, event: e));
+    if (mounted) refresh();
   }
 
   void _announcementDetail(Announcement a) {

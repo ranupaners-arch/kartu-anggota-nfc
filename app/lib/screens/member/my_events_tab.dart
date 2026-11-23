@@ -5,6 +5,7 @@ import 'package:shadcn_ui/shadcn_ui.dart';
 import '../../api/api_client.dart';
 import '../../app/format.dart';
 import '../../widgets/ui.dart';
+import 'event_detail_page.dart';
 import 'excuse_screen.dart';
 
 /// Kegiatan yang diikuti anggota + status hadir/izin + tombol ajukan izin.
@@ -106,8 +107,23 @@ class _MyEventsTabState extends State<MyEventsTab> {
             final cards = <Widget>[];
             for (final e in snap.data!) {
               cards.add(
-                Padding(
-                  padding: EdgeInsets.zero,
+                // Ketuk kartu → halaman detail kegiatan (jadwal, check-in, izin).
+                GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () async {
+                    await Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => Scaffold(
+                          body: AppPage(
+                            title: 'Detail kegiatan',
+                            maxContentWidth: 640,
+                            child: EventDetailPage(api: widget.api, event: e),
+                          ),
+                        ),
+                      ),
+                    );
+                    _refresh();
+                  },
                   child: ShadCard(
                     padding: const EdgeInsets.all(16),
                     title: Text(e.title, style: theme.textTheme.p.copyWith(fontWeight: FontWeight.w600, fontSize: 16)),

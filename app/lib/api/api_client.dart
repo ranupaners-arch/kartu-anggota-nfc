@@ -396,6 +396,9 @@ class MemberEvent {
     this.canRequestExcuse = false,
     this.sessions = 1,
     this.presentSessions = 0,
+    this.endsAt,
+    this.checkinOpensAt,
+    this.lateAfter,
   });
 
   factory MemberEvent.fromJson(Map<String, dynamic> j) {
@@ -415,6 +418,9 @@ class MemberEvent {
       canRequestExcuse: j['can_request_excuse'] as bool? ?? false,
       sessions: j['sessions'] as int? ?? 1,
       presentSessions: j['present_sessions'] as int? ?? 0,
+      endsAt: _time(j['ends_at']),
+      checkinOpensAt: _time(j['checkin_opens_at']),
+      lateAfter: _time(j['late_after']),
     );
   }
 
@@ -427,6 +433,11 @@ class MemberEvent {
 
   /// Kegiatan multi-sesi: jumlah sesi & sesi yang dihadiri (tiap sesi = satu kehadiran).
   final int sessions, presentSessions;
+
+  /// Jadwal lengkap untuk halaman detail (opsional: server lama tidak mengirimnya).
+  final DateTime? endsAt, checkinOpensAt, lateAfter;
+
+  static DateTime? _time(Object? v) => v is String ? DateTime.tryParse(v)?.toLocal() : null;
 }
 
 /// Ringkasan kehadiran anggota (GET /api/me/history).
