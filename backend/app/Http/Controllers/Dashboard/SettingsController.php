@@ -164,8 +164,9 @@ class SettingsController extends Controller
             $term->update(['is_current' => true]);
         });
         AuditLogger::log('term.set_current', 'term', $term->id);
+        $ended = app(\App\Services\DutyService::class)->expire(); // tugas periode lama berakhir
 
-        return back()->with('status', "Periode berjalan sekarang: {$term->name}.");
+        return back()->with('status', "Periode berjalan sekarang: {$term->name}.".($ended ? " {$ended} tugas petugas/pengurus periode lama berakhir — perpanjang di Petugas & Pengurus bila perlu." : ''));
     }
 
     public function storeDivision(Request $r)

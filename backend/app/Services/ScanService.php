@@ -56,6 +56,11 @@ class ScanService
             $member = $card->member;
         }
 
+        // Petugas tidak boleh mencatat kehadirannya sendiri (cegah titip absen) — minta petugas lain.
+        if ($user->member_id && $member->id === $user->member_id) {
+            return $this->result('self_scan', $member, null, 'Tidak bisa memindai kartu/QR sendiri. Minta petugas lain.');
+        }
+
         $review = null;
         if ($card && ! $card->isUsable()) {
             // Kartu diblokir SETELAH scan offline terjadi -> tinjau, jangan dibuang diam-diam.

@@ -64,7 +64,8 @@ class PushService
             ->whereHas('term', fn ($t) => $t->withoutGlobalScopes()->where('organization_id', $a->organization_id)->where('is_current', true))
             ->when($a->division_id, fn ($q) => $q->where('division_id', $a->division_id))
             ->pluck('member_id');
-        $users = User::where('organization_id', $a->organization_id)->where('role', User::MEMBER)->whereNull('disabled_at')
+        // Termasuk anggota yang sedang bertugas (akun tertaut ke anggota, apa pun perannya).
+        $users = User::where('organization_id', $a->organization_id)->whereNull('disabled_at')
             ->whereIn('member_id', $memberIds)->pluck('id');
 
         return $this->toUsers($users, 'Pengumuman: '.$a->title, str($a->body)->squish()->limit(140)->toString(), '/saya/kegiatan', "pengumuman-{$a->id}");
@@ -90,7 +91,7 @@ class PushService
             $done = Attendance::where('event_id', $e->id)->whereNull('voided_at')->pluck('member_id')
                 ->merge(ExcuseRequest::where('event_id', $e->id)->whereIn('status', ['pending', 'approved'])->pluck('member_id'));
             $memberIds = $e->targetMembers()->pluck('members.id')->diff($done);
-            $users = User::where('organization_id', $e->organization_id)->where('role', User::MEMBER)->whereNull('disabled_at')
+            $users = User::where('organization_id', $e->organization_id)->whereNull('disabled_at')
                 ->whereIn('member_id', $memberIds)->pluck('id');
             $body = 'Mulai '.$e->starts_at->timezone('Asia/Jakarta')->format('H.i').($e->location ? ' · '.$e->location : '').' · bawa kartu anggota';
             $sent['devices'] += $this->toUsers($users, 'Pengingat: '.$e->title, $body, '/saya', "kegiatan-{$e->id}");
