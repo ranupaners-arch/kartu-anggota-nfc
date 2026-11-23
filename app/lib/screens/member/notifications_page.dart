@@ -83,7 +83,7 @@ class NotificationsPage extends StatefulWidget {
 class _NotificationsPageState extends State<NotificationsPage> {
   late Future<List<MemberNotice>> _notices = widget.api.myNotifications();
 
-  static const _icons = {'announcement': LucideIcons.megaphone, 'excuse': LucideIcons.calendarCheck, 'card': LucideIcons.creditCard, 'fine': LucideIcons.wallet, 'reminder': LucideIcons.bellRing};
+  static const _icons = {'announcement': LucideIcons.megaphone, 'excuse': LucideIcons.calendarCheck, 'card': LucideIcons.creditCard, 'fine': LucideIcons.wallet, 'reminder': LucideIcons.bellRing, 'profile': LucideIcons.userPen};
 
   @override
   Widget build(BuildContext context) {

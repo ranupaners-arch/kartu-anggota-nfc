@@ -5,6 +5,7 @@ import '../../api/api_client.dart';
 import '../../widgets/member_photo.dart';
 import '../../widgets/ui.dart';
 import 'member_pages.dart';
+import 'profile_change_page.dart';
 import 'my_events_tab.dart' show showCalendarSubscription;
 
 /// Tab "Akun": identitas anggota dan menu berkelompok. Tiap menu membuka halamannya sendiri.
@@ -98,6 +99,7 @@ class _AccountTabState extends State<AccountTab> {
                 if (member)
                   _Section('Keanggotaan', [
                     _Item(LucideIcons.idCard, 'Data keanggotaan', 'Nama, NIM, divisi, periode, status', () => open('Data keanggotaan', MembershipPage(api: widget.api))),
+                  _Item(LucideIcons.userPen, 'Ubah data diri', 'Nama, no. HP, foto — disetujui pengurus', () => open('Ubah data diri', ProfileChangePage(api: widget.api))),
                     if (active)
                       _Item(LucideIcons.creditCard, 'Kartu saya', 'Daftarkan kartu NFC, unduh PDF, lapor kartu', () async {
                         await widget.onOpenCard?.call(context);

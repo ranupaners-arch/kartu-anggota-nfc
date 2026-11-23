@@ -192,6 +192,36 @@ class ApiClient {
   }
 
   /// Kirim e-profil (foto opsional) → kartu menunggu pengesahan.
+  /// Status perubahan data diri (data saat ini, pengajuan menunggu, keputusan terakhir).
+  Future<ProfileChangeStatus> profileChange() async => ProfileChangeStatus.fromJson(await _send('GET', '/api/me/profile-change'));
+
+  /// Ajukan perubahan nama / no. HP / foto; berlaku setelah disetujui Super Admin.
+  Future<ProfileChangeStatus> requestProfileChange({String? name, String? phone, String? reason, List<int>? photoBytes, String? photoName}) async {
+    final req = http.MultipartRequest('POST', Uri.parse('$baseUrl/api/me/profile-change'))
+      ..headers.addAll({'Accept': 'application/json', if (token != null) 'Authorization': 'Bearer $token'})
+      ..fields.addAll({
+        if (name != null && name.isNotEmpty) 'name': name,
+        if (phone != null && phone.isNotEmpty) 'phone': phone,
+        if (reason != null && reason.isNotEmpty) 'reason': reason,
+      });
+    if (photoBytes != null && photoName != null) {
+      req.files.add(http.MultipartFile.fromBytes('photo', photoBytes, filename: photoName));
+    }
+    final res = await http.Response.fromStream(await _http.send(req).timeout(const Duration(seconds: 30)));
+    Object? decoded;
+    try {
+      decoded = res.body.isEmpty ? null : jsonDecode(res.body);
+    } on FormatException {
+      decoded = null;
+    }
+    if (res.statusCode >= 400) {
+      final errors = decoded is Map ? decoded['errors'] : null;
+      final msg = errors is Map && errors.isNotEmpty ? (errors.values.first as List).first as String? : (decoded is Map ? decoded['message'] as String? : null);
+      throw ApiException(res.statusCode, errorMessage(res.statusCode, msg));
+    }
+    return ProfileChangeStatus.fromJson(decoded as Map<String, dynamic>);
+  }
+
   Future<MemberCardInfo> submitProfile({required String name, required String memberNo, String? phone, String? cohort, int? divisionId, List<int>? photoBytes, String? photoName}) async {
     final req = http.MultipartRequest('POST', Uri.parse('$baseUrl/api/me/profile'))
       ..headers.addAll({'Accept': 'application/json', if (token != null) 'Authorization': 'Bearer $token'})
@@ -629,4 +659,33 @@ class CardHistory {
 
   final List<({String last4, String status, DateTime? issuedAt, DateTime? revokedAt, String? issuedBy})> cards;
   final List<({String reason, String status, String? note, String? reviewNote, String? resolution, DateTime? createdAt})> requests;
+}
+
+/// Status perubahan data diri anggota (GET/POST /api/me/profile-change).
+class ProfileChangeStatus {
+  const ProfileChangeStatus({required this.currentName, this.currentPhone, this.pending, this.lastDecision});
+
+  factory ProfileChangeStatus.fromJson(Map<String, dynamic> j) {
+    ({String? name, String? phone, bool photo, String status, String? note, DateTime? at})? parse(Object? v) => v is Map<String, dynamic>
+        ? (
+            name: v['name'] as String?,
+            phone: v['phone'] as String?,
+            photo: v['has_photo'] == true,
+            status: v['status'] as String? ?? 'pending',
+            note: v['review_note'] as String?,
+            at: DateTime.tryParse((v['reviewed_at'] ?? v['created_at']) as String? ?? '')?.toLocal(),
+          )
+        : null;
+    final cur = j['current'] as Map<String, dynamic>? ?? const {};
+    return ProfileChangeStatus(currentName: cur['name'] as String? ?? '', currentPhone: cur['phone'] as String?, pending: parse(j['pending']), lastDecision: parse(j['last_decision']));
+  }
+
+  final String currentName;
+  final String? currentPhone;
+
+  /// Pengajuan yang masih menunggu persetujuan (isian yang diajukan saja).
+  final ({String? name, String? phone, bool photo, String status, String? note, DateTime? at})? pending;
+
+  /// Keputusan terakhir (30 hari): status approved/rejected + catatan pengurus.
+  final ({String? name, String? phone, bool photo, String status, String? note, DateTime? at})? lastDecision;
 }
