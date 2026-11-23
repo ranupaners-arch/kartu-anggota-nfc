@@ -139,30 +139,28 @@ class _MyQrTabState extends State<MyQrTab> {
               ),
             ),
             const SizedBox(height: 16),
-            // Tips rata tengah agar simetris dengan kartu QR di atasnya.
-            for (final (icon, text) in const [
-              (LucideIcons.sun, 'Naikkan kecerahan layar agar mudah dipindai.'),
-              (LucideIcons.shieldAlert, 'QR berganti tiap menit dan butuh internet — tangkapan layar tidak bisa dipakai. Absen dengan QR bisa dikenai denda; bawa kartu anggota.'),
-            ])
-              Padding(
-                padding: const EdgeInsets.only(bottom: 6),
-                child: Text.rich(
-                  TextSpan(
-                    children: [
-                      WidgetSpan(
-                        alignment: PlaceholderAlignment.middle,
-                        child: Padding(
-                          padding: const EdgeInsets.only(right: 6),
-                          child: Icon(icon, size: 14, color: theme.colorScheme.mutedForeground),
-                        ),
-                      ),
-                      TextSpan(text: text),
-                    ],
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(LucideIcons.sun, size: 16, color: theme.colorScheme.mutedForeground),
+                const SizedBox(width: 8),
+                Expanded(child: Text('Naikkan kecerahan layar agar mudah dipindai.', style: theme.textTheme.muted.copyWith(fontSize: 12))),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(LucideIcons.shieldAlert, size: 16, color: theme.colorScheme.mutedForeground),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'QR berganti tiap menit dan butuh internet — tangkapan layar tidak bisa dipakai. Absen dengan QR bisa dikenai denda; bawa kartu anggota.',
+                    style: theme.textTheme.muted.copyWith(fontSize: 12),
                   ),
-                  textAlign: TextAlign.center,
-                  style: theme.textTheme.muted.copyWith(fontSize: 12),
                 ),
-              ),
+              ],
+            ),
           ],
         );
       },
