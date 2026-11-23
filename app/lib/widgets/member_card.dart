@@ -230,3 +230,147 @@ class MemberCardView extends StatelessWidget {
     decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.white.withValues(alpha: alpha)),
   );
 }
+
+/// Sisi belakang kartu anggota (sama dengan sisi belakang kartu cetak PDF): cara memakai kartu,
+/// pernyataan kepemilikan, dan nomor kartu.
+class MemberCardBack extends StatelessWidget {
+  const MemberCardBack({super.key, required this.info});
+
+  final MemberCardInfo info;
+
+  @override
+  Widget build(BuildContext context) => MediaQuery.withNoTextScaling(
+    child: AspectRatio(
+      aspectRatio: cardAspect,
+      child: LayoutBuilder(
+        builder: (context, box) {
+          final w = box.maxWidth;
+          final ink = const Color(0xFF1F2937);
+          final body = TextStyle(color: ink, fontSize: w * 0.032, height: 1.35);
+          return Semantics(
+            label: 'Sisi belakang kartu: cara memakai kartu dan pernyataan kepemilikan.',
+            child: ExcludeSemantics(
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(w * 0.05),
+                  border: Border.all(color: const Color(0xFFE5E7EB)),
+                  boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.12), blurRadius: 18, offset: const Offset(0, 8))],
+                ),
+                clipBehavior: Clip.antiAlias,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Container(
+                      color: _indigo,
+                      padding: EdgeInsets.symmetric(horizontal: w * 0.05, vertical: w * 0.025),
+                      child: Text(
+                        'Cara memakai kartu',
+                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: w * 0.038),
+                      ),
+                    ),
+                    Expanded(
+                      child: Padding(
+                        padding: EdgeInsets.fromLTRB(w * 0.05, w * 0.03, w * 0.05, w * 0.02),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Tiap baris boleh menyusut agar tidak meluap di kartu kecil / huruf lebar.
+                            for (final (i, t) in const [
+                              'Tempel kartu ke HP petugas saat absensi.',
+                              'Kartu tertinggal? Tunjukkan QR Saya.',
+                              'Kartu hilang? Segera lapor agar diblokir.',
+                            ].indexed)
+                              Flexible(
+                                child: Padding(
+                                  padding: EdgeInsets.only(bottom: w * 0.008),
+                                  child: Text('${i + 1}. $t', style: body, maxLines: 1, overflow: TextOverflow.ellipsis),
+                                ),
+                              ),
+                            const Spacer(),
+                            Flexible(
+                              flex: 2,
+                              child: Text(
+                                'Kartu ini milik ${info.organization ?? 'organisasi'} dan tidak dapat dipindahtangankan. Bila ditemukan, mohon kembalikan ke pengurus.',
+                                style: body.copyWith(color: const Color(0xFF6B7280), fontSize: w * 0.028),
+                                maxLines: 3,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    Container(
+                      color: const Color(0xFFEEF2FF),
+                      padding: EdgeInsets.symmetric(horizontal: w * 0.05, vertical: w * 0.02),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              [if (info.name != null) info.name!, if (info.memberNo != null) info.memberNo!].join(' · '),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(color: const Color(0xFF4338CA), fontSize: w * 0.03),
+                            ),
+                          ),
+                          Text(
+                            info.cardLast4 == null ? 'NFC' : 'No. kartu …${info.cardLast4}',
+                            style: TextStyle(color: const Color(0xFF4338CA), fontSize: w * 0.03, fontWeight: FontWeight.w700),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    ),
+  );
+}
+
+/// Kartu yang bisa dibalik (depan ↔ belakang) dengan animasi putar; ketuk untuk membalik.
+class FlippableMemberCard extends StatefulWidget {
+  const FlippableMemberCard({super.key, required this.front, required this.back});
+
+  final Widget front, back;
+
+  @override
+  State<FlippableMemberCard> createState() => FlippableMemberCardState();
+}
+
+class FlippableMemberCardState extends State<FlippableMemberCard> {
+  bool _back = false;
+
+  bool get showingBack => _back;
+
+  void flip() => setState(() => _back = !_back);
+
+  @override
+  Widget build(BuildContext context) => Semantics(
+    button: true,
+    hint: _back ? 'Ketuk untuk melihat sisi depan' : 'Ketuk untuk melihat sisi belakang',
+    child: GestureDetector(
+      onTap: flip,
+      child: TweenAnimationBuilder<double>(
+        tween: Tween(end: _back ? 1 : 0),
+        duration: const Duration(milliseconds: 450),
+        curve: Curves.easeInOut,
+        builder: (context, t, _) {
+          final angle = t * 3.14159265;
+          final showBack = t > 0.5;
+          return Transform(
+            alignment: Alignment.center,
+            transform: Matrix4.identity()
+              ..setEntry(3, 2, 0.0012)
+              ..rotateY(angle),
+            child: showBack ? Transform(alignment: Alignment.center, transform: Matrix4.rotationY(3.14159265), child: widget.back) : widget.front,
+          );
+        },
+      ),
+    ),
+  );
+}

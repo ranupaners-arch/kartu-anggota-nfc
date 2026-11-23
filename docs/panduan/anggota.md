@@ -57,6 +57,12 @@ Kartu NFC tetap dipakai seperti biasa — portal hanya cadangan QR dan pengganti
   - NFC **mati** → *Buka pengaturan NFC*, nyalakan, kembali ke app.
   - HP **tanpa NFC** / NFC rusak → *Minta pengurus terbitkan kartu*, atau masuk dengan akun Anda di HP
     lain yang ber-NFC (HP teman/sekretariat) untuk mendaftarkan kartu, lalu keluar.
+- **Halaman Kartu** (menu **Kartu** di Beranda atau **Akun → Kartu saya**): ketuk kartu untuk
+  **membaliknya** (sisi belakang: cara memakai & pernyataan kepemilikan), tombol **QR Saya · Unduh PDF ·
+  Cek NFC · Lapor**, serta menu **Detail kartu** (status, nomor kartu …4 karakter terakhir, tanggal &
+  cara terbit, sisa jatah daftar sendiri) dan **Riwayat kartu** (kartu lama & laporan beserta keputusan).
+- **Cek NFC**: tempelkan kartu fisik ke HP Anda untuk memastikan kartu terbaca, asli, aktif, dan milik
+  Anda (mis. setelah cetak sendiri atau sebelum kegiatan). Hanya membaca — tidak mencatat kehadiran.
 - **Lapor kartu hilang/rusak** (menu **Kartu**): pilih *Kartu hilang* (kartu lama langsung diblokir), *Kartu
   rusak*, atau *HP tanpa NFC*. Keputusan pengurus tampil di menu Kartu (dan di lonceng) — mis. boleh mendaftarkan kartu
   baru sendiri, atau kartu diterbitkan pengurus beserta catatan tempat/waktu pengambilan. Sementara itu

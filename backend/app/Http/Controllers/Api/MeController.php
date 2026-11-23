@@ -71,6 +71,20 @@ class MeController extends Controller
         return $cards->forUser($r->user());
     }
 
+    /** Riwayat kartu anggota sendiri (kartu & laporan kartu). */
+    public function cardHistory(Request $r, \App\Services\MemberCardService $cards)
+    {
+        return $cards->history($this->member($r));
+    }
+
+    /** Cek kartu NFC yang ditempel ke HP anggota: asli, aktif, dan milik sendiri? */
+    public function cardCheck(Request $r, \App\Services\MemberCardService $cards)
+    {
+        $d = $r->validate(['payload' => 'required|string|max:300']);
+
+        return $cards->check($this->member($r), $d['payload']);
+    }
+
     private function member(Request $r): \App\Models\Member
     {
         return \App\Models\Member::findOrFail($this->memberId($r));
