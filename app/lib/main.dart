@@ -101,6 +101,9 @@ ShadThemeData appTheme(Brightness brightness, ShadColorScheme c) {
     brightness: brightness,
     colorScheme: c,
     textTheme: ShadTextTheme(h1Large: fg, h1: fg, h2: fg, h3: fg, h4: fg, p: fg, blockquote: fg, table: fg, list: fg, large: fg, small: fg, lead: muted, muted: muted),
+    // Bawaan shadcn: teks isian memakai gaya "muted" (abu) — sama dengan petunjuk, sehingga isian yang sudah
+    // terisi tampak kosong. Teks isian memakai warna utama; petunjuk (placeholder) tetap abu.
+    inputTheme: ShadInputTheme(style: fg, placeholderStyle: muted),
   );
 }
 

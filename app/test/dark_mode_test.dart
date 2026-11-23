@@ -83,4 +83,26 @@ void main() {
       await tester.pumpWidget(const SizedBox());
     });
   }
+
+  // Teks yang diketik/terisi harus berwarna teks utama, bukan abu seperti petunjuk (dulu tampak kosong).
+  for (final brightness in [Brightness.light, Brightness.dark]) {
+    testWidgets('teks isian form berwarna utama, petunjuk tetap redup (${brightness.name})', (tester) async {
+      tester.platformDispatcher.platformBrightnessTestValue = brightness;
+      addTearDown(tester.platformDispatcher.clearPlatformBrightnessTestValue);
+      final c = TextEditingController(text: 'Budi Santoso');
+      addTearDown(c.dispose);
+      await tester.pumpWidget(
+        KartuAnggotaApp(
+          home: Scaffold(
+            body: Column(children: [ShadInput(controller: c), const ShadInput(placeholder: Text('Petunjuk'))]),
+          ),
+        ),
+      );
+      await tester.pump();
+      final theme = ShadTheme.of(tester.element(find.byType(ShadInput).first));
+      final typed = tester.widget<EditableText>(find.byType(EditableText).first).style.color;
+      expect(typed, theme.colorScheme.foreground);
+      expect(textColor(tester, 'Petunjuk'), isNot(theme.colorScheme.foreground));
+    });
+  }
 }
