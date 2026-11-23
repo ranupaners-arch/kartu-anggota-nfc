@@ -1,5 +1,13 @@
 # SITE_ADDRESS = domain (mis. absen.organisasi.id) → HTTPS otomatis (Let's Encrypt).
 # Untuk uji tanpa domain: SITE_ADDRESS=:80 (HTTP saja).
+# Di belakang reverse proxy (Nginx/Cloudflare): SITE_ADDRESS=:80 dan CADDY_TRUSTED_PROXIES=private_ranges,
+# supaya X-Forwarded-Proto/For dari proxy diteruskan ke PHP (bukan ditimpa "http").
+{
+	servers {
+		trusted_proxies static {$CADDY_TRUSTED_PROXIES:127.0.0.1/32}
+	}
+}
+
 {$SITE_ADDRESS} {
 	root * /var/www/html/public
 	encode zstd gzip
