@@ -385,12 +385,9 @@ class _ExcuseListPageState extends State<ExcuseListPage> {
 // ───────────────────────────── Ganti password ─────────────────────────────
 
 class ChangeOwnPasswordPage extends StatefulWidget {
-  const ChangeOwnPasswordPage({super.key, required this.api, this.embedded = false});
+  const ChangeOwnPasswordPage({super.key, required this.api});
 
   final ApiClient api;
-
-  /// true = form di dalam kartu (tab Akun): tanpa gulir sendiri, tetap di tempat setelah berhasil.
-  final bool embedded;
 
   @override
   State<ChangeOwnPasswordPage> createState() => _ChangeOwnPasswordPageState();
@@ -402,7 +399,6 @@ class _ChangeOwnPasswordPageState extends State<ChangeOwnPasswordPage> {
   final _repeat = TextEditingController();
   bool _busy = false;
   String? _error;
-  bool _done = false;
 
   @override
   void dispose() {
@@ -421,18 +417,10 @@ class _ChangeOwnPasswordPageState extends State<ChangeOwnPasswordPage> {
     setState(() {
       _busy = true;
       _error = null;
-      _done = false;
     });
     try {
       await widget.api.changePassword(_current.text, _next.text);
       if (!mounted) return;
-      if (widget.embedded) {
-        for (final c in [_current, _next, _repeat]) {
-          c.clear();
-        }
-        setState(() => _done = true);
-        return;
-      }
       ScaffoldMessenger.maybeOf(context)?.showSnackBar(const SnackBar(content: Text('Password berhasil diganti.')));
       Navigator.of(context).pop(true);
     } catch (e) {
@@ -446,9 +434,9 @@ class _ChangeOwnPasswordPageState extends State<ChangeOwnPasswordPage> {
   Widget build(BuildContext context) {
     final theme = ShadTheme.of(context);
     final fields = <Widget>[
-      if (!widget.embedded) ...[Text('Minimal 10 karakter, berisi huruf dan angka. Jangan pakai password yang sama dengan akun lain.', style: theme.textTheme.muted), const SizedBox(height: 16)],
+      Text('Minimal 10 karakter, berisi huruf dan angka. Jangan pakai password yang sama dengan akun lain.', style: theme.textTheme.muted),
+      const SizedBox(height: 16),
       if (_error != null) ...[ErrorBanner(_error!), const SizedBox(height: 12)],
-      if (_done) ...[const ShadAlert(icon: Icon(LucideIcons.circleCheck), title: Text('Password berhasil diganti')), const SizedBox(height: 12)],
       ShadInputFormField(controller: _current, label: const Text('Password saat ini'), obscureText: true, autofillHints: const [AutofillHints.password]),
       const SizedBox(height: 12),
       ShadInputFormField(controller: _next, label: const Text('Password baru'), obscureText: true, autofillHints: const [AutofillHints.newPassword]),
@@ -457,7 +445,6 @@ class _ChangeOwnPasswordPageState extends State<ChangeOwnPasswordPage> {
       const SizedBox(height: 20),
       FlexButton(label: _busy ? 'Menyimpan…' : 'Simpan password', icon: LucideIcons.keyRound, enabled: !_busy, onPressed: _save),
     ];
-    if (widget.embedded) return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: fields);
     return ListView(padding: const EdgeInsets.all(16), children: fields);
   }
 }

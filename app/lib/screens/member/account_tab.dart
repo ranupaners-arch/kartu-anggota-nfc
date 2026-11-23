@@ -55,94 +55,73 @@ class _AccountTabState extends State<AccountTab> {
             setState(() => _card = _load());
             await _card;
           },
-          child: ListView(
-            padding: const EdgeInsets.all(16),
-            physics: const AlwaysScrollableScrollPhysics(),
-            children: [
-              // Kartu profil.
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.card,
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: theme.colorScheme.border),
-                ),
-                child: Row(
-                  children: [
-                    ClipOval(
-                      child: MemberPhoto(url: c?.photoUrl, token: widget.api.token, size: 60, name: c?.name ?? widget.name),
-                    ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(c?.name ?? widget.name, style: theme.textTheme.large, maxLines: 2, overflow: TextOverflow.ellipsis),
-                          if (c?.memberNo != null || c?.division != null)
-                            Text(
-                              [if (c?.memberNo != null) c!.memberNo!, if (c?.division != null) c!.division!].join(' · '),
-                              style: theme.textTheme.muted,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          if (c?.organization != null) Text(c!.organization!, style: theme.textTheme.muted, maxLines: 2, overflow: TextOverflow.ellipsis),
-                        ],
+          // Daftar menu satu kolom, di tengah & tidak membentang di tablet/laptop.
+          child: LayoutBuilder(
+            builder: (context, box) => ListView(
+              padding: EdgeInsets.symmetric(vertical: 16, horizontal: 16 + ((box.maxWidth - 640) / 2).clamp(0, double.infinity)),
+              physics: const AlwaysScrollableScrollPhysics(),
+              children: [
+                // Kartu profil.
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.card,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: theme.colorScheme.border),
+                  ),
+                  child: Row(
+                    children: [
+                      ClipOval(
+                        child: MemberPhoto(url: c?.photoUrl, token: widget.api.token, size: 60, name: c?.name ?? widget.name),
                       ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
-              // HP: form lalu menu (urutan sama dengan portal). Tablet/laptop: form di kiri, menu di kanan.
-              LayoutBuilder(
-                builder: (context, box) {
-                  final wide = box.maxWidth >= kTwoColumnWidth;
-                  return ResponsiveColumns(
-                    left: [
-                      SectionCard(
-                        title: 'Ganti password',
-                        icon: LucideIcons.keyRound,
-                        description: 'Minimal 10 karakter, berisi huruf dan angka.',
-                        child: ChangeOwnPasswordPage(api: widget.api, embedded: true),
-                      ),
-                      if (active) ...[
-                        const SizedBox(height: 16),
-                        SectionCard(
-                          title: 'Langganan jadwal',
-                          icon: LucideIcons.calendarPlus,
-                          description: 'Kegiatan Anda muncul otomatis di kalender HP (Kalender iPhone, Google Calendar).',
-                          child: FlexButton(label: 'Buat tautan langganan', icon: LucideIcons.link, variant: ShadButtonVariant.outline, onPressed: () => showCalendarSubscription(context, widget.api)),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(c?.name ?? widget.name, style: theme.textTheme.large, maxLines: 2, overflow: TextOverflow.ellipsis),
+                            if (c?.memberNo != null || c?.division != null)
+                              Text(
+                                [if (c?.memberNo != null) c!.memberNo!, if (c?.division != null) c!.division!].join(' · '),
+                                style: theme.textTheme.muted,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            if (c?.organization != null) Text(c!.organization!, style: theme.textTheme.muted, maxLines: 2, overflow: TextOverflow.ellipsis),
+                          ],
                         ),
-                      ],
+                      ),
                     ],
-                    right: [
-                      if (!wide) const SizedBox(height: 4),
-                      if (member)
-                        _Section('Keanggotaan', first: wide, [
-                          _Item(LucideIcons.idCard, 'Data keanggotaan', 'Nama, NIM, divisi, periode, status', () => open('Data keanggotaan', MembershipPage(api: widget.api))),
-                          if (active)
-                            _Item(LucideIcons.creditCard, 'Kartu saya', 'Daftarkan kartu NFC, unduh PDF, lapor kartu', () async {
-                              await widget.onOpenCard?.call(context);
-                              if (mounted) setState(() => _card = _load());
-                            }),
-                        ]),
-                      if (active)
-                        _Section('Kehadiran', [
-                          _Item(LucideIcons.calendarPlus, 'Ajukan izin', 'Izin atau sakit untuk kegiatan', () => open('Ajukan izin', ExcuseListPage(api: widget.api))),
-                          _Item(LucideIcons.fileText, 'Rapor kehadiran', 'Ringkasan & unduh rapor PDF', () => open('Rapor kehadiran', ReportPage(api: widget.api))),
-                          _Item(LucideIcons.wallet, 'Denda', 'Denda absen dengan QR', () => open('Denda', FinesPage(api: widget.api))),
-                        ]),
-                      _Section('Bantuan', first: wide && !member, [
-                        _Item(LucideIcons.circleHelp, 'Panduan anggota', 'Cara absen, izin, kartu hilang, denda', () => open('Panduan anggota', const HelpPage())),
-                        _Item(LucideIcons.info, 'Tentang aplikasi', 'Server, lisensi, hak cipta', () => open('Tentang aplikasi', AboutPage(server: widget.api.baseUrl))),
-                      ]),
-                      const SizedBox(height: 20),
-                      FlexButton(label: 'Keluar', icon: LucideIcons.logOut, variant: ShadButtonVariant.outline, onPressed: _confirmLogout),
-                    ],
-                  );
-                },
-              ),
-            ],
+                  ),
+                ),
+                // Hanya menu: tiap butir membuka halamannya sendiri.
+                if (member)
+                  _Section('Keanggotaan', [
+                    _Item(LucideIcons.idCard, 'Data keanggotaan', 'Nama, NIM, divisi, periode, status', () => open('Data keanggotaan', MembershipPage(api: widget.api))),
+                    if (active)
+                      _Item(LucideIcons.creditCard, 'Kartu saya', 'Daftarkan kartu NFC, unduh PDF, lapor kartu', () async {
+                        await widget.onOpenCard?.call(context);
+                        if (mounted) setState(() => _card = _load());
+                      }),
+                  ]),
+                if (active)
+                  _Section('Kehadiran', [
+                    _Item(LucideIcons.calendarPlus, 'Ajukan izin', 'Izin atau sakit untuk kegiatan', () => open('Ajukan izin', ExcuseListPage(api: widget.api))),
+                    _Item(LucideIcons.fileText, 'Rapor kehadiran', 'Ringkasan & unduh rapor PDF', () => open('Rapor kehadiran', ReportPage(api: widget.api))),
+                    _Item(LucideIcons.wallet, 'Denda', 'Denda absen dengan QR', () => open('Denda', FinesPage(api: widget.api))),
+                    _Item(LucideIcons.calendarSync, 'Langganan jadwal', 'Jadwal otomatis di kalender HP', () => showCalendarSubscription(context, widget.api)),
+                  ]),
+                _Section('Keamanan', [
+                  _Item(LucideIcons.keyRound, 'Ganti password', 'Minimal 10 karakter, berisi huruf dan angka', () => open('Ganti password', ChangeOwnPasswordPage(api: widget.api))),
+                ]),
+                _Section('Bantuan', [
+                  _Item(LucideIcons.circleHelp, 'Panduan anggota', 'Cara absen, izin, kartu hilang, denda', () => open('Panduan anggota', const HelpPage())),
+                  _Item(LucideIcons.info, 'Tentang aplikasi', 'Server, lisensi, hak cipta', () => open('Tentang aplikasi', AboutPage(server: widget.api.baseUrl))),
+                ]),
+                const SizedBox(height: 24),
+                FlexButton(label: 'Keluar', icon: LucideIcons.logOut, variant: ShadButtonVariant.outline, onPressed: _confirmLogout),
+              ],
+            ),
           ),
         );
       },
@@ -151,19 +130,16 @@ class _AccountTabState extends State<AccountTab> {
 }
 
 class _Section extends StatelessWidget {
-  const _Section(this.title, this.items, {this.first = false});
+  const _Section(this.title, this.items);
 
   final String title;
   final List<_Item> items;
-
-  /// Bagian pertama di kolom: tanpa jarak atas agar rata dengan kolom sebelahnya.
-  final bool first;
 
   @override
   Widget build(BuildContext context) {
     final theme = ShadTheme.of(context);
     return Padding(
-      padding: EdgeInsets.only(top: first ? 0 : 20),
+      padding: const EdgeInsets.only(top: 20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [

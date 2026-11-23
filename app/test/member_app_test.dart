@@ -406,7 +406,7 @@ void main() {
     await tester.pumpWidget(const SizedBox());
   });
 
-  testWidgets('Akun: ganti password & langganan jadwal seperti portal, menu membuka halaman', (tester) async {
+  testWidgets('Akun: hanya menu, tiap menu membuka halamannya sendiri', (tester) async {
     tester.view.physicalSize = const Size(1080, 2400);
     tester.view.devicePixelRatio = 2.5;
     addTearDown(tester.view.reset);
@@ -418,8 +418,11 @@ void main() {
     await tester.pump();
     await tester.tap(find.text('Akun').last);
     await tester.pumpAndSettle();
-    expect(find.text('Ganti password'), findsOneWidget);
-    expect(find.text('Buat tautan langganan'), findsOneWidget);
+    // Hanya menu — tidak ada form di halaman Akun.
+    for (final m in ['Data keanggotaan', 'Kartu saya', 'Ajukan izin', 'Rapor kehadiran']) {
+      expect(find.text(m), findsOneWidget, reason: m);
+    }
+    expect(find.text('Password saat ini'), findsNothing);
     await tester.scrollUntilVisible(
       find.text('Rapor kehadiran'),
       200,
@@ -430,6 +433,18 @@ void main() {
     await tester.tap(find.text('Rapor kehadiran'));
     await tester.pumpAndSettle();
     expect(find.text('tingkat kehadiran dari 4 kegiatan'), findsOneWidget);
+    expect(find.byType(BackButton), findsOneWidget);
+    await tester.tap(find.byType(BackButton));
+    await tester.pumpAndSettle();
+
+    // Ganti password: halaman tersendiri.
+    final scroll = find.descendant(of: find.byType(AccountTab), matching: find.byType(Scrollable)).first;
+    await tester.scrollUntilVisible(find.text('Ganti password'), 200, scrollable: scroll);
+    await tester.ensureVisible(find.text('Ganti password'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Ganti password'));
+    await tester.pumpAndSettle();
+    expect(find.text('Password saat ini'), findsOneWidget);
     expect(find.byType(BackButton), findsOneWidget);
     await tester.pumpWidget(const SizedBox());
   });
