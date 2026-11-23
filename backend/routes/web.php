@@ -131,6 +131,9 @@ Route::middleware(['auth:web', 'dashboard'])->group(function () {
         Route::put('pengaturan/privasi', [Dashboard\SettingsController::class, 'updatePrivacy'])->name('settings.privacy');
         Route::put('pengaturan/denda', [Dashboard\SettingsController::class, 'updateFines'])->name('settings.fines');
         Route::get('denda', [Dashboard\FineController::class, 'index'])->name('fines.index');
+        Route::get('perubahan-data', [Dashboard\ProfileChangeController::class, 'index'])->name('profile-changes.index');
+        Route::get('perubahan-data/{change}/foto', [Dashboard\ProfileChangeController::class, 'photo'])->name('profile-changes.photo');
+        Route::post('perubahan-data/{change}', [Dashboard\ProfileChangeController::class, 'review'])->name('profile-changes.review');
         Route::post('denda/tandai', [Dashboard\FineController::class, 'mark'])->name('fines.mark');
         Route::post('pengaturan/periode', [Dashboard\SettingsController::class, 'storeTerm'])->name('settings.terms.store');
         Route::post('pengaturan/periode/{term}/berjalan', [Dashboard\SettingsController::class, 'setCurrentTerm'])->name('settings.terms.current');

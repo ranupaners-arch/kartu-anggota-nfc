@@ -19,7 +19,7 @@ class Notifier
 {
     public function __construct(private PushService $push) {}
 
-    public const EVENTS = ['membershipApproved', 'cardRequestDecided', 'newApplicant', 'newCardRequest'];
+    public const EVENTS = ['membershipApproved', 'cardRequestDecided', 'newApplicant', 'newCardRequest', 'newProfileChange', 'profileChangeDecided'];
 
     /** Jadwalkan lewat antrean sesudah commit (data sudah tersimpan saat dikirim). */
     public static function later(string $event, int $id): void
@@ -63,6 +63,28 @@ class Notifier
             $what = ['hilang' => 'kartu hilang', 'rusak' => 'kartu rusak', 'tanpa_nfc' => 'HP tanpa NFC'][$req->reason] ?? $req->reason;
             $this->send($this->superAdmins($req->member->organization_id), 'Laporan kartu: '.$req->member->name, "{$req->member->name} ({$req->member->member_no}) melapor {$what}.".($req->note ? " \"{$req->note}\"" : ''), '/kartu?tab=pengganti', 'Tindak lanjuti');
         }
+    }
+
+    public function newProfileChange(int $changeId): void
+    {
+        $c = \App\Models\ProfileChange::withoutGlobalScopes()->with(['member' => fn ($q) => $q->withoutGlobalScopes()])->find($changeId);
+        if ($c?->member) {
+            $what = collect(['name' => 'nama', 'phone' => 'no. HP', 'photo_path' => 'foto'])->filter(fn ($l, $k) => filled($c->{$k}))->implode(', ');
+            $this->send($this->superAdmins($c->member->organization_id), 'Perubahan data: '.$c->member->name, "{$c->member->name} ({$c->member->member_no}) mengajukan perubahan {$what}.", '/perubahan-data', 'Tinjau');
+        }
+    }
+
+    public function profileChangeDecided(int $changeId): void
+    {
+        $c = \App\Models\ProfileChange::withoutGlobalScopes()->find($changeId);
+        if (! $c) {
+            return;
+        }
+        $note = $c->review_note ? " Catatan: {$c->review_note}" : '';
+        [$title, $body] = $c->status === 'approved'
+            ? ['Perubahan data disetujui', 'Data diri Anda sudah diperbarui.'.$note]
+            : ['Perubahan data ditolak', 'Pengajuan perubahan data Anda ditolak pengurus.'.$note];
+        $this->send($this->memberUsers($c->member_id), $title, $body, '/saya');
     }
 
     private function memberUsers(int $memberId): Collection
