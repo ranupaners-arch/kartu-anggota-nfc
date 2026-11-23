@@ -132,6 +132,10 @@ Route::middleware(['auth:web', 'dashboard'])->group(function () {
         Route::put('pengaturan/denda', [Dashboard\SettingsController::class, 'updateFines'])->name('settings.fines');
         Route::get('denda', [Dashboard\FineController::class, 'index'])->name('fines.index');
         Route::get('perubahan-data', [Dashboard\ProfileChangeController::class, 'index'])->name('profile-changes.index');
+        Route::get('tugas', [Dashboard\DutyController::class, 'index'])->name('duties.index');
+        Route::post('tugas/perpanjang', [Dashboard\DutyController::class, 'renew'])->name('duties.renew');
+        Route::post('tugas/{duty}/akhiri', [Dashboard\DutyController::class, 'end'])->name('duties.end');
+        Route::post('anggota/{member}/tugas', [Dashboard\DutyController::class, 'grant'])->name('duties.grant');
         Route::get('perubahan-data/{change}/foto', [Dashboard\ProfileChangeController::class, 'photo'])->name('profile-changes.photo');
         Route::post('perubahan-data/{change}', [Dashboard\ProfileChangeController::class, 'review'])->name('profile-changes.review');
         Route::post('denda/tandai', [Dashboard\FineController::class, 'mark'])->name('fines.mark');

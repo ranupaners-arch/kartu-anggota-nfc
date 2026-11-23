@@ -5,6 +5,7 @@ import { type CardRow, CardsTable } from '@/components/cards-table';
 import { MemberCard, type MemberCardInfo } from '@/components/member-card';
 import { ConfirmAction } from '@/components/confirm-action';
 import { DataTable } from '@/components/data-table';
+import { DutyCard, type MemberDuty } from '@/components/duty-card';
 import { PageTabs } from '@/components/page-tabs';
 import { Pager } from '@/components/pager';
 import { StatusBadge } from '@/components/status-badge';
@@ -90,8 +91,8 @@ function PrivacyCard({ member, privacy }: { member: Member; privacy: Privacy }) 
     );
 }
 
-export default function MemberShow({ member, tab, memberships, cards, attendances, privacy, canManage, cardPreview, cardRequests, selfCardWritesLeft }: {
-    member: Member; tab: string; memberships: Ms[]; cards: CardRow[]; attendances: Paginated<Att> | null; privacy: Privacy; canManage: boolean; cardPreview: MemberCardInfo; cardRequests: CardReq[]; selfCardWritesLeft: number;
+export default function MemberShow({ member, tab, memberships, cards, attendances, privacy, canManage, cardPreview, cardRequests, selfCardWritesLeft, duty }: {
+    member: Member; tab: string; memberships: Ms[]; cards: CardRow[]; attendances: Paginated<Att> | null; privacy: Privacy; canManage: boolean; cardPreview: MemberCardInfo; cardRequests: CardReq[]; selfCardWritesLeft: number; duty: MemberDuty | null;
 }) {
     const anonymized = Boolean(privacy.anonymizedAt);
     const editable = canManage && !anonymized;
@@ -155,6 +156,7 @@ export default function MemberShow({ member, tab, memberships, cards, attendance
                                 <TableRow key={m.id}><TableCell>{m.term} {!anonymized && <a href={`/anggota/${member.id}/rapor?periode=${m.term_id}`} target="_blank" rel="noreferrer" className="ml-1 text-xs text-primary hover:underline">rapor</a>}</TableCell><TableCell>{m.division ?? '—'}</TableCell><TableCell>{m.role ?? '—'}</TableCell><TableCell><StatusBadge status={m.status} /></TableCell></TableRow>
                             ))}
                         </DataTable>
+                        {editable && duty && <DutyCard memberId={member.id} memberName={member.name} duty={duty} />}
                         {editable && <PrivacyCard member={member} privacy={privacy} />}
                     </div>
                 </div>
