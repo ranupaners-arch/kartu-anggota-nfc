@@ -172,21 +172,21 @@ class _EventsScreenState extends State<EventsScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Expanded(
-                    child: _Action(icon: LucideIcons.scanLine, label: 'Pindai', onTap: _quickScan),
+                    child: QuickAction(icon: LucideIcons.scanLine, label: 'Pindai', onTap: _quickScan),
                   ),
                   if (superAdmin)
                     Expanded(
-                      child: _Action(
+                      child: QuickAction(
                         icon: LucideIcons.creditCard,
                         label: 'Terbitkan Kartu',
                         onTap: () => _push(IssueCardScreen(session: widget.session)),
                       ),
                     ),
                   Expanded(
-                    child: _Action(icon: LucideIcons.wrench, label: 'Alat NFC', onTap: () => _push(const NfcToolsScreen())),
+                    child: QuickAction(icon: LucideIcons.wrench, label: 'Alat NFC', onTap: () => _push(const NfcToolsScreen())),
                   ),
                   Expanded(
-                    child: _Action(
+                    child: QuickAction(
                       icon: LucideIcons.circleHelp,
                       label: 'Panduan',
                       onTap: () => _push(
@@ -294,46 +294,6 @@ class OfficerHelp extends StatelessWidget {
           ],
         ),
       ],
-    );
-  }
-}
-
-/// Tombol menu cepat (gaya sama dengan menu cepat beranda anggota): ikon dalam kotak indigo + label.
-// TODO(ui): satukan dengan QuickAction bersama setelah PR menu Kartu (#59) masuk.
-class _Action extends StatelessWidget {
-  const _Action({required this.icon, required this.label, required this.onTap});
-
-  final IconData icon;
-  final String label;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = ShadTheme.of(context);
-    final accent = theme.brightness == Brightness.dark ? const Color(0xFFA5B4FC) : const Color(0xFF4F46E5);
-    return Semantics(
-      button: true,
-      label: label,
-      excludeSemantics: true,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(14),
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 2),
-          child: Column(
-            children: [
-              Container(
-                width: 52,
-                height: 52,
-                decoration: BoxDecoration(color: accent.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(14)),
-                child: Icon(icon, size: 24, color: accent),
-              ),
-              const SizedBox(height: 6),
-              Text(label, style: theme.textTheme.small, maxLines: 2, overflow: TextOverflow.ellipsis, textAlign: TextAlign.center),
-            ],
-          ),
-        ),
-      ),
     );
   }
 }
