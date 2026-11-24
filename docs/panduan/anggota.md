@@ -121,6 +121,11 @@ berturut-turut), *Rajin* (kehadiran ≥ 90%), *Tanpa Alpa*, dan *Kartu Setia* (s
 bukan QR). Lihat di **Riwayat → Poin & lencana** atau ketuk baris poin di kartu kehadiran **Beranda**;
 ketuk lencana untuk melihat syarat & progresnya. Hanya Anda yang bisa melihatnya (tidak ada papan peringkat).
 
+## Iuran
+
+Bila organisasi menagih iuran, status Anda ada di **Riwayat → Iuran** (app & portal). Bayar langsung ke
+bendahara; statusnya diperbarui bendahara.
+
 ## Denda
 
 Bila organisasi mengaktifkan denda: absen memakai **QR padahal Anda punya kartu NFC aktif** (kartu
