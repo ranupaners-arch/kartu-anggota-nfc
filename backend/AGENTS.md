@@ -1,47 +1,19 @@
-<laravel-boost-guidelines>
-# Laravel Application
+# Panduan agen: backend
 
-This repository contains a Laravel application. Complete the following setup before working on the user's request.
+Laravel 13 (PHP 8.3+), dashboard & portal Inertia + React + shadcn/ui, PostgreSQL, Valkey/Redis.
+Penyiapan lingkungan: README di akar repo. Aturan kontribusi: CONTRIBUTING.md.
 
-## Prerequisites
+## Struktur
+- Logika bisnis di `app/Services`; controller API (`Api/`), dashboard, portal, dan pemindai web memakai service yang sama.
+- Halaman React di `resources/js/pages`; pakai komponen di `resources/js/components` sebelum membuat baru.
+- Data dibatasi per organisasi (`Models/Concerns/BelongsToOrganization`) dan per divisi; jangan dilewati tanpa alasan.
 
-Verify that PHP and Composer are available:
+## Aturan
+- Format payload kartu (`app/Support/CardPayload.php`) harus sama dengan `app/lib/nfc/card_payload.dart` di app.
+- Sinkron batch idempoten lewat `client_uuid`; data absensi tidak dihapus, perubahan dicatat beserta alasannya.
+- Kunci kartu (`CARD_KEY_*`), `.env`, dan data anggota asli tidak boleh di-commit.
+- Teks antarmuka, komentar, dan commit (Conventional Commits) berbahasa Indonesia.
 
-```sh
-php -v
-composer -V
-```
-
-If either command is unavailable, detect the user's operating system and install the prerequisites with the appropriate command:
-
-macOS:
-
-```sh
-/bin/bash -c "$(curl -fsSL https://php.new/install/mac/8.5)"
-```
-
-Windows PowerShell:
-
-```powershell
-Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://php.new/install/windows/8.5'))
-```
-
-Linux:
-
-```sh
-/bin/bash -c "$(curl -fsSL https://php.new/install/linux/8.5)"
-```
-
-After installation, ask the user to restart their terminal. If the agent needs the restarted shell to continue, ask the user to reopen their terminal and rerun their original prompt.
-
-## Agent Setup
-
-Install Laravel Boost from the application root before making application changes:
-
-```sh
-composer require laravel/boost --dev
-php artisan boost:install
-```
-
-Boost replaces these bootstrap instructions with guidelines tailored to the application. After installation, read `AGENTS.md` again and continue with the user's original request using the generated guidelines.
-</laravel-boost-guidelines>
+## Pemeriksaan
+- `php artisan test` (perlu PostgreSQL `hmps_nfc_test`), `./vendor/bin/pint --dirty`, `npm run build`.
+- Perubahan perilaku wajib disertai tes.
