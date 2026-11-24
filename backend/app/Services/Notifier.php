@@ -5,6 +5,8 @@ namespace App\Services;
 use App\Jobs\SendNotice;
 use App\Mail\NoticeMail;
 use App\Models\CardRequest;
+use App\Models\Due;
+use App\Models\DueItem;
 use App\Models\Duty;
 use App\Models\EventRsvp;
 use App\Models\Member;
@@ -23,7 +25,7 @@ class Notifier
 {
     public function __construct(private PushService $push) {}
 
-    public const EVENTS = ['membershipApproved', 'cardRequestDecided', 'newApplicant', 'newCardRequest', 'newProfileChange', 'profileChangeDecided', 'dutyGranted', 'dutyEnded', 'rsvpPromoted'];
+    public const EVENTS = ['membershipApproved', 'cardRequestDecided', 'newApplicant', 'newCardRequest', 'newProfileChange', 'profileChangeDecided', 'dutyGranted', 'dutyEnded', 'rsvpPromoted', 'dueCreated'];
 
     /** Jadwalkan lewat antrean sesudah commit (data sudah tersimpan saat dikirim). */
     public static function later(string $event, int $id): void
@@ -117,6 +119,19 @@ class Notifier
             $when = $r->event->starts_at->timezone(config('app.timezone'))->locale('id')->translatedFormat('j F Y H.i');
             $this->send($this->memberUsers($r->member_id), 'Anda dapat tempat: '.$r->event->title, "Anda naik dari daftar tunggu ({$when}). Bila batal ikut, ubah RSVP agar tempatnya dipakai anggota lain.", '/saya/kegiatan');
         }
+    }
+
+    /** Tagihan iuran baru: push saja (email massal tidak dikirim); di app muncul di lonceng. */
+    public function dueCreated(int $dueId): void
+    {
+        $due = Due::withoutGlobalScopes()->find($dueId);
+        if (! $due || $due->cancelled_at) {
+            return;
+        }
+        $members = DueItem::withoutGlobalScopes()->where('due_id', $due->id)->where('status', DueItem::UNPAID)->select('member_id');
+        $users = User::where('organization_id', $due->organization_id)->whereNull('disabled_at')->whereIn('member_id', $members)->pluck('id');
+        $until = $due->due_on ? ' Jatuh tempo '.$due->due_on->locale('id')->translatedFormat('j F Y').'.' : '';
+        $this->push->toUsers($users, 'Tagihan: '.$due->title, 'Rp'.number_format($due->amount, 0, ',', '.').'. Bayar ke bendahara.'.$until, '/saya/riwayat', 'due');
     }
 
     /** Semua akun tertaut ke anggota itu — termasuk anggota yang sedang bertugas (petugas/admin divisi). */

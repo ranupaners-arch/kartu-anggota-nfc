@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Announcement;
 use App\Models\Attendance;
 use App\Models\CardRequest;
+use App\Models\DueItem;
 use App\Models\Event;
 use App\Models\ExcuseRequest;
 use App\Models\Fine;
@@ -16,7 +17,7 @@ use Illuminate\Support\Collection;
 
 /**
  * Kotak notifikasi anggota (lonceng di app): dirangkum dari data yang sudah ada, tanpa tabel baru —
- * pengumuman, keputusan izin, keputusan laporan kartu & perubahan data, denda QR, dan pengingat kegiatan
+ * pengumuman, keputusan izin, keputusan laporan kartu & perubahan data, denda QR, iuran, dan pengingat kegiatan
  * 24 jam ke depan.
  * Status "sudah dibaca" disimpan di perangkat anggota (berdasarkan waktu terakhir membuka kotak).
  */
@@ -39,6 +40,7 @@ class MemberNotificationService
             ->merge($this->cardRequests($memberId, $since))
             ->merge($this->profileChanges($memberId, $since))
             ->merge($this->fines($memberId, $since))
+            ->merge($this->dues($memberId, $since))
             ->merge($this->reminders($memberId, $term));
 
         return $items->sortByDesc(fn ($i) => $i['at']->getTimestamp())->take(self::LIMIT)
@@ -100,6 +102,19 @@ class MemberNotificationService
                 'title' => 'Denda absen QR Rp'.number_format($f->amount, 0, ',', '.'),
                 'body' => ($f->attendance?->event?->title ?? 'Kegiatan').' — kartu tidak dibawa. Bayar ke pengurus.',
                 'at' => $f->created_at,
+            ]);
+    }
+
+    /** Tagihan iuran yang belum lunas; hilang dari kotak setelah lunas, dibebaskan, atau dibatalkan. */
+    private function dues(int $memberId, Carbon $since): Collection
+    {
+        return DueItem::with('due')->where('member_id', $memberId)->where('status', DueItem::UNPAID)->where('created_at', '>=', $since)
+            ->whereHas('due', fn ($q) => $q->whereNull('cancelled_at'))->get()
+            ->map(fn (DueItem $i) => [
+                'id' => "due:{$i->id}", 'type' => 'due',
+                'title' => "Tagihan {$i->due->title}: Rp".number_format($i->due->amount, 0, ',', '.'),
+                'body' => collect(['Bayar ke bendahara', $i->due->due_on ? 'jatuh tempo '.$i->due->due_on->locale('id')->translatedFormat('j F Y') : null])->filter()->implode(' · '),
+                'at' => $i->created_at,
             ]);
     }
 
