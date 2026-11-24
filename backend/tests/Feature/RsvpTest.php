@@ -170,4 +170,24 @@ class RsvpTest extends TestCase
         $this->assertTrue($this->event->targetMembers()->whereKey($this->users[0]->member_id)->exists());
         $this->assertFalse(app(RsvpService::class)->isOpen(tap($this->event->fresh())->update(['closed_at' => now()])));
     }
+
+    public function test_promotion_appears_in_the_bell_only_for_the_promoted_member(): void
+    {
+        $this->event->update(['quota' => 1]);
+        $this->answer(0, true);
+        $this->answer(1, true);
+        $this->travel(5)->minutes();
+        $this->answer(0, false);
+        $bell = function (int $i) {
+            $this->app['auth']->forgetGuards();
+
+            return collect($this->actingAs($this->users[$i], 'sanctum')->getJson('/api/me/notifications')->assertOk()->json('data'))->where('type', 'rsvp')->values();
+        };
+        $this->assertSame('Anda dapat tempat: Makrab', $bell(1)[0]['title']);
+        $this->assertCount(0, $bell(0));
+        $this->answer(2, true); // jawaban langsung bukan kenaikan
+        $this->assertCount(0, $bell(2));
+        $this->travel(3)->days();
+        $this->assertCount(0, $bell(1)); // kegiatan sudah lewat
+    }
 }

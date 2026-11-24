@@ -7,6 +7,7 @@ use App\Models\Attendance;
 use App\Models\CardRequest;
 use App\Models\DueItem;
 use App\Models\Event;
+use App\Models\EventRsvp;
 use App\Models\ExcuseRequest;
 use App\Models\Fine;
 use App\Models\Membership;
@@ -17,7 +18,7 @@ use Illuminate\Support\Collection;
 
 /**
  * Kotak notifikasi anggota (lonceng di app): dirangkum dari data yang sudah ada, tanpa tabel baru —
- * pengumuman, keputusan izin, keputusan laporan kartu & perubahan data, denda QR, iuran, dan pengingat kegiatan
+ * pengumuman, keputusan izin, keputusan laporan kartu & perubahan data, denda QR, iuran, RSVP, dan pengingat kegiatan
  * 24 jam ke depan.
  * Status "sudah dibaca" disimpan di perangkat anggota (berdasarkan waktu terakhir membuka kotak).
  */
@@ -40,6 +41,7 @@ class MemberNotificationService
             ->merge($this->cardRequests($memberId, $since))
             ->merge($this->profileChanges($memberId, $since))
             ->merge($this->fines($memberId, $since))
+            ->merge($this->rsvps($memberId, $since))
             ->merge($this->dues($memberId, $since))
             ->merge($this->reminders($memberId, $term));
 
@@ -103,6 +105,18 @@ class MemberNotificationService
                 'body' => ($f->attendance?->event?->title ?? 'Kegiatan').' — kartu tidak dibawa. Bayar ke pengurus.',
                 'at' => $f->created_at,
             ]);
+    }
+
+    /** Naik dari daftar tunggu: satu-satunya jawaban yang diubah sistem (jawaban anggota selalu baris baru). */
+    private function rsvps(int $memberId, Carbon $since): Collection
+    {
+        return EventRsvp::with('event:id,title,starts_at,closed_at,rsvp_enabled')->where('member_id', $memberId)->where('status', EventRsvp::GOING)
+            ->whereColumn('updated_at', '>', 'created_at')->where('updated_at', '>=', $since)->get()
+            ->filter(fn (EventRsvp $r) => $r->event?->rsvp_enabled && ! $r->event->closed_at && $r->event->starts_at->isFuture())
+            ->map(fn (EventRsvp $r) => [
+                'id' => "rsvp:{$r->id}", 'type' => 'rsvp', 'title' => 'Anda dapat tempat: '.$r->event->title,
+                'body' => 'Naik dari daftar tunggu. Bila batal ikut, ubah RSVP.', 'at' => $r->updated_at,
+            ])->values();
     }
 
     /** Tagihan iuran yang belum lunas; hilang dari kotak setelah lunas, dibebaskan, atau dibatalkan. */
