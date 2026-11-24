@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\DivisionController;
 use App\Http\Controllers\Api\EventController;
 use App\Http\Controllers\Api\ExcuseController;
 use App\Http\Controllers\Api\ExportController;
+use App\Http\Controllers\Api\HeldScanController;
 use App\Http\Controllers\Api\InstanceController;
 use App\Http\Controllers\Api\MeController;
 use App\Http\Controllers\Api\MemberAdminController;
@@ -22,6 +23,8 @@ Route::get('health', \App\Http\Controllers\Api\HealthController::class)->middlew
 Route::get('instance', InstanceController::class)->middleware('throttle:60,1');
 Route::post('auth/login', [AuthController::class, 'login'])->middleware('throttle:10,1');
 Route::post('auth/forgot', [AuthController::class, 'forgot'])->middleware('throttle:5,1');
+// Perangkat dicabut: scan offline tersisa ditahan untuk ditinjau (token lama, dicek di controller).
+Route::post('devices/held-scans', [HeldScanController::class, 'store'])->middleware('throttle:20,1');
 Route::post('auth/register', [AuthController::class, 'register'])->middleware('throttle:5,1');
 
 Route::middleware(['auth:sanctum', 'password.changed'])->group(function () {

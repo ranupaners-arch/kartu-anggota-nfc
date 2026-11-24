@@ -175,7 +175,8 @@ untuk divisinya.
 - Anggota mengabarkan izin langsung (tanpa app)? **Pengajuan Izin** → **Catat Izin**: pilih
   kegiatan, isi nomor anggota, jenis, alasan, bukti (opsional); centang **Langsung setujui**.
 - **Perlu Ditinjau**: scan yang perlu keputusan —
-  *Konflik Offline* (mis. kartu diblokir setelah scan offline), *Override*, *Anomali* (kartu sama
+  *Konflik Offline* (mis. kartu diblokir setelah scan offline), *Perangkat Dicabut* (scan dari HP yang
+  aksesnya dicabut, dikirim paling lambat 7 hari; belum tercatat sampai diterima), *Override*, *Anomali* (kartu sama
   di dua tempat dalam satu menit). **Terima** atau **Batalkan**.
 
 ## Statistik & peringatan

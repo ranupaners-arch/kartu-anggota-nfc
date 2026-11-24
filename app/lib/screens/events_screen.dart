@@ -170,12 +170,19 @@ class _EventsScreenState extends State<EventsScreen> with SessionWatch<EventsScr
   }
 
   Future<void> _logout({bool expired = false}) async {
-    if (!expired) await _api.logout();
+    String? notice;
+    if (expired) {
+      final r = await uploadHeldScans();
+      if (r.retry) return; // token masih diperlukan untuk menitipkan scan; dicoba lagi nanti
+      notice = SessionWatch.heldNotice(r.held);
+    } else {
+      await _api.logout();
+    }
     await Session.clear();
     if (!mounted) return;
     final server = await ServerConfig.load();
     if (!mounted) return;
-    Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute<void>(builder: (_) => server == null ? const ConnectScreen() : LoginScreen(server: server)), (_) => false);
+    Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute<void>(builder: (_) => server == null ? const ConnectScreen() : LoginScreen(server: server, notice: notice)), (_) => false);
   }
 
   Future<void> _confirmLogout() async {
