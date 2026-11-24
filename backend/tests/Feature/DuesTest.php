@@ -160,6 +160,15 @@ class DuesTest extends TestCase
         }
     }
 
+    public function test_paid_bill_cannot_be_waived_directly(): void
+    {
+        $due = $this->bill();
+        $this->mark($this->treasurer, $due, ['Ani'], 'paid');
+        $this->mark($this->treasurer, $due, ['Ani', 'Seki'], 'waived', 'Beasiswa')->assertSessionHasErrors('ids');
+        $this->assertSame(['paid', 'unpaid'], [$this->item($due, 'Ani')->status, $this->item($due, 'Seki')->status]);
+        $this->mark($this->treasurer, $due, ['Seki'], 'waived', 'Beasiswa')->assertSessionHasNoErrors();
+    }
+
     public function test_treasurer_cannot_mark_own_bill(): void
     {
         $due = $this->bill();

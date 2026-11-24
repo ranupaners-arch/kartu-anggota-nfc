@@ -29,10 +29,11 @@ function Leaderboard({ board }: { board: Board }) {
         <Card className="gap-3">
             <CardHeader>
                 <CardTitle className="text-base">Papan peringkat</CardTitle>
-                <CardDescription>Anda peringkat {board.me.rank} dari {board.me.total} anggota aktif ({board.me.points} poin) — hanya Anda yang melihat ini.</CardDescription>
+                <CardDescription>{board.me.points > 0 ? <>Anda peringkat {board.me.rank} dari {board.me.total} anggota aktif ({board.me.points} poin) — hanya Anda yang melihat ini.</> : 'Anda belum punya poin periode ini.'}</CardDescription>
             </CardHeader>
             <CardContent className="grid gap-3">
-                {board.top.length === 0 && <p className="text-sm text-muted-foreground">Belum ada anggota yang memilih tampil.</p>}
+                {board.top.length === 0 && <p className="text-sm text-muted-foreground">Belum ada nama yang tampil.</p>}
+                {board.opted_in && board.me.points === 0 && <p className="text-sm text-muted-foreground">Nama Anda akan tampil setelah mendapat poin pertama.</p>}
                 <ol className="divide-y">
                     {board.top.map((t, i) => (
                         <li key={i} className={`flex items-center gap-3 py-2 text-sm ${t.is_me ? 'font-semibold' : ''}`}>

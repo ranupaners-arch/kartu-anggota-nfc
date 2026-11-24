@@ -81,11 +81,11 @@ export default function DueShow({ due, summary, tab, filters, canManage, items, 
         }>
             <Head title={due.title} />
             {due.cancelled_at && <Alert><AlertDescription>Tagihan dibatalkan: {due.cancel_reason}</AlertDescription></Alert>}
-            <div className="grid gap-3 sm:grid-cols-4">
-                <Card><CardHeader><CardDescription>Nominal</CardDescription><CardTitle className="text-2xl tabular-nums">{rupiah(due.amount)}</CardTitle></CardHeader></Card>
-                <Card><CardHeader><CardDescription>Lunas ({summary.paid})</CardDescription><CardTitle className="text-2xl tabular-nums">{rupiah(summary.paid_total)}</CardTitle></CardHeader></Card>
-                <Card><CardHeader><CardDescription>Belum lunas ({summary.unpaid})</CardDescription><CardTitle className="text-2xl tabular-nums">{rupiah(summary.unpaid_total)}</CardTitle></CardHeader></Card>
-                <Card><CardHeader><CardDescription>Dibebaskan</CardDescription><CardTitle className="text-2xl tabular-nums">{summary.waived}</CardTitle></CardHeader></Card>
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                <Card><CardHeader><CardDescription>Nominal</CardDescription><CardTitle className="text-lg sm:text-2xl tabular-nums">{rupiah(due.amount)}</CardTitle></CardHeader></Card>
+                <Card><CardHeader><CardDescription>Lunas ({summary.paid})</CardDescription><CardTitle className="text-lg sm:text-2xl tabular-nums">{rupiah(summary.paid_total)}</CardTitle></CardHeader></Card>
+                <Card><CardHeader><CardDescription>Belum lunas ({summary.unpaid})</CardDescription><CardTitle className="text-lg sm:text-2xl tabular-nums">{rupiah(summary.unpaid_total)}</CardTitle></CardHeader></Card>
+                <Card><CardHeader><CardDescription>Dibebaskan</CardDescription><CardTitle className="text-lg sm:text-2xl tabular-nums">{summary.waived}</CardTitle></CardHeader></Card>
             </div>
             <PageTabs tabs={{ tagihan: 'Tagihan', riwayat: 'Riwayat Perubahan' }} current={tab} />
             {items && <Items due={due} items={items} filters={filters} canManage={canManage} />}
@@ -104,7 +104,7 @@ export default function DueShow({ due, summary, tab, filters, canManage, items, 
                     <Pager page={changes} />
                 </>
             )}
-            {canManage && !due.cancelled_at && summary.paid === 0 && (
+            {tab === 'tagihan' && canManage && !due.cancelled_at && summary.paid === 0 && (
                 <div className="flex flex-wrap items-center gap-2 border-t pt-4">
                     <Input className="h-8 w-64" maxLength={300} placeholder="Alasan pembatalan" aria-label="Alasan pembatalan" value={reason} onChange={(e) => setReason(e.target.value)} />
                     <ConfirmAction size="sm" destructive title="Batalkan tagihan ini?" description="Tagihan tidak lagi tampil di anggota. Catatan tetap tersimpan." href={`/iuran/${due.id}/batal`} data={{ reason }} confirmLabel="Batalkan tagihan">Batalkan tagihan</ConfirmAction>

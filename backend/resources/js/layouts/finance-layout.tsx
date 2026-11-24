@@ -14,7 +14,7 @@ export default function FinanceLayout({ title, actions, children }: { title: str
     return (
         <TooltipProvider>
             <div className="min-h-dvh bg-background">
-                <header className="flex h-14 items-center gap-3 border-b px-4">
+                <header className="sticky top-0 z-10 flex h-14 items-center gap-3 border-b bg-background/95 px-4 backdrop-blur">
                     <Button variant="ghost" size="icon" aria-label="Kembali" render={<Link href={role === 'scanner' ? '/pindai' : '/saya/akun'} />}><ArrowLeft /></Button>
                     <div className="min-w-0 flex-1">
                         <h1 className="truncate text-sm font-medium">{title}</h1>

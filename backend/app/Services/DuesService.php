@@ -65,6 +65,10 @@ class DuesService
             if (! $by->isSuperAdmin() && $by->member_id && $items->contains('member_id', $by->member_id)) {
                 throw ValidationException::withMessages(['ids' => 'Iuran Anda sendiri harus dicatat Super Admin atau bendahara lain.']);
             }
+            // Uang sudah diterima: kembalikan dulu ke belum lunas, supaya pilihan massal tidak menghapusnya tanpa sengaja.
+            if ($status === DueItem::WAIVED && $items->contains('status', DueItem::PAID)) {
+                throw ValidationException::withMessages(['ids' => 'Ada yang sudah lunas di pilihan Anda. Kembalikan dulu ke belum lunas sebelum dibebaskan.']);
+            }
             $needsReason = $status === DueItem::WAIVED || $items->contains(fn (DueItem $i) => $i->status !== DueItem::UNPAID);
             if ($needsReason && mb_strlen(trim((string) $note)) < 3) {
                 throw ValidationException::withMessages(['note' => 'Alasan wajib diisi (min. 3 karakter).']);
