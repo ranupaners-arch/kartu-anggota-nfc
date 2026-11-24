@@ -187,8 +187,5 @@ Versi APK dan rincian langkah tidak dicatat.
 
 ## Perlu diuji ulang
 
-- **Scan offline (setelah PR #70 masuk APK):** online → buka Beranda, tunggu beberapa detik → mode pesawat
-  (nyalakan lagi NFC) → tutup paksa & buka app → pilih kegiatan → tempel kartu → hasil berlabel *Offline* →
-  sambungkan internet, tetap di layar Scan → antrean terkirim ±30 detik. Ulangi dengan internet menyala
-  tetapi Tailscale/server mati.
-
+Ikuti [daftar uji HP](uji-hp.md): pembaruan dari APK lama, scan offline, scan ditolak, ganti akun, akses
+berakhir. Belum ada yang diuji di HP sejak perbaikan offline (PR #70 dan sesudahnya).
