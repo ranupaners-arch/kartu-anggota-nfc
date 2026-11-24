@@ -15,6 +15,7 @@ import 'connect_screen.dart';
 import 'issue_card_screen.dart';
 import 'login_screen.dart';
 import 'nfc_tools_screen.dart';
+import 'rejected_scans_screen.dart';
 import 'scan_screen.dart';
 
 const _roleLabel = {'scanner': 'Petugas Scan', 'division_admin': 'Admin Divisi', 'super_admin': 'Super Admin'};
@@ -52,6 +53,7 @@ class _EventsScreenState extends State<EventsScreen> with SessionWatch<EventsScr
   late Future<List<EventSummary>> _events = _load();
   String? _org;
   int _pendingOffline = 0;
+  int _rejected = 0;
   bool _offline = false;
   bool _syncing = false;
   String? _syncNote;
@@ -100,7 +102,12 @@ class _EventsScreenState extends State<EventsScreen> with SessionWatch<EventsScr
   Future<void> _countOffline() async {
     try {
       final store = await _openStore();
-      if (mounted) setState(() => _pendingOffline = store.pending().length);
+      if (mounted) {
+        setState(() {
+          _pendingOffline = store.pending().length;
+          _rejected = store.rejected().length;
+        });
+      }
     } catch (_) {
       // penyimpanan tidak tersedia: abaikan
     }
@@ -296,6 +303,22 @@ class _EventsScreenState extends State<EventsScreen> with SessionWatch<EventsScr
                   icon: const Icon(LucideIcons.cloudUpload),
                   title: Text('$_pendingOffline scan offline belum tersinkron'),
                   description: const Text('Tersimpan aman di HP ini dan terkirim otomatis saat ada sinyal.'),
+                ),
+                const SizedBox(height: 20),
+              ],
+              if (_rejected > 0) ...[
+                SectionCard(
+                  title: '$_rejected scan ditolak server',
+                  icon: LucideIcons.circleX,
+                  description: 'Scan offline ini tidak tercatat sebagai hadir.',
+                  child: FlexButton(
+                    label: 'Lihat rincian',
+                    variant: ShadButtonVariant.outline,
+                    onPressed: () async {
+                      final store = await _openStore();
+                      if (mounted) _push(RejectedScansScreen(store: store));
+                    },
+                  ),
                 ),
                 const SizedBox(height: 20),
               ],

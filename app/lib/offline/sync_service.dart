@@ -1,4 +1,5 @@
 import '../api/api_client.dart';
+import '../nfc/card_payload.dart';
 import 'offline_store.dart';
 
 class SyncReport {
@@ -71,6 +72,9 @@ class SyncService {
       }
 
       final done = <String>[];
+      final refused = <RejectedScan>[];
+      final byUuid = {for (final p in chunk) p.clientUuid: p};
+      final roster = _store.loadRoster(eventId);
       for (final r in results) {
         final uuid = r['client_uuid'] as String?;
         if (uuid == null) continue;
@@ -82,9 +86,26 @@ class SyncService {
             duplicates++;
           default:
             rejected++;
+            final p = byUuid[uuid];
+            if (p == null) continue;
+            final m = r['member'] as Map<String, dynamic>?;
+            final local = m == null ? roster?.byFingerprint(CardPayload.fingerprint(p.payload))?.member : null;
+            refused.add(
+              RejectedScan(
+                clientUuid: uuid,
+                eventId: eventId,
+                eventTitle: roster?.title,
+                memberName: m?['name'] as String? ?? local?.name,
+                memberNo: m?['member_no'] as String? ?? local?.memberNo,
+                status: r['status'] as String? ?? 'error',
+                message: r['message'] as String? ?? '',
+                scannedAt: p.scannedAt,
+              ),
+            );
         }
       }
       if (done.isEmpty) break; // server tidak memberi hasil per item: hindari loop tanpa akhir
+      await _store.addRejected(refused); // simpan dulu, baru hapus dari antrean
       await _store.remove(done);
       sent += done.length;
     }
