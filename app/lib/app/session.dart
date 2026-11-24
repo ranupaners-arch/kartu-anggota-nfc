@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../api/api_client.dart';
 import '../offline/offline_store.dart';
+import '../notify/phone_notices.dart';
 import '../offline/photo_cache.dart';
 import 'token_store.dart';
 
@@ -87,6 +88,7 @@ class Session {
   /// Hapus token & data pribadi peserta (antrean scan tetap); URL server tetap diingat untuk login berikutnya.
   static Future<void> clear() async {
     final p = await SharedPreferences.getInstance();
+    final url = p.getString(_kUrl), id = p.getInt(_kUserId);
     try {
       await tokens.delete();
     } catch (_) {
@@ -101,5 +103,6 @@ class Session {
       await p.remove(k); // kegiatan & peserta akun lama tidak tertinggal untuk akun berikutnya
     }
     unawaited(PhotoCache.clearAll());
+    unawaited(PhoneNotices.signedOut(url == null || id == null ? null : '$url|$id'));
   }
 }

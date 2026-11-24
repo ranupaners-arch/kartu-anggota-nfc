@@ -30,6 +30,7 @@ android {
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
+        isCoreLibraryDesugaringEnabled = true // diperlukan flutter_local_notifications
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
@@ -86,6 +87,10 @@ gradle.taskGraph.whenReady {
     if (!rilisSiap && allTasks.any { it.path == ":app:packageRelease" || it.path == ":app:bundleRelease" }) {
         throw GradleException("Kunci rilis belum diisi (APK_RILIS_*). Lihat docs/rilis-apk.md; untuk uji pakai --profile.")
     }
+}
+
+dependencies {
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
 }
 
 flutter {

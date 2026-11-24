@@ -5,6 +5,7 @@ import '../../api/api_client.dart';
 import '../../app/server_config.dart';
 import '../../app/session.dart';
 import '../../app/session_watch.dart';
+import '../../notify/phone_notices.dart';
 import '../../widgets/ui.dart';
 import '../connect_screen.dart';
 import '../events_screen.dart';
@@ -57,6 +58,9 @@ class _MemberHomeScreenState extends State<MemberHomeScreen> with SessionWatch<M
       if (mounted) setState(() => _org = c.organization);
     }, onError: (_) {});
     _loadNotices();
+    PhoneNotices.attach(() {
+      if (mounted) _openNotices();
+    });
   }
 
   Future<void> _loadNotices() async {
@@ -78,6 +82,7 @@ class _MemberHomeScreenState extends State<MemberHomeScreen> with SessionWatch<M
     final before = _seenAt;
     final now = DateTime.now();
     await NoticeSeen.save(now);
+    await PhoneNotices.clearShown();
     setState(() => _seenAt = now);
     if (!mounted) return;
     await pushMemberPage<void>(context, 'Notifikasi', NotificationsPage(api: _api, seenBefore: before, onOpen: _openNotice));
@@ -93,6 +98,8 @@ class _MemberHomeScreenState extends State<MemberHomeScreen> with SessionWatch<M
         await _openCard(context);
       case 'profile':
         await pushMemberPage<void>(context, 'Ubah data diri', ProfileChangePage(api: _api));
+      case 'rsvp':
+        await pushMemberPage<void>(context, 'Kegiatan', MyEventsTab(api: _api));
       case 'due':
         await pushMemberPage<void>(context, 'Riwayat', MyHistoryTab(api: _api));
       case 'fine':
