@@ -73,7 +73,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = ShadTheme.of(context);
-    Widget field(String label, Widget input) => Column(crossAxisAlignment: CrossAxisAlignment.start, spacing: 6, children: [Text(label, style: theme.textTheme.small), input]);
+    Widget field(String label, Widget input) => Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      spacing: 6,
+      children: [
+        Text(label, style: theme.textTheme.small),
+        input,
+      ],
+    );
     return Scaffold(
       backgroundColor: splashBlack,
       body: SafeArea(
@@ -94,8 +101,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       children: [
                         if (_error != null) ShadAlert.destructive(icon: const Icon(LucideIcons.circleAlert), description: Text(_error!)),
                         field('Nama lengkap', ShadInput(controller: _name, leading: const Icon(LucideIcons.user, size: 16))),
-                        field('Email', ShadInput(controller: _email, keyboardType: TextInputType.emailAddress, placeholder: const Text('nama@email.com'), leading: const Icon(LucideIcons.mail, size: 16))),
-                        field('Password', ShadInput(controller: _password, obscureText: true, placeholder: const Text('Minimal 10 karakter, huruf & angka'), leading: const Icon(LucideIcons.lock, size: 16))),
+                        field(
+                          'Email',
+                          ShadInput(controller: _email, keyboardType: TextInputType.emailAddress, placeholder: const Text('nama@email.com'), leading: const Icon(LucideIcons.mail, size: 16)),
+                        ),
+                        field(
+                          'Password',
+                          ShadInput(controller: _password, obscureText: true, placeholder: const Text('Minimal 10 karakter, huruf & angka'), leading: const Icon(LucideIcons.lock, size: 16)),
+                        ),
                         field('Ulangi password', ShadInput(controller: _repeat, obscureText: true, leading: const Icon(LucideIcons.lock, size: 16), onSubmitted: (_) => _busy ? null : _submit())),
                         const SizedBox(height: 4),
                         FlexButton(onPressed: _busy ? null : _submit, label: _busy ? 'Mendaftar…' : 'Daftar'),

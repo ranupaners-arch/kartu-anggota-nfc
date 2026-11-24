@@ -12,7 +12,10 @@ void main() {
   });
 
   test('respons bukan JSON (halaman error proxy) tidak membuat app crash', () async {
-    final api = ApiClient(baseUrl: 'http://srv', client: MockClient((_) async => http.Response('<html>502 Bad Gateway</html>', 502, reasonPhrase: 'Bad Gateway')));
+    final api = ApiClient(
+      baseUrl: 'http://srv',
+      client: MockClient((_) async => http.Response('<html>502 Bad Gateway</html>', 502, reasonPhrase: 'Bad Gateway')),
+    );
     await expectLater(api.ongoingEvents(), throwsA(isA<ApiException>().having((e) => e.message, 'message', contains('Server sedang tidak tersedia'))));
   });
 }

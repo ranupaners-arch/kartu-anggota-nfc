@@ -42,7 +42,8 @@ void main() {
   test('roster menyimpan sesi (bolak-balik penyimpanan lokal)', () {
     final again = Roster.fromApi(jsonDecode(jsonEncode(multiRoster().toApiJson())) as Map<String, dynamic>);
     expect(again.sessions.map((s) => '${s.id}@${s.lateAfter.toIso8601String()}').toList(), [
-      '11@2026-11-17T01:30:00.000Z', '12@2026-11-18T06:10:00.000Z',
+      '11@2026-11-17T01:30:00.000Z',
+      '12@2026-11-18T06:10:00.000Z',
     ]);
   });
 
@@ -58,10 +59,13 @@ void main() {
 
   test('session_id ikut terkirim: scan online & antrean offline', () async {
     final bodies = <Map<String, dynamic>>[];
-    final api = ApiClient(baseUrl: 'http://srv', client: MockClient((req) async {
-      bodies.add(jsonDecode(req.body) as Map<String, dynamic>);
-      return http.Response(jsonEncode({'status': 'ok', 'message': 'Berhasil.', 'results': []}), 200);
-    }))..token = 't';
+    final api = ApiClient(
+      baseUrl: 'http://srv',
+      client: MockClient((req) async {
+        bodies.add(jsonDecode(req.body) as Map<String, dynamic>);
+        return http.Response(jsonEncode({'status': 'ok', 'message': 'Berhasil.', 'results': []}), 200);
+      }),
+    )..token = 't';
     await api.scan(7, budiCard, sessionId: 12);
     await api.scan(7, budiCard);
     expect((bodies[0]['session_id'], bodies[1].containsKey('session_id')), (12, false));
@@ -78,12 +82,19 @@ void main() {
     final prefs = await SharedPreferences.getInstance();
     final event = EventSummary.fromJson({'id': 7, 'title': 'Pelatihan', 'sessions': sessionsJson, 'current_session_id': 12});
     final api = ApiClient(baseUrl: 'http://srv', client: MockClient((_) async => http.Response('{}', 500)))..token = 't';
-    await tester.pumpWidget(KartuAnggotaApp(home: ScanScreen(
-      session: Session(baseUrl: 'http://srv', token: 't', userName: 'Petugas', role: 'scanner'),
-      event: event, api: api, nfc: NfcService(FakeNfc()), store: OfflineStore(prefs),
-      feedback: ScanFeedback(player: (_) async {}, haptic: (_) async {}),
-      clock: () => DateTime.parse('2026-11-18T06:00:00Z'),
-    )));
+    await tester.pumpWidget(
+      KartuAnggotaApp(
+        home: ScanScreen(
+          session: Session(baseUrl: 'http://srv', token: 't', userName: 'Petugas', role: 'scanner'),
+          event: event,
+          api: api,
+          nfc: NfcService(FakeNfc()),
+          store: OfflineStore(prefs),
+          feedback: ScanFeedback(player: (_) async {}, haptic: (_) async {}),
+          clock: () => DateTime.parse('2026-11-18T06:00:00Z'),
+        ),
+      ),
+    );
     await tester.pump();
 
     ShadButton button(String label) => tester.widget<ShadButton>(find.ancestor(of: find.text(label), matching: find.byType(ShadButton)));

@@ -66,7 +66,11 @@ class _SelfCardScreenState extends State<SelfCardScreen> {
     final theme = ShadTheme.of(context);
     final step = _step;
     final (icon, title, desc) = switch (step) {
-      null => (LucideIcons.nfc, 'Siapkan kartu NFC kosong', 'Kartu NTAG215 kosong (mis. kartu yang Anda cetak sendiri). Pendaftaran kartu sendiri hanya bisa 1 kali; berikutnya lewat persetujuan pengurus.'),
+      null => (
+        LucideIcons.nfc,
+        'Siapkan kartu NFC kosong',
+        'Kartu NTAG215 kosong (mis. kartu yang Anda cetak sendiri). Pendaftaran kartu sendiri hanya bisa 1 kali; berikutnya lewat persetujuan pengurus.',
+      ),
       IssueStep.preparing => (LucideIcons.loader, 'Menyiapkan kartu…', 'Meminta data kartu ke server.'),
       IssueStep.waitingCard => (LucideIcons.smartphoneNfc, 'Tempelkan kartu kosong', 'Tahan kartu di belakang HP sampai selesai.'),
       IssueStep.linking => (LucideIcons.link, 'Mengaktifkan kartu…', 'Kartu sudah tertulis dan terkunci.'),

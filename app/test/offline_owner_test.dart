@@ -119,7 +119,11 @@ void main() {
         return http.Response(jsonEncode(body), 200);
       }),
     )..token = 't';
-    await tester.pumpWidget(KartuAnggotaApp(home: EventsScreen(session: session, api: api)));
+    await tester.pumpWidget(
+      KartuAnggotaApp(
+        home: EventsScreen(session: session, api: api),
+      ),
+    );
     await tester.pumpAndSettle();
     await tester.pump(const Duration(seconds: 31));
     await tester.pumpAndSettle();
@@ -133,7 +137,11 @@ void main() {
     await (await OfflineStore.open(owner: a)).enqueue(scan('u1'));
     final session = Session(baseUrl: 'http://srv', token: 't', userName: 'Budi', role: 'scanner', userId: 2);
     final api = ApiClient(baseUrl: 'http://srv', client: MockClient((_) async => http.Response('{"data":[]}', 200)))..token = 't';
-    await tester.pumpWidget(KartuAnggotaApp(home: EventsScreen(session: session, api: api)));
+    await tester.pumpWidget(
+      KartuAnggotaApp(
+        home: EventsScreen(session: session, api: api),
+      ),
+    );
     await tester.pumpAndSettle();
     expect(find.text('1 scan milik akun lain'), findsOneWidget);
   });

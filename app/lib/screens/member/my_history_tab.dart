@@ -135,7 +135,13 @@ class _MyHistoryTabState extends State<MyHistoryTab> {
             if (_downloadError != null) left.addAll([const SizedBox(height: 8), ErrorBanner(_downloadError!)]);
             left.add(const SizedBox(height: 12));
             if (h.monthly.isNotEmpty) {
-              left.add(SectionCard(title: 'Kehadiran per bulan', icon: LucideIcons.chartColumn, child: MonthlyAttendanceChart(months: h.monthly)));
+              left.add(
+                SectionCard(
+                  title: 'Kehadiran per bulan',
+                  icon: LucideIcons.chartColumn,
+                  child: MonthlyAttendanceChart(months: h.monthly),
+                ),
+              );
               left.add(const SizedBox(height: 12));
             }
             if (h.fines.isNotEmpty) {
@@ -175,7 +181,11 @@ class _MyHistoryTabState extends State<MyHistoryTab> {
                     ? const SizedBox.shrink()
                     : Padding(
                         padding: const EdgeInsets.only(bottom: 12),
-                        child: SectionCard(title: 'Poin & lencana', icon: LucideIcons.award, child: BadgesView(data: a.data!)),
+                        child: SectionCard(
+                          title: 'Poin & lencana',
+                          icon: LucideIcons.award,
+                          child: BadgesView(data: a.data!),
+                        ),
                       ),
               ),
             );

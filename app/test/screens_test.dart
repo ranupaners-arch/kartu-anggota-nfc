@@ -44,16 +44,22 @@ void main() {
 
       expect(() => ServerAddress.verify('http://srv', client: reply(200, {'app': 'lain'})), throwsA(isA<ServerConnectException>()));
       expect(() => ServerAddress.verify('http://srv', client: reply(404, {'message': 'x'})), throwsA(isA<ServerConnectException>()));
-      expect(() => ServerAddress.verify('http://srv', client: reply(200, {'app': 'kartu-anggota', 'api_version': 0})),
-          throwsA(isA<ServerConnectException>().having((e) => e.message, 'message', contains('terlalu lama'))));
+      expect(
+        () => ServerAddress.verify('http://srv', client: reply(200, {'app': 'kartu-anggota', 'api_version': 0})),
+        throwsA(isA<ServerConnectException>().having((e) => e.message, 'message', contains('terlalu lama'))),
+      );
     });
   });
 
   testWidgets('belum terhubung → layar Hubungkan; setelah terhubung → Login dengan nama organisasi', (tester) async {
     SharedPreferences.setMockInitialValues({});
-    await tester.pumpWidget(KartuAnggotaApp(
-      home: ConnectScreen(verify: (url) async => ServerConfig(url: url, name: 'HMPS')),
-    ));
+    await tester.pumpWidget(
+      KartuAnggotaApp(
+        home: ConnectScreen(
+          verify: (url) async => ServerConfig(url: url, name: 'HMPS'),
+        ),
+      ),
+    );
     await tester.pumpAndSettle();
     expect(find.text('Hubungkan ke Organisasi'), findsOneWidget);
 
@@ -68,9 +74,11 @@ void main() {
 
   testWidgets('server bukan Kartu Anggota ditolak dengan pesan jelas', (tester) async {
     SharedPreferences.setMockInitialValues({});
-    await tester.pumpWidget(KartuAnggotaApp(
-      home: ConnectScreen(verify: (_) async => throw ServerConnectException('Alamat ini bukan server Kartu Anggota.')),
-    ));
+    await tester.pumpWidget(
+      KartuAnggotaApp(
+        home: ConnectScreen(verify: (_) async => throw ServerConnectException('Alamat ini bukan server Kartu Anggota.')),
+      ),
+    );
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(EditableText), 'contoh.com');
     await tester.tap(find.text('Hubungkan'));
@@ -99,7 +107,11 @@ void main() {
   });
 
   testWidgets('kartu hasil scan menampilkan label sesuai status', (tester) async {
-    Future<void> show(ScanResult r) => tester.pumpWidget(KartuAnggotaApp(home: Scaffold(body: ScanResultCard(result: r))));
+    Future<void> show(ScanResult r) => tester.pumpWidget(
+      KartuAnggotaApp(
+        home: Scaffold(body: ScanResultCard(result: r)),
+      ),
+    );
 
     await show(const ScanResult(status: 'ok', attendanceStatus: 'hadir', message: 'Berhasil.', memberName: 'Budi', memberNo: '001'));
     expect(find.text('Hadir'), findsOneWidget);
@@ -113,6 +125,11 @@ void main() {
   });
 
   test('LoginScreen membutuhkan server', () {
-    expect(const LoginScreen(server: ServerConfig(url: 'http://srv', name: 'X')).server.name, 'X');
+    expect(
+      const LoginScreen(
+        server: ServerConfig(url: 'http://srv', name: 'X'),
+      ).server.name,
+      'X',
+    );
   });
 }

@@ -182,7 +182,12 @@ class _EventsScreenState extends State<EventsScreen> with SessionWatch<EventsScr
     if (!mounted) return;
     final server = await ServerConfig.load();
     if (!mounted) return;
-    Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute<void>(builder: (_) => server == null ? const ConnectScreen() : LoginScreen(server: server, notice: notice)), (_) => false);
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute<void>(
+        builder: (_) => server == null ? const ConnectScreen() : LoginScreen(server: server, notice: notice),
+      ),
+      (_) => false,
+    );
   }
 
   Future<void> _confirmLogout() async {

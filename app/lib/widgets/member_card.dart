@@ -56,10 +56,18 @@ class MemberCardView extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    Opacity(opacity: 0.5, child: Image.asset('assets/brand/logo-2d.webp', width: w * 0.08, height: w * 0.08)),
+                    Opacity(
+                      opacity: 0.5,
+                      child: Image.asset('assets/brand/logo-2d.webp', width: w * 0.08, height: w * 0.08),
+                    ),
                     SizedBox(width: w * 0.025),
                     Expanded(
-                      child: Text(info.organization ?? 'Kartu Anggota', maxLines: 1, overflow: TextOverflow.ellipsis, style: theme.textTheme.small.copyWith(color: theme.colorScheme.mutedForeground)),
+                      child: Text(
+                        info.organization ?? 'Kartu Anggota',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.small.copyWith(color: theme.colorScheme.mutedForeground),
+                      ),
                     ),
                   ],
                 ),
@@ -70,16 +78,29 @@ class MemberCardView extends StatelessWidget {
                     children: [
                       Icon(LucideIcons.idCard, size: w * 0.08, color: _indigo),
                       SizedBox(height: w * 0.015),
-                      Text('Daftarkan keanggotaan\ndengan e-profil', maxLines: 2, overflow: TextOverflow.ellipsis, style: theme.textTheme.large.copyWith(fontSize: w * 0.05, height: 1.2)),
+                      Text(
+                        'Daftarkan keanggotaan\ndengan e-profil',
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.large.copyWith(fontSize: w * 0.05, height: 1.2),
+                      ),
                       SizedBox(height: w * 0.008),
-                      Text('Isi data diri, lalu pengurus pusat mengesahkan dan menerbitkan kartu Anda.', maxLines: 2, overflow: TextOverflow.ellipsis, style: theme.textTheme.muted.copyWith(fontSize: w * 0.033, height: 1.25)),
+                      Text(
+                        'Isi data diri, lalu pengurus pusat mengesahkan dan menerbitkan kartu Anda.',
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.muted.copyWith(fontSize: w * 0.033, height: 1.25),
+                      ),
                     ],
                   ),
                 ),
                 if (onRegister != null)
                   Row(
                     children: [
-                      Text('Isi e-profil', style: theme.textTheme.small.copyWith(color: _indigo, fontWeight: FontWeight.w600, fontSize: w * 0.036)),
+                      Text(
+                        'Isi e-profil',
+                        style: theme.textTheme.small.copyWith(color: _indigo, fontWeight: FontWeight.w600, fontSize: w * 0.036),
+                      ),
                       Icon(LucideIcons.chevronRight, size: w * 0.045, color: _indigo),
                     ],
                   ),
@@ -138,7 +159,12 @@ class MemberCardView extends StatelessWidget {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(info.organization ?? 'Kartu Anggota', maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: fg, fontWeight: FontWeight.w700, fontSize: w * 0.04)),
+                              Text(
+                                info.organization ?? 'Kartu Anggota',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(color: fg, fontWeight: FontWeight.w700, fontSize: w * 0.04),
+                              ),
                               Text('KARTU ANGGOTA', style: small),
                             ],
                           ),
@@ -170,11 +196,22 @@ class MemberCardView extends StatelessWidget {
                                   margin: EdgeInsets.only(bottom: w * 0.02),
                                   padding: EdgeInsets.symmetric(horizontal: w * 0.02, vertical: w * 0.006),
                                   decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(w * 0.01)),
-                                  child: Text(badge, style: small.copyWith(color: fg, fontWeight: FontWeight.w700)),
+                                  child: Text(
+                                    badge,
+                                    style: small.copyWith(color: fg, fontWeight: FontWeight.w700),
+                                  ),
                                 ),
-                              Text(info.memberNo ?? '—', style: TextStyle(color: fg, fontSize: w * 0.05, letterSpacing: w * 0.006, fontFeatures: const [FontFeature.tabularFigures()])),
+                              Text(
+                                info.memberNo ?? '—',
+                                style: TextStyle(color: fg, fontSize: w * 0.05, letterSpacing: w * 0.006, fontFeatures: const [FontFeature.tabularFigures()]),
+                              ),
                               SizedBox(height: w * 0.008),
-                              Text((info.name ?? '').toUpperCase(), maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: fg, fontWeight: FontWeight.w600, fontSize: w * 0.042, letterSpacing: 0.4)),
+                              Text(
+                                (info.name ?? '').toUpperCase(),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(color: fg, fontWeight: FontWeight.w600, fontSize: w * 0.042, letterSpacing: 0.4),
+                              ),
                               SizedBox(height: w * 0.006),
                               Text(
                                 [if (info.division != null) info.division!, if (valid != null) 'BERLAKU S.D. $valid'].join('  ·  '),
@@ -187,7 +224,10 @@ class MemberCardView extends StatelessWidget {
                         ),
                         SizedBox(width: w * 0.03),
                         Container(
-                          decoration: BoxDecoration(border: Border.all(color: Colors.white.withValues(alpha: 0.85), width: 2), borderRadius: BorderRadius.circular(w * 0.025)),
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.white.withValues(alpha: 0.85), width: 2),
+                            borderRadius: BorderRadius.circular(w * 0.025),
+                          ),
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(w * 0.02),
                             child: SizedBox(
@@ -198,7 +238,10 @@ class MemberCardView extends StatelessWidget {
                                   ? Container(
                                       color: Colors.white.withValues(alpha: 0.15),
                                       alignment: Alignment.center,
-                                      child: Text(_initials(info.name), style: TextStyle(color: fg, fontWeight: FontWeight.w700, fontSize: w * 0.07)),
+                                      child: Text(
+                                        _initials(info.name),
+                                        style: TextStyle(color: fg, fontWeight: FontWeight.w700, fontSize: w * 0.07),
+                                      ),
                                     )
                                   : MemberPhoto(url: info.photoUrl, token: token, size: w * 0.25, name: info.name),
                             ),
@@ -216,18 +259,15 @@ class MemberCardView extends StatelessWidget {
     );
   }
 
-  static String _initials(String? name) => (name ?? '')
-      .trim()
-      .split(RegExp(r'\s+'))
-      .where((w) => w.isNotEmpty)
-      .take(2)
-      .map((w) => w[0].toUpperCase())
-      .join();
+  static String _initials(String? name) => (name ?? '').trim().split(RegExp(r'\s+')).where((w) => w.isNotEmpty).take(2).map((w) => w[0].toUpperCase()).join();
 
   Widget _circle(double size, double alpha) => Container(
     width: size,
     height: size,
-    decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.white.withValues(alpha: alpha)),
+    decoration: BoxDecoration(
+      shape: BoxShape.circle,
+      color: Colors.white.withValues(alpha: alpha),
+    ),
   );
 }
 

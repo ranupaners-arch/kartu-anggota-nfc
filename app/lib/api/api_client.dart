@@ -183,7 +183,12 @@ class ApiClient {
   /// Daftar akun anggota baru (lalu langsung masuk). Mengembalikan data pengguna.
   Future<Map<String, dynamic>> register({required String name, required String email, required String password, required String deviceUuid, String deviceName = 'HP Anggota'}) async {
     final j = await _send('POST', '/api/auth/register', {
-      'name': name, 'email': email, 'password': password, 'password_confirmation': password, 'device_uuid': deviceUuid, 'device_name': deviceName,
+      'name': name,
+      'email': email,
+      'password': password,
+      'password_confirmation': password,
+      'device_uuid': deviceUuid,
+      'device_name': deviceName,
     });
     token = j['token'] as String;
     return j['user'] as Map<String, dynamic>;
@@ -193,8 +198,7 @@ class ApiClient {
   Future<CardInit> selfCardInit() async => CardInit.fromJson(await _send('POST', '/api/me/card/init', {}));
 
   /// Langkah 2 (setelah kartu tertulis): aktifkan; kartu lama diblokir server.
-  Future<MemberCardInfo> selfCardAssign(int cardId, {String? hwUid}) async =>
-      MemberCardInfo.fromJson(await _send('POST', '/api/me/card/$cardId/assign', {'hw_uid': ?hwUid}));
+  Future<MemberCardInfo> selfCardAssign(int cardId, {String? hwUid}) async => MemberCardInfo.fromJson(await _send('POST', '/api/me/card/$cardId/assign', {'hw_uid': ?hwUid}));
 
   /// Ajukan kartu pengganti (hilang/rusak). "hilang" langsung memblokir kartu aktif.
   Future<MemberCardInfo> requestCardReplacement(String reason, String? note) async =>
@@ -247,7 +251,9 @@ class ApiClient {
     final req = http.MultipartRequest('POST', Uri.parse('$baseUrl/api/me/profile'))
       ..headers.addAll({'Accept': 'application/json', if (token != null) 'Authorization': 'Bearer $token'})
       ..fields.addAll({
-        'name': name, 'member_no': memberNo, 'consent': '1',
+        'name': name,
+        'member_no': memberNo,
+        'consent': '1',
         if (phone != null && phone.isNotEmpty) 'phone': phone,
         if (cohort != null && cohort.isNotEmpty) 'cohort': cohort,
         if (divisionId != null) 'division_id': '$divisionId',
@@ -509,7 +515,18 @@ class MemberEvent {
 
 /// Ringkasan kehadiran anggota (GET /api/me/history).
 class MemberHistory {
-  const MemberHistory({required this.byStatus, required this.total, this.term, this.rate, this.recent = const [], this.atRisk = false, this.alpaStreak = 0, this.finesUnpaid = 0, this.fines = const [], this.monthly = const []});
+  const MemberHistory({
+    required this.byStatus,
+    required this.total,
+    this.term,
+    this.rate,
+    this.recent = const [],
+    this.atRisk = false,
+    this.alpaStreak = 0,
+    this.finesUnpaid = 0,
+    this.fines = const [],
+    this.monthly = const [],
+  });
 
   factory MemberHistory.fromJson(Map<String, dynamic> j) => MemberHistory(
     term: j['term'] as String?,
@@ -587,7 +604,26 @@ class Announcement {
 enum CardState { none, pending, active, inactive }
 
 class MemberCardInfo {
-  MemberCardInfo({required this.state, this.status, this.organization, this.term, this.validUntil, this.name, this.memberNo, this.division, this.cohort, this.photoUrl, this.cardLast4, this.canWriteCard = false, this.canRequestCard = false, this.pendingRequestReason, this.lastDecision, this.cardIssuedAt, this.cardIssuedBy, this.selfWritesLeft = 0});
+  MemberCardInfo({
+    required this.state,
+    this.status,
+    this.organization,
+    this.term,
+    this.validUntil,
+    this.name,
+    this.memberNo,
+    this.division,
+    this.cohort,
+    this.photoUrl,
+    this.cardLast4,
+    this.canWriteCard = false,
+    this.canRequestCard = false,
+    this.pendingRequestReason,
+    this.lastDecision,
+    this.cardIssuedAt,
+    this.cardIssuedBy,
+    this.selfWritesLeft = 0,
+  });
 
   final CardState state;
   final String? status, organization, term, name, memberNo, division, cohort, photoUrl, cardLast4;

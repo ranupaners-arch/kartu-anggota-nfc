@@ -39,20 +39,84 @@ const longName = 'Muhammad Rizky Pratama Wijayakusuma Nugroho';
 final session = Session(baseUrl: 'http://srv', token: 't', userName: 'Petugas Scan Lapangan', role: 'scanner');
 final memberSession = Session(baseUrl: 'http://srv', token: 't', userName: longName, role: 'member');
 
-ApiClient api() => ApiClient(baseUrl: 'http://srv', client: MockClient((req) async {
-      final body = switch (req.url.path) {
-        '/api/events' => {'data': [for (var i = 0; i < 3; i++) {'id': i + 1, 'title': 'Rapat Kerja Nasional Himpunan Mahasiswa ${i + 1}', 'location': 'Aula Gedung Serbaguna Lantai 3', 'checkin_closes_at': '2099-01-01T03:00:00Z'}]},
-        '/api/me/qr' => {'payload': 'card:qr:TOKEN', 'expires_in': 90},
-        '/api/me/profile-form' => {'organization': 'Himpunan Mahasiswa Program Studi Teknik Informatika', 'term': '2026/2027', 'name': longName, 'email': 'muhammad.rizky.pratama.wijayakusuma@mahasiswa.ac.id', 'divisions': [{'id': 1, 'name': 'Penelitian dan Pengembangan Keilmuan'}]},
-        '/api/me/card' => {'state': 'active', 'status': 'active', 'organization': 'Himpunan Mahasiswa Program Studi Teknik Informatika', 'term': '2026/2027', 'valid_until': '2027-07-31', 'member': {'name': longName, 'member_no': '240100123456', 'division': 'Penelitian dan Pengembangan Keilmuan', 'cohort': '2024', 'photo_url': null}, 'card': {'last4': 'ABCD'}, 'self_card': {'can_write': true, 'can_request': false, 'pending_request': null}},
-        '/api/me/events' => {'data': [{'id': 7, 'title': 'Rapat Kerja Nasional Himpunan Mahasiswa', 'location': 'Aula Gedung Serbaguna', 'starts_at': '2099-01-01T02:00:00Z', 'checkin_closes_at': '2099-01-01T03:00:00Z', 'closed_at': null, 'is_mandatory': true, 'my_status': null, 'excuse': {'type': 'sakit', 'status': 'pending', 'review_note': 'Mohon lampirkan surat dokter'}, 'can_request_excuse': true, 'sessions': 3, 'present_sessions': 1}]},
-        '/api/me/achievements' => {'points': 1250, 'earned': 3, 'badges': [for (final k in ['first', 'on_time_5', 'streak_10', 'diligent', 'no_alpa', 'card_loyal']) {'key': k, 'title': 'Lencana Keaktifan Panjang Sekali $k', 'description': 'Deskripsi', 'earned': k.length.isEven, 'progress': 3, 'target': 10, 'hint': null}]},
-        '/api/me/history' => {'term': '2026/2027', 'by_status': {'hadir': 12, 'telat': 3, 'izin': 1, 'sakit': 2, 'alpa': 1}, 'total': 19, 'attendance_rate': 78.9, 'recent': [{'event': 'Rapat Kerja Nasional Himpunan Mahasiswa', 'date': '2026-11-01T02:00:00Z', 'status': 'telat'}], 'monthly': [for (var m = 1; m <= 12; m++) {'month': '2026-${m.toString().padLeft(2, '0')}', 'total': 4, 'hadir': m % 4, 'telat': 1, 'izin': 0, 'sakit': 0, 'alpa': 0}]},
-        '/api/events/1/roster' => {'event': {'id': 1, 'title': 'Rapat', 'checkin_opens_at': '2026-01-01T00:00:00Z', 'late_after': '2026-01-01T00:00:00Z', 'checkin_closes_at': '2099-01-01T00:00:00Z', 'closed_at': null}, 'members': [], 'generated_at': '2026-01-01T00:00:00Z'},
-        _ => <String, dynamic>{'data': []},
-      };
-      return http.Response(jsonEncode(body), 200);
-    }))..token = 't';
+ApiClient api() => ApiClient(
+  baseUrl: 'http://srv',
+  client: MockClient((req) async {
+    final body = switch (req.url.path) {
+      '/api/events' => {
+        'data': [
+          for (var i = 0; i < 3; i++)
+            {'id': i + 1, 'title': 'Rapat Kerja Nasional Himpunan Mahasiswa ${i + 1}', 'location': 'Aula Gedung Serbaguna Lantai 3', 'checkin_closes_at': '2099-01-01T03:00:00Z'},
+        ],
+      },
+      '/api/me/qr' => {'payload': 'card:qr:TOKEN', 'expires_in': 90},
+      '/api/me/profile-form' => {
+        'organization': 'Himpunan Mahasiswa Program Studi Teknik Informatika',
+        'term': '2026/2027',
+        'name': longName,
+        'email': 'muhammad.rizky.pratama.wijayakusuma@mahasiswa.ac.id',
+        'divisions': [
+          {'id': 1, 'name': 'Penelitian dan Pengembangan Keilmuan'},
+        ],
+      },
+      '/api/me/card' => {
+        'state': 'active',
+        'status': 'active',
+        'organization': 'Himpunan Mahasiswa Program Studi Teknik Informatika',
+        'term': '2026/2027',
+        'valid_until': '2027-07-31',
+        'member': {'name': longName, 'member_no': '240100123456', 'division': 'Penelitian dan Pengembangan Keilmuan', 'cohort': '2024', 'photo_url': null},
+        'card': {'last4': 'ABCD'},
+        'self_card': {'can_write': true, 'can_request': false, 'pending_request': null},
+      },
+      '/api/me/events' => {
+        'data': [
+          {
+            'id': 7,
+            'title': 'Rapat Kerja Nasional Himpunan Mahasiswa',
+            'location': 'Aula Gedung Serbaguna',
+            'starts_at': '2099-01-01T02:00:00Z',
+            'checkin_closes_at': '2099-01-01T03:00:00Z',
+            'closed_at': null,
+            'is_mandatory': true,
+            'my_status': null,
+            'excuse': {'type': 'sakit', 'status': 'pending', 'review_note': 'Mohon lampirkan surat dokter'},
+            'can_request_excuse': true,
+            'sessions': 3,
+            'present_sessions': 1,
+          },
+        ],
+      },
+      '/api/me/achievements' => {
+        'points': 1250,
+        'earned': 3,
+        'badges': [
+          for (final k in ['first', 'on_time_5', 'streak_10', 'diligent', 'no_alpa', 'card_loyal'])
+            {'key': k, 'title': 'Lencana Keaktifan Panjang Sekali $k', 'description': 'Deskripsi', 'earned': k.length.isEven, 'progress': 3, 'target': 10, 'hint': null},
+        ],
+      },
+      '/api/me/history' => {
+        'term': '2026/2027',
+        'by_status': {'hadir': 12, 'telat': 3, 'izin': 1, 'sakit': 2, 'alpa': 1},
+        'total': 19,
+        'attendance_rate': 78.9,
+        'recent': [
+          {'event': 'Rapat Kerja Nasional Himpunan Mahasiswa', 'date': '2026-11-01T02:00:00Z', 'status': 'telat'},
+        ],
+        'monthly': [
+          for (var m = 1; m <= 12; m++) {'month': '2026-${m.toString().padLeft(2, '0')}', 'total': 4, 'hadir': m % 4, 'telat': 1, 'izin': 0, 'sakit': 0, 'alpa': 0},
+        ],
+      },
+      '/api/events/1/roster' => {
+        'event': {'id': 1, 'title': 'Rapat', 'checkin_opens_at': '2026-01-01T00:00:00Z', 'late_after': '2026-01-01T00:00:00Z', 'checkin_closes_at': '2099-01-01T00:00:00Z', 'closed_at': null},
+        'members': [],
+        'generated_at': '2026-01-01T00:00:00Z',
+      },
+      _ => <String, dynamic>{'data': []},
+    };
+    return http.Response(jsonEncode(body), 200);
+  }),
+)..token = 't';
 
 final sessionsJson = [
   {'id': 11, 'title': 'Hari Pertama Pembukaan', 'checkin_opens_at': '2026-01-01T00:00:00Z', 'late_after': '2026-01-01T00:00:00Z', 'checkin_closes_at': '2099-01-01T00:00:00Z'},
@@ -61,27 +125,57 @@ final sessionsJson = [
 
 /// Layar yang diuji. Dibuat ulang tiap ukuran (state baru).
 Map<String, Future<Widget> Function()> screens() => {
-      'Sambutan': () async => const WelcomeScreen(server: ServerConfig(url: 'https://absen.himpunan-mahasiswa.ac.id', name: 'Himpunan Mahasiswa Program Studi Teknik Informatika')),
-      'Hubungkan': () async => const ConnectScreen(),
-      'Daftar': () async => const RegisterScreen(server: ServerConfig(url: 'https://absen.himpunan-mahasiswa.ac.id', name: 'Himpunan Mahasiswa Program Studi Teknik Informatika')),
-      'E-profil': () async => EProfileScreen(api: api()),
-      'Daftar kartu': () async => SelfCardScreen(api: api()),
-      'Masuk': () async => const LoginScreen(server: ServerConfig(url: 'https://absen.himpunan-mahasiswa.ac.id', name: 'Himpunan Mahasiswa Program Studi')),
-      'Kegiatan': () async => EventsScreen(session: session, api: api()),
-      'Scan': () async => ScanScreen(
-            session: session, api: api(), nfc: NfcService(FakeNfc()),
-            store: OfflineStore(await SharedPreferences.getInstance()),
-            feedback: ScanFeedback(player: (_) async {}, haptic: (_) async {}),
-            event: EventSummary.fromJson({'id': 1, 'title': 'Rapat Kerja Nasional Himpunan Mahasiswa', 'sessions': sessionsJson, 'current_session_id': 11}),
+  'Sambutan': () async => const WelcomeScreen(
+    server: ServerConfig(url: 'https://absen.himpunan-mahasiswa.ac.id', name: 'Himpunan Mahasiswa Program Studi Teknik Informatika'),
+  ),
+  'Hubungkan': () async => const ConnectScreen(),
+  'Daftar': () async => const RegisterScreen(
+    server: ServerConfig(url: 'https://absen.himpunan-mahasiswa.ac.id', name: 'Himpunan Mahasiswa Program Studi Teknik Informatika'),
+  ),
+  'E-profil': () async => EProfileScreen(api: api()),
+  'Daftar kartu': () async => SelfCardScreen(api: api()),
+  'Masuk': () async => const LoginScreen(
+    server: ServerConfig(url: 'https://absen.himpunan-mahasiswa.ac.id', name: 'Himpunan Mahasiswa Program Studi'),
+  ),
+  'Kegiatan': () async => EventsScreen(session: session, api: api()),
+  'Scan': () async => ScanScreen(
+    session: session,
+    api: api(),
+    nfc: NfcService(FakeNfc()),
+    store: OfflineStore(await SharedPreferences.getInstance()),
+    feedback: ScanFeedback(player: (_) async {}, haptic: (_) async {}),
+    event: EventSummary.fromJson({'id': 1, 'title': 'Rapat Kerja Nasional Himpunan Mahasiswa', 'sessions': sessionsJson, 'current_session_id': 11}),
+  ),
+  'Hasil scan': () async => Scaffold(
+    body: ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        ScanResultCard(
+          result: const ScanResult(
+            status: 'ok',
+            attendanceStatus: 'telat',
+            message: 'Tercatat, perlu ditinjau admin.',
+            memberName: longName,
+            memberNo: '2401234567890',
+            division: 'Pengembangan Sumber Daya Mahasiswa',
+            offline: true,
           ),
-      'Hasil scan': () async => Scaffold(body: ListView(padding: const EdgeInsets.all(16), children: [
-            ScanResultCard(result: const ScanResult(status: 'ok', attendanceStatus: 'telat', message: 'Tercatat, perlu ditinjau admin.', memberName: longName, memberNo: '2401234567890', division: 'Pengembangan Sumber Daya Mahasiswa', offline: true)),
-          ])),
-      'Terbitkan kartu': () async => IssueCardScreen(session: session, api: api()),
-      'Anggota': () async => MemberHomeScreen(session: memberSession, api: api()),
-      'Anggota bertugas': () async => MemberHomeScreen(session: Session(baseUrl: 'http://srv', token: 't', userName: longName, role: 'scanner', hasMember: true), api: api()),
-      'Ajukan izin': () async => ExcuseScreen(api: api(), event: MemberEvent.fromJson({'id': 7, 'title': 'Rapat Kerja Nasional Himpunan Mahasiswa', 'starts_at': '2099-01-01T02:00:00Z', 'checkin_closes_at': '2099-01-01T03:00:00Z'}), picker: () async => null),
-    };
+        ),
+      ],
+    ),
+  ),
+  'Terbitkan kartu': () async => IssueCardScreen(session: session, api: api()),
+  'Anggota': () async => MemberHomeScreen(session: memberSession, api: api()),
+  'Anggota bertugas': () async => MemberHomeScreen(
+    session: Session(baseUrl: 'http://srv', token: 't', userName: longName, role: 'scanner', hasMember: true),
+    api: api(),
+  ),
+  'Ajukan izin': () async => ExcuseScreen(
+    api: api(),
+    event: MemberEvent.fromJson({'id': 7, 'title': 'Rapat Kerja Nasional Himpunan Mahasiswa', 'starts_at': '2099-01-01T02:00:00Z', 'checkin_closes_at': '2099-01-01T03:00:00Z'}),
+    picker: () async => null,
+  ),
+};
 
 void main() {
   setUp(() => SharedPreferences.setMockInitialValues({}));
@@ -128,7 +222,11 @@ void main() {
     await tester.pumpWidget(const SizedBox());
 
     tester.view.physicalSize = sizes['tablet']!;
-    await tester.pumpWidget(KartuAnggotaApp(home: EventsScreen(session: session, api: api())));
+    await tester.pumpWidget(
+      KartuAnggotaApp(
+        home: EventsScreen(session: session, api: api()),
+      ),
+    );
     await tester.pumpAndSettle();
     // Tablet: dua kolom — sapaan & menu di kiri, kartu kegiatan di kanan; tepi kiri & kanan simetris (16 px).
     final greet = tester.getRect(find.textContaining('Halo,'));

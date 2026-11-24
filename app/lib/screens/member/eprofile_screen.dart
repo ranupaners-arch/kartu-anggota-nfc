@@ -72,7 +72,13 @@ class _EProfileScreenState extends State<EProfileScreen> {
   }
 
   Future<void> _submit() async {
-    final problem = _name.text.trim().isEmpty ? 'Isi nama lengkap.' : _no.text.trim().isEmpty ? 'Isi NIM / nomor induk.' : !_consent ? 'Centang persetujuan pemrosesan data.' : null;
+    final problem = _name.text.trim().isEmpty
+        ? 'Isi nama lengkap.'
+        : _no.text.trim().isEmpty
+        ? 'Isi NIM / nomor induk.'
+        : !_consent
+        ? 'Centang persetujuan pemrosesan data.'
+        : null;
     if (problem != null) {
       setState(() => _error = problem);
       return;
@@ -83,8 +89,13 @@ class _EProfileScreenState extends State<EProfileScreen> {
     });
     try {
       await widget.api.submitProfile(
-        name: _name.text.trim(), memberNo: _no.text.trim(), phone: _phone.text.trim(), cohort: _cohort.text.trim(),
-        divisionId: _division, photoBytes: _photo?.bytes, photoName: _photo?.name,
+        name: _name.text.trim(),
+        memberNo: _no.text.trim(),
+        phone: _phone.text.trim(),
+        cohort: _cohort.text.trim(),
+        divisionId: _division,
+        photoBytes: _photo?.bytes,
+        photoName: _photo?.name,
       );
       if (!mounted) return;
       Navigator.of(context).pop(true);
@@ -103,7 +114,11 @@ class _EProfileScreenState extends State<EProfileScreen> {
     Widget field(String label, Widget input, {String? hint}) => Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       spacing: 6,
-      children: [Text(label, style: theme.textTheme.small), input, if (hint != null) Text(hint, style: theme.textTheme.muted)],
+      children: [
+        Text(label, style: theme.textTheme.small),
+        input,
+        if (hint != null) Text(hint, style: theme.textTheme.muted),
+      ],
     );
     return Scaffold(
       body: AppPage(
@@ -116,7 +131,10 @@ class _EProfileScreenState extends State<EProfileScreen> {
             return ListView(
               padding: const EdgeInsets.all(16),
               children: [
-                Text('Daftarkan keanggotaan di $_org${_term != null ? ' periode $_term' : ''}. Setelah dikirim, pengurus pusat memeriksa dan mengesahkan, lalu kartu Anda aktif.', style: theme.textTheme.muted),
+                Text(
+                  'Daftarkan keanggotaan di $_org${_term != null ? ' periode $_term' : ''}. Setelah dikirim, pengurus pusat memeriksa dan mengesahkan, lalu kartu Anda aktif.',
+                  style: theme.textTheme.muted,
+                ),
                 const SizedBox(height: 16),
                 if (_error != null) ...[ShadAlert.destructive(icon: const Icon(LucideIcons.circleAlert), description: Text(_error!)), const SizedBox(height: 12)],
                 Column(
@@ -145,7 +163,10 @@ class _EProfileScreenState extends State<EProfileScreen> {
                         spacing: 8,
                         children: [
                           ShadButton.outline(onPressed: _choosePhoto, leading: const Icon(LucideIcons.image, size: 16), child: Text(_photo == null ? 'Pilih foto' : 'Ganti foto')),
-                          if (_photo != null) Expanded(child: Text(_photo!.name, overflow: TextOverflow.ellipsis, style: theme.textTheme.muted)),
+                          if (_photo != null)
+                            Expanded(
+                              child: Text(_photo!.name, overflow: TextOverflow.ellipsis, style: theme.textTheme.muted),
+                            ),
                         ],
                       ),
                       hint: 'Foto wajah jelas untuk kartu & pencocokan saat absensi. Maks. 5 MB.',

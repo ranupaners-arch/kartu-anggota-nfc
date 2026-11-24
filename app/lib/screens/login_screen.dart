@@ -50,12 +50,21 @@ class _LoginScreenState extends State<LoginScreen> {
     try {
       final api = ApiClient(baseUrl: widget.server.url);
       final user = await api.login(_email.text.trim(), _password.text, deviceUuid: await deviceUuid(), otp: _needOtp ? _otp.text.trim() : null);
-      final session = Session(baseUrl: widget.server.url, token: api.token!, userName: user['name'] as String? ?? '', role: user['role'] as String? ?? '', hasMember: user['member_id'] != null, userId: user['id'] as int?);
+      final session = Session(
+        baseUrl: widget.server.url,
+        token: api.token!,
+        userName: user['name'] as String? ?? '',
+        role: user['role'] as String? ?? '',
+        hasMember: user['member_id'] != null,
+        userId: user['id'] as int?,
+      );
       // Password sementara dari pengurus: ganti dulu; sesi baru disimpan setelah berhasil.
       if (user['must_change_password'] == true) {
         if (!mounted) return;
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute<void>(builder: (_) => ChangePasswordScreen(api: api, session: session, currentPassword: _password.text, server: widget.server)),
+          MaterialPageRoute<void>(
+            builder: (_) => ChangePasswordScreen(api: api, session: session, currentPassword: _password.text, server: widget.server),
+          ),
         );
         return;
       }
@@ -136,7 +145,12 @@ class _LoginScreenState extends State<LoginScreen> {
                                 )
                               : const SizedBox.shrink(),
                         ),
-                        FlexButton(variant: ShadButtonVariant.link, small: true, onPressed: _busy ? null : () => showForgotPassword(context, ApiClient(baseUrl: widget.server.url), _email.text.trim()), label: 'Lupa password?'),
+                        FlexButton(
+                          variant: ShadButtonVariant.link,
+                          small: true,
+                          onPressed: _busy ? null : () => showForgotPassword(context, ApiClient(baseUrl: widget.server.url), _email.text.trim()),
+                          label: 'Lupa password?',
+                        ),
                         if (serverMode == ServerMode.selectable) FlexButton(variant: ShadButtonVariant.link, small: true, onPressed: _busy ? null : _changeServer, label: 'Ganti organisasi'),
                       ],
                     ),
@@ -163,7 +177,10 @@ class _LoginScreenState extends State<LoginScreen> {
 /// Dialog lupa password: kirim tautan atur ulang ke email. Bila email server belum diatur, pesan
 /// server meminta pengguna menghubungi pengurus.
 Future<void> showForgotPassword(BuildContext context, ApiClient api, String email) {
-  return showShadDialog<void>(context: context, builder: (_) => _ForgotDialog(api: api, email: email));
+  return showShadDialog<void>(
+    context: context,
+    builder: (_) => _ForgotDialog(api: api, email: email),
+  );
 }
 
 class _ForgotDialog extends StatefulWidget {

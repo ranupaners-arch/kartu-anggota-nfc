@@ -83,7 +83,14 @@ class NotificationsPage extends StatefulWidget {
 class _NotificationsPageState extends State<NotificationsPage> {
   late Future<List<MemberNotice>> _notices = widget.api.myNotifications();
 
-  static const _icons = {'announcement': LucideIcons.megaphone, 'excuse': LucideIcons.calendarCheck, 'card': LucideIcons.creditCard, 'fine': LucideIcons.wallet, 'reminder': LucideIcons.bellRing, 'profile': LucideIcons.userPen};
+  static const _icons = {
+    'announcement': LucideIcons.megaphone,
+    'excuse': LucideIcons.calendarCheck,
+    'card': LucideIcons.creditCard,
+    'fine': LucideIcons.wallet,
+    'reminder': LucideIcons.bellRing,
+    'profile': LucideIcons.userPen,
+  };
 
   @override
   Widget build(BuildContext context) {
@@ -94,7 +101,9 @@ class _NotificationsPageState extends State<NotificationsPage> {
         final list = snap.data ?? const <MemberNotice>[];
         return RefreshIndicator(
           onRefresh: () async {
-            setState(() { _notices = widget.api.myNotifications(); });
+            setState(() {
+              _notices = widget.api.myNotifications();
+            });
             await _notices.catchError((_) => <MemberNotice>[]);
           },
           child: ListView(
