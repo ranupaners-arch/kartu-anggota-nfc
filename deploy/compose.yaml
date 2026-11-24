@@ -116,6 +116,26 @@ services:
       db:
         condition: service_healthy
 
+  # Salinan backup terenkripsi ke S3. Aktif bila COMPOSE_PROFILES=offsite di .env.
+  offsite:
+    image: rclone/rclone:1
+    profiles: [offsite]
+    restart: unless-stopped
+    entrypoint: ["/bin/sh", "/offsite.sh"]
+    environment:
+      OFFSITE_BUCKET: ${OFFSITE_BUCKET:-}
+      OFFSITE_ENDPOINT: ${OFFSITE_ENDPOINT:-}
+      OFFSITE_REGION: ${OFFSITE_REGION:-auto}
+      OFFSITE_ACCESS_KEY: ${OFFSITE_ACCESS_KEY:-}
+      OFFSITE_SECRET_KEY: ${OFFSITE_SECRET_KEY:-}
+      OFFSITE_PASSWORD: ${OFFSITE_PASSWORD:-}
+      OFFSITE_KEEP_DAYS: ${OFFSITE_KEEP_DAYS:-90}
+      OFFSITE_PING_URL: ${OFFSITE_PING_URL:-}
+      TZ: ${BACKUP_TZ:-Asia/Jakarta}
+    volumes:
+      - ./offsite.sh:/offsite.sh:ro
+      - ./backups:/backups
+
 volumes:
   storage:
   pgdata:

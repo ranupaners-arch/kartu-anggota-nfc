@@ -117,6 +117,7 @@ jobs:
           scp "${opts[@]}" -P "${VPS_PORT:-22}" deploy/rilis.sh "$VPS_USER@$VPS_HOST:/srv/kartu-anggota/rilis.sh"
           scp "${opts[@]}" -P "${VPS_PORT:-22}" deploy/compose.yaml "$VPS_USER@$VPS_HOST:/srv/kartu-anggota/compose.yaml.baru"
           scp "${opts[@]}" -P "${VPS_PORT:-22}" deploy/backup.sh "$VPS_USER@$VPS_HOST:/srv/kartu-anggota/backup.sh.baru"
+          scp "${opts[@]}" -P "${VPS_PORT:-22}" deploy/offsite.sh "$VPS_USER@$VPS_HOST:/srv/kartu-anggota/offsite.sh.baru"
           ssh "${opts[@]}" -p "${VPS_PORT:-22}" "$VPS_USER@$VPS_HOST" "sh /srv/kartu-anggota/rilis.sh $GITHUB_SHA"
 
   # latest hanya menunjuk versi yang lulus uji (dan berhasil dipasang, bila VPS diatur).
