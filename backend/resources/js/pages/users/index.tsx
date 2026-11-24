@@ -11,7 +11,7 @@ import AppLayout from '@/layouts/app-layout';
 import { roleLabel } from '@/lib/format';
 import type { Paginated, SharedProps } from '@/types';
 
-type U = { id: number; name: string; email: string; role: string; disabled_at: string | null; two_factor_confirmed_at: string | null; division: { name: string } | null; member: { member_no: string } | null };
+type U = { id: number; name: string; email: string; role: string; disabled_at: string | null; two_factor_confirmed_at: string | null; division: { name: string } | null; member: { member_no: string } | null; finance_active: 'treasurer' | 'auditor' | null };
 
 export default function Users({ users, filters }: { users: Paginated<U>; filters: { role: string | null } }) {
     const me = usePage<SharedProps>().props.auth?.user.id;
@@ -26,7 +26,7 @@ export default function Users({ users, filters }: { users: Paginated<U>; filters
                 {users.data.map((u) => (
                     <TableRow key={u.id}>
                         <TableCell><Link href={`/pengguna/${u.id}/edit`} className="font-medium hover:underline">{u.name}</Link></TableCell>
-                        <TableCell>{u.email}</TableCell><TableCell>{roleLabel[u.role]}</TableCell>
+                        <TableCell>{u.email}</TableCell><TableCell>{roleLabel[u.role]}{u.finance_active && <div className="text-xs text-muted-foreground">{u.finance_active === 'treasurer' ? 'Bendahara' : 'Sekretaris'}</div>}</TableCell>
                         <TableCell>{u.division?.name ?? '—'}</TableCell><TableCell className="tabular-nums">{u.member?.member_no ?? '—'}</TableCell>
                         <TableCell><StatusBadge status={u.disabled_at ? 'disabled' : 'active'} /></TableCell>
                         <TableCell>{u.two_factor_confirmed_at ? <StatusBadge status="active" label="Aktif" /> : <span className="text-xs text-muted-foreground">—</span>}</TableCell>

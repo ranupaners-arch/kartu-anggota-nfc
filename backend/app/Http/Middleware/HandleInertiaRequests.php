@@ -49,6 +49,7 @@ class HandleInertiaRequests extends Middleware
                 'user' => $user->only('id', 'name', 'email', 'role', 'division_id'),
                 'organization' => $user->organization?->only('id', 'name'),
                 'isSuperAdmin' => $user->isSuperAdmin(),
+                'canViewDues' => $user->canViewDues(),
                 'mustChangePassword' => (bool) $user->must_change_password,
             ] : null,
             // Badge jumlah pekerjaan di menu (dihitung hanya bila login).

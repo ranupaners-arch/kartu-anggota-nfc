@@ -565,6 +565,8 @@ class MemberHistory {
     this.atRisk = false,
     this.alpaStreak = 0,
     this.finesUnpaid = 0,
+    this.duesUnpaid = 0,
+    this.dues = const [],
     this.fines = const [],
     this.monthly = const [],
   });
@@ -586,6 +588,16 @@ class MemberHistory {
           month: DateTime.parse('${(m as Map<String, dynamic>)['month']}-01'),
           total: (m['total'] as num).toInt(),
           present: ((m['hadir'] as num?) ?? 0).toInt() + ((m['telat'] as num?) ?? 0).toInt(),
+        ),
+    ],
+    duesUnpaid: ((j['dues'] as Map<String, dynamic>?)?['unpaid_total'] as num?)?.toInt() ?? 0,
+    dues: [
+      for (final d in ((j['dues'] as Map<String, dynamic>?)?['items'] as List?) ?? const [])
+        (
+          title: (d as Map<String, dynamic>)['title'] as String,
+          amount: (d['amount'] as num).toInt(),
+          status: d['status'] as String,
+          dueOn: DateTime.tryParse(d['due_on'] as String? ?? ''),
         ),
     ],
     finesUnpaid: ((j['fines'] as Map<String, dynamic>?)?['unpaid_total'] as num?)?.toInt() ?? 0,
@@ -614,6 +626,10 @@ class MemberHistory {
   final List<({DateTime month, int total, int present})> monthly;
 
   /// Denda absen pakai QR (kartu tertinggal) periode ini.
+  /// Iuran: belum lunas (semua periode) & tagihan periode ini. Kosong untuk server lama.
+  final int duesUnpaid;
+  final List<({String title, int amount, String status, DateTime? dueOn})> dues;
+
   final int finesUnpaid;
   final List<({String event, DateTime? date, int amount, String status})> fines;
 }

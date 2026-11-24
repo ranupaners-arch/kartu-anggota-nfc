@@ -125,6 +125,11 @@ ketuk lencana untuk melihat syarat & progresnya. Poin & lencana hanya Anda yang 
 lain kecuali Anda memilih **Tampilkan nama saya** (yang terlihat: nama, divisi, poin); bisa disembunyikan lagi
 kapan saja.
 
+## Iuran
+
+Bila organisasi menagih iuran, status Anda ada di **Riwayat → Iuran** (app & portal). Bayar langsung ke
+bendahara; statusnya diperbarui bendahara.
+
 ## Denda
 
 Bila organisasi mengaktifkan denda: absen memakai **QR padahal Anda punya kartu NFC aktif** (kartu

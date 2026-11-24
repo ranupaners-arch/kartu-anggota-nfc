@@ -13,6 +13,7 @@ type History = {
     warning: { at_risk: boolean; alpa_streak: number; rate: number | null } | null;
     recent: { event: string | null; date: string | null; status: string; source: string | null }[];
     fines?: { unpaid_total: number; items: { id: number; amount: number; status: string; event: string | null; date: string | null }[] };
+    dues?: { unpaid_total: number; items: { id: number; title: string; amount: number; status: string; due_on: string | null }[] };
 };
 
 type Board = {
@@ -82,6 +83,25 @@ export default function PortalHistory({ history: h, leaderboard }: { history: Hi
                     <Button variant="outline" render={<a href="/saya/rapor" />}><FileDown /> Unduh rapor PDF</Button>
                 </CardContent>
             </Card>
+            {h.dues && h.dues.items.length > 0 && (
+                <Card className="gap-2">
+                    <CardHeader>
+                        <CardTitle className="text-base">Iuran</CardTitle>
+                        <CardDescription>Belum lunas: <b className="text-foreground">Rp{h.dues.unpaid_total.toLocaleString('id-ID')}</b> — bayar ke bendahara.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <ul className="divide-y">
+                            {h.dues.items.map((d) => (
+                                <li key={d.id} className="flex items-center gap-3 py-2 text-sm">
+                                    <span className="min-w-0 flex-1 truncate">{d.title}{d.due_on && <span className="block text-xs text-muted-foreground">jatuh tempo {fmtDate(d.due_on)}</span>}</span>
+                                    <span className="tabular-nums">Rp{d.amount.toLocaleString('id-ID')}</span>
+                                    <StatusBadge status={d.status === 'unpaid' ? 'pending' : d.status === 'paid' ? 'approved' : 'closed'} label={{ unpaid: 'Belum lunas', paid: 'Lunas', waived: 'Dibebaskan' }[d.status] ?? d.status} />
+                                </li>
+                            ))}
+                        </ul>
+                    </CardContent>
+                </Card>
+            )}
             {h.fines && h.fines.items.length > 0 && (
                 <Card className="gap-2">
                     <CardHeader>

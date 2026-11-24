@@ -15,6 +15,7 @@ use App\Models\Term;
 use App\Models\User;
 use App\Services\AchievementService;
 use App\Services\CardPrintService;
+use App\Services\DuesService;
 use App\Services\FineService;
 use App\Services\LeaderboardService;
 use App\Services\MemberCardService;
@@ -264,6 +265,7 @@ class MeController extends Controller
             'warning' => $term ? app(StatsService::class)->memberRisk($memberId, $term) : null,
             // Denda absen pakai QR (kartu tertinggal) periode ini.
             'fines' => app(FineService::class)->forMember($memberId, $term?->id),
+            'dues' => app(DuesService::class)->forMember($memberId, $term?->id),
             // Rekap per bulan (urut waktu) untuk grafik kehadiran di app.
             'monthly' => $rows->filter(fn (Attendance $a) => $a->event?->starts_at)
                 ->groupBy(fn (Attendance $a) => $a->event->starts_at->timezone(config('app.timezone'))->format('Y-m'))

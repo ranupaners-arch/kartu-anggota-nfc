@@ -59,6 +59,17 @@ Route::middleware(['auth:web', 'scanner.web'])->prefix('pindai')->name('scanner.
     Route::get('{event}/foto/{member}', [Dashboard\EventMonitorController::class, 'photo'])->whereNumber(['event', 'member'])->name('photo');
 });
 
+// Iuran: Super Admin, bendahara, sekretaris (audit). Hak mengubah dicek di DuesService.
+Route::middleware(['auth:web', 'finance'])->prefix('iuran')->name('dues.')->group(function () {
+    Route::get('/', [Dashboard\DueController::class, 'index'])->name('index');
+    Route::post('/', [Dashboard\DueController::class, 'store'])->middleware('throttle:20,1')->name('store');
+    Route::get('{due}', [Dashboard\DueController::class, 'show'])->whereNumber('due')->name('show');
+    Route::get('{due}/ekspor', [Dashboard\DueController::class, 'export'])->whereNumber('due')->middleware('throttle:20,1')->name('export');
+    Route::post('{due}/tandai', [Dashboard\DueController::class, 'mark'])->whereNumber('due')->name('mark');
+    Route::post('{due}/sinkron', [Dashboard\DueController::class, 'sync'])->whereNumber('due')->name('sync');
+    Route::post('{due}/batal', [Dashboard\DueController::class, 'cancel'])->whereNumber('due')->name('cancel');
+});
+
 Route::middleware(['auth:web', 'dashboard'])->group(function () {
     Route::post('keluar', [Dashboard\AuthController::class, 'logout'])->name('logout');
     Route::get('/', Dashboard\HomeController::class)->name('home');

@@ -182,6 +182,18 @@ untuk divisinya.
   yang perangkatnya dicabut, perannya diubah, atau akunnya dinonaktifkan; dikirim paling lambat 7 hari; belum tercatat sampai diterima), *Override*, *Anomali* (kartu sama
   di dua tempat dalam satu menit). **Terima** atau **Batalkan**.
 
+## Iuran
+
+- **Akses:** Super Admin memberi **Bendahara** (mencatat) atau **Sekretaris** (audit, hanya melihat) di **Pengguna &
+  Peran → Ubah → Akses keuangan**. Ini tambahan di luar peran dan berakhir otomatis saat periode berganti. Mereka
+  membuka `/iuran` di browser (anggota: portal → Akun → *Kelola iuran*).
+- **Buat tagihan:** judul, nominal (sama untuk semua anggota aktif), jatuh tempo opsional. Anggota yang disahkan
+  kemudian: **Tambah anggota baru**.
+- **Lunas / Bebaskan / Belum lunas:** centang anggota → isi catatan. Membebaskan atau membatalkan tanda wajib beralasan.
+  Bendahara tidak bisa mencatat iurannya sendiri.
+- **Riwayat Perubahan** mencatat siapa, kapan, dan alasannya; tidak bisa diubah dari aplikasi. **CSV** untuk arsip.
+- Tagihan salah: **Batalkan** (hanya bila belum ada yang lunas), lalu buat lagi.
+
 ## Statistik & peringatan
 
 **Beranda** menampilkan tren % hadir per kegiatan, % hadir per divisi, dan **Perlu perhatian**:
