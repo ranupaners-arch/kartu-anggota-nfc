@@ -108,6 +108,7 @@ class _ScanScreenState extends State<ScanScreen> with WidgetsBindingObserver {
     }
     try {
       final roster = Roster.fromApi(await _api.roster(widget.event.id));
+      if (!mounted) return; // mungkin sudah keluar akun: jangan tulis ulang data peserta
       await store.saveRoster(roster);
       if (!mounted) return;
       setState(() => _useRoster(roster));

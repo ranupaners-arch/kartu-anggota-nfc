@@ -1,11 +1,18 @@
+import 'dart:async';
+
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../api/api_client.dart';
 import '../offline/offline_store.dart';
+import '../offline/photo_cache.dart';
+import 'token_store.dart';
 
 /// Sesi login petugas yang disimpan di perangkat.
-/// Catatan: token disimpan di SharedPreferences; untuk rilis sebaiknya pakai penyimpanan terenkripsi.
+/// Token di penyimpanan terenkripsi ([tokens]); sisanya di SharedPreferences.
 class Session {
+  /// Diganti di tes.
+  static TokenStore tokens = const SecureTokenStore();
+
   Session({required this.baseUrl, required this.token, required this.userName, required this.role, this.hasMember = false, this.userId});
 
   final String baseUrl;
@@ -32,15 +39,26 @@ class Session {
 
   static Future<Session?> load() async {
     final p = await SharedPreferences.getInstance();
-    final url = p.getString(_kUrl), token = p.getString(_kToken);
-    if (url == null || token == null) return null;
+    final url = p.getString(_kUrl), token = await _loadToken(p);
+    if (url == null || token == null || token.isEmpty || !p.containsKey(_kRole)) return null;
     return Session(baseUrl: url, token: token, userName: p.getString(_kName) ?? '', role: p.getString(_kRole) ?? '', hasMember: p.getBool(_kHasMember) ?? false, userId: p.getInt(_kUserId));
   }
 
   Future<void> save() async {
     final p = await SharedPreferences.getInstance();
     await p.setString(_kUrl, baseUrl);
-    await p.setString(_kToken, token);
+    try {
+      await tokens.write(token);
+      await p.remove(_kToken);
+    } catch (_) {
+      // Keystore bermasalah: sesi berlaku sampai app ditutup; token tidak ditulis tanpa enkripsi, dan
+      // token akun sebelumnya tidak boleh terpakai dengan identitas akun ini.
+      if (p.getString(_kToken) != token) {
+        await p.remove(_kToken);
+        await p.remove(_kRole);
+        return;
+      }
+    }
     await p.setString(_kName, userName);
     await p.setString(_kRole, role);
     await p.setBool(_kHasMember, hasMember);
@@ -48,16 +66,40 @@ class Session {
     id == null ? await p.remove(_kUserId) : await p.setInt(_kUserId, id);
   }
 
-  /// Hapus token; URL server tetap diingat untuk login berikutnya.
+  static Future<String?> _loadToken(SharedPreferences p) async {
+    final old = p.getString(_kToken); // versi app lama: tanpa enkripsi
+    if (old != null) {
+      try {
+        await tokens.write(old);
+        await p.remove(_kToken);
+      } catch (_) {
+        // dicoba lagi saat app dibuka berikutnya; jangan mengeluarkan petugas
+      }
+      return old;
+    }
+    try {
+      return await tokens.read();
+    } catch (_) {
+      return null; // kunci Keystore hilang: masuk lagi
+    }
+  }
+
+  /// Hapus token & data pribadi peserta (antrean scan tetap); URL server tetap diingat untuk login berikutnya.
   static Future<void> clear() async {
     final p = await SharedPreferences.getInstance();
+    try {
+      await tokens.delete();
+    } catch (_) {
+      // peran yang dihapus di bawah sudah membuat sesi tidak dimuat lagi
+    }
     await p.remove(_kToken);
     await p.remove(_kName);
     await p.remove(_kRole);
     await p.remove(_kHasMember);
     await p.remove(_kUserId);
-    for (final k in p.getKeys().where((k) => k.startsWith(OfflineStore.eventsKey)).toList()) {
-      await p.remove(k); // kegiatan akun lama tidak tampil untuk akun berikutnya
+    for (final k in p.getKeys().where((k) => k.startsWith(OfflineStore.eventsKey) || k.startsWith('roster:')).toList()) {
+      await p.remove(k); // kegiatan & peserta akun lama tidak tertinggal untuk akun berikutnya
     }
+    unawaited(PhotoCache.clearAll());
   }
 }

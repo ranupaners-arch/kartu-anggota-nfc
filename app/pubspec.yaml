@@ -24,6 +24,7 @@ dependencies:
   app_links: ^7.2.2
   path_provider: ^2.1.6
   open_filex: ^5.0.0
+  flutter_secure_storage: ^11.2.0
 
 dev_dependencies:
   flutter_test:
