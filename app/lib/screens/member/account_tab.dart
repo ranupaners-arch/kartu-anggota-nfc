@@ -105,10 +105,11 @@ class _AccountTabState extends State<AccountTab> {
                     if (active)
                       _Item(LucideIcons.creditCard, 'Kartu saya', 'Daftarkan kartu NFC, unduh PDF, lapor kartu', () async {
                         await widget.onOpenCard?.call(context);
-                        if (mounted)
+                        if (mounted) {
                           setState(() {
                             _card = _load();
                           });
+                        }
                       }),
                   ]),
                 if (active)
