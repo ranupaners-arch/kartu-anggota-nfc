@@ -93,7 +93,7 @@ class _MembershipPageState extends State<MembershipPage> {
       future: _card,
       builder: (context, snap) => _page(
         onRefresh: () async {
-          setState(() => _card = widget.api.myCard());
+          setState(() { _card = widget.api.myCard(); });
           await _card.catchError((_) => MemberCardInfo(state: CardState.none));
         },
         children: [
@@ -177,7 +177,7 @@ class _ReportPageState extends State<ReportPage> {
         final h = snap.data;
         return _page(
           onRefresh: () async {
-            setState(() => _history = widget.api.myHistory());
+            setState(() { _history = widget.api.myHistory(); });
             await _history.catchError((_) => const MemberHistory(byStatus: {}, total: 0));
           },
           children: [
@@ -246,7 +246,7 @@ class _FinesPageState extends State<FinesPage> {
       future: _history,
       builder: (context, snap) => _page(
         onRefresh: () async {
-          setState(() => _history = widget.api.myHistory());
+          setState(() { _history = widget.api.myHistory(); });
           await _history.catchError((_) => const MemberHistory(byStatus: {}, total: 0));
         },
         children: [
@@ -317,7 +317,7 @@ class _ExcuseListPageState extends State<ExcuseListPage> {
   late Future<List<MemberEvent>> _events = widget.api.myEvents();
 
   Future<void> _refresh() async {
-    setState(() => _events = widget.api.myEvents());
+    setState(() { _events = widget.api.myEvents(); });
     await _events.catchError((_) => <MemberEvent>[]);
   }
 
