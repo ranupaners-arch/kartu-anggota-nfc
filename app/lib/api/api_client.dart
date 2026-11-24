@@ -398,6 +398,8 @@ class ApiClient {
     return [for (final r in j['results'] as List) r as Map<String, dynamic>];
   }
 
+  Future<void> rsvp(int eventId, {required bool going}) => _send('POST', '/api/me/events/$eventId/rsvp', {'going': going});
+
   /// Perangkat dicabut: kirim scan tersisa untuk ditinjau pengurus (token lama).
   Future<List<Map<String, dynamic>>> heldScans(List<Map<String, dynamic>> scans) async {
     final j = await _send('POST', '/api/devices/held-scans', {'scans': scans});
@@ -472,6 +474,7 @@ class MemberEvent {
     this.endsAt,
     this.checkinOpensAt,
     this.lateAfter,
+    this.rsvp,
   });
 
   factory MemberEvent.fromJson(Map<String, dynamic> j) {
@@ -494,6 +497,7 @@ class MemberEvent {
       endsAt: _time(j['ends_at']),
       checkinOpensAt: _time(j['checkin_opens_at']),
       lateAfter: _time(j['late_after']),
+      rsvp: j['rsvp'] is Map<String, dynamic> ? MemberRsvp.fromJson(j['rsvp'] as Map<String, dynamic>) : null,
     );
   }
 
@@ -510,7 +514,40 @@ class MemberEvent {
   /// Jadwal lengkap untuk halaman detail (opsional: server lama tidak mengirimnya).
   final DateTime? endsAt, checkinOpensAt, lateAfter;
 
+  /// Null: kegiatan tanpa RSVP (atau server lama).
+  final MemberRsvp? rsvp;
+
   static DateTime? _time(Object? v) => v is String ? DateTime.tryParse(v)?.toLocal() : null;
+}
+
+/// RSVP anggota untuk satu kegiatan. [status]: going | waitlist | declined | null (belum menjawab).
+class MemberRsvp {
+  const MemberRsvp({required this.open, required this.deadline, required this.going, this.status, this.quota, this.position});
+
+  factory MemberRsvp.fromJson(Map<String, dynamic> j) => MemberRsvp(
+    open: j['open'] as bool? ?? false,
+    deadline: DateTime.parse(j['deadline'] as String).toLocal(),
+    going: (j['going'] as num?)?.toInt() ?? 0,
+    status: j['status'] as String?,
+    quota: (j['quota'] as num?)?.toInt(),
+    position: (j['position'] as num?)?.toInt(),
+  );
+
+  final bool open;
+  final DateTime deadline;
+  final int going;
+  final String? status;
+  final int? quota, position;
+
+  bool get joined => status == 'going' || status == 'waitlist';
+  bool get full => quota != null && going >= quota!;
+
+  String get label => switch (status) {
+    'going' => 'Anda ikut',
+    'waitlist' => position == null ? 'Anda di daftar tunggu' : 'Anda di daftar tunggu nomor $position',
+    'declined' => 'Anda tidak ikut',
+    _ => open ? 'Apakah Anda ikut?' : 'RSVP ditutup',
+  };
 }
 
 /// Ringkasan kehadiran anggota (GET /api/me/history).
