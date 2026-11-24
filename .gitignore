@@ -7,6 +7,8 @@ Thumbs.db
 
 # Laporan & artefak lokal
 *.log
+__pycache__/
+*.pyc
 
 # Deploy (rahasia & cadangan lokal)
 deploy/.env
