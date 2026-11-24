@@ -2,11 +2,12 @@ name: Image (GHCR)
 
 # Bangun image produksi (deploy/Dockerfile target app & web) di runner GitHub lalu push ke GHCR,
 # supaya server produksi cukup `docker compose pull` tanpa build di VPS.
-# Tag: latest + SHA commit. Job deploy opsional: jalan hanya bila secret VPS_* sudah diisi.
+# Urutan: uji stack → image bertag SHA → deploy SHA (bila secret VPS_* diisi) → tag latest.
+# Di luar main hanya sampai image bertag SHA.
 on:
   push:
     branches: [main]
-    paths: ['backend/**', 'deploy/**', '.dockerignore', '.github/workflows/image.yml']
+    paths: ['backend/**', 'deploy/**', '.dockerignore', '.github/workflows/image.yml', '.github/workflows/deploy.yml', '.github/scripts/**']
   workflow_dispatch:
 
 permissions:
@@ -14,14 +15,18 @@ permissions:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false # deploy & migrasi tidak boleh terpotong
 
 env:
   APP_IMAGE: ghcr.io/ranupaners-arch/kartu-anggota-app
   WEB_IMAGE: ghcr.io/ranupaners-arch/kartu-anggota-web
 
 jobs:
+  uji:
+    uses: ./.github/workflows/deploy.yml
+
   build:
+    needs: uji
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
@@ -47,7 +52,6 @@ jobs:
           platforms: linux/amd64
           push: true
           tags: |
-            ${{ env.APP_IMAGE }}:latest
             ${{ env.APP_IMAGE }}:${{ github.sha }}
           labels: org.opencontainers.image.source=https://github.com/${{ github.repository }}
           cache-from: type=gha,scope=app
@@ -62,7 +66,6 @@ jobs:
           platforms: linux/amd64
           push: true
           tags: |
-            ${{ env.WEB_IMAGE }}:latest
             ${{ env.WEB_IMAGE }}:${{ github.sha }}
           labels: org.opencontainers.image.source=https://github.com/${{ github.repository }}
           cache-from: type=gha,scope=web
@@ -70,9 +73,12 @@ jobs:
 
   deploy:
     needs: build
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
+      - uses: actions/checkout@v7
+
       - name: Cek secret VPS
         id: ready
         env:
@@ -100,12 +106,35 @@ jobs:
           printf '%s\n' "$VPS_KNOWN_HOSTS" > ~/.ssh/known_hosts
           chmod 600 ~/.ssh/id_ed25519 ~/.ssh/known_hosts
 
-      - name: Pull & jalankan image baru di VPS
+      - name: Pasang versi ini di VPS
         if: steps.ready.outputs.ready == 'true'
         env:
           VPS_HOST: ${{ secrets.VPS_HOST }}
           VPS_USER: ${{ secrets.VPS_USER }}
           VPS_PORT: ${{ secrets.VPS_PORT }}
         run: |
-          ssh -p "${VPS_PORT:-22}" -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=yes "$VPS_USER@$VPS_HOST" \
-            'cd /srv/kartu-anggota && sudo docker compose pull app web && sudo docker compose up -d --no-build --wait --wait-timeout 600'
+          opts=(-i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=yes)
+          scp "${opts[@]}" -P "${VPS_PORT:-22}" deploy/rilis.sh "$VPS_USER@$VPS_HOST:/srv/kartu-anggota/rilis.sh"
+          scp "${opts[@]}" -P "${VPS_PORT:-22}" deploy/compose.yaml "$VPS_USER@$VPS_HOST:/srv/kartu-anggota/compose.yaml.baru"
+          scp "${opts[@]}" -P "${VPS_PORT:-22}" deploy/backup.sh "$VPS_USER@$VPS_HOST:/srv/kartu-anggota/backup.sh.baru"
+          ssh "${opts[@]}" -p "${VPS_PORT:-22}" "$VPS_USER@$VPS_HOST" "sh /srv/kartu-anggota/rilis.sh $GITHUB_SHA"
+
+  # latest hanya menunjuk versi yang lulus uji (dan berhasil dipasang, bila VPS diatur).
+  latest:
+    needs: deploy
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      packages: write
+    steps:
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - run: |
+          for image in "$APP_IMAGE" "$WEB_IMAGE"; do
+            docker buildx imagetools create -t "$image:latest" "$image:$GITHUB_SHA"
+          done

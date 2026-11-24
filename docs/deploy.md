@@ -49,7 +49,8 @@ Hubungkan app petugas: dashboard → **Pengaturan → Aplikasi** → scan QR dar
 Workflow **Image (GHCR)** membangun `deploy/Dockerfile` (target `app` dan `web`) di setiap push ke
 `main` yang menyentuh `backend/` atau `deploy/`, lalu mendorongnya ke
 `ghcr.io/ranupaners-arch/kartu-anggota-app` dan `ghcr.io/ranupaners-arch/kartu-anggota-web`
-(tag `latest` dan SHA commit). Server tidak perlu source repo dan **tidak pernah build**.
+dengan tag SHA commit. Tag `latest` baru dipindah setelah uji stack lulus (dan deploy berhasil, bila
+VPS diatur). Server tidak perlu source repo dan **tidak pernah build**.
 
 Folder server (mis. `/srv/kartu-anggota`) cukup berisi `compose.yaml`, `backup.sh`, dan `.env`
 (salin dari `deploy/`, isi `.env` seperti di atas, `chmod 600 .env`):
@@ -67,8 +68,24 @@ Pin ke versi tertentu dengan `APP_IMAGE=ghcr.io/ranupaners-arch/kartu-anggota-ap
 
 Deploy otomatis (opsional): isi secret repo `VPS_HOST`, `VPS_USER`, `VPS_SSH_KEY`,
 `VPS_KNOWN_HOSTS` (hasil `ssh-keyscan` yang sudah diverifikasi), dan opsional `VPS_PORT`. Job
-`deploy` lalu menjalankan perintah pull + up di atas lewat SSH (`sudo docker compose`, folder
-`/srv/kartu-anggota`). Tanpa secret itu, job dilewati dan deploy dilakukan manual.
+`deploy` mengirim `compose.yaml`, `backup.sh`, dan `rilis.sh` ke `/srv/kartu-anggota`, lalu menjalankan
+`rilis.sh <sha>`: backup, sematkan SHA di `.env`, pull, jalankan, tunggu sehat. Bila backup gagal, rilis
+berhenti sebelum ada yang diubah. Tanpa secret itu, langkah deploy dilewati dan dilakukan manual.
+
+Syarat pengguna SSH: pemilik folder `/srv/kartu-anggota` dan `.env`, serta boleh `sudo docker compose`
+tanpa password. `compose.yaml` di server **ditimpa** tiap rilis; simpan penyesuaian lokal di
+`compose.override.yaml`.
+
+### Kembali ke versi sebelumnya
+
+SHA sebelumnya ada di `.env.sebelumnya` (baris `APP_IMAGE`). Di server:
+
+```bash
+cd /srv/kartu-anggota && sh rilis.sh <sha-lama>
+```
+
+Ini **tidak membatalkan migrasi database**. Bila versi lama tidak cocok dengan skema baru, pulihkan juga
+backup yang dibuat sebelum rilis (lihat *Backup & restore*); data setelah backup itu akan hilang.
 
 ## Di belakang reverse proxy (Nginx/Cloudflare)
 
@@ -117,7 +134,8 @@ tercatat.
 
 ## Pembaruan versi
 
-Dari image GHCR: lihat bagian di atas (`docker compose pull && docker compose up -d --no-build --wait`).
+Dari image GHCR: lihat bagian di atas. Bila SHA sudah disematkan di `.env`, `docker compose pull` tidak
+berpindah versi; pakai `sh rilis.sh <sha>` (salin dari `deploy/`).
 Build dari source:
 
 ```bash

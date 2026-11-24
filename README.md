@@ -13,7 +13,7 @@
   <a href="LICENSE"><img src="https://img.shields.io/badge/lisensi-GPL--3.0--or--later-blue" alt="Lisensi GPL-3.0-or-later"></a>
   <a href="https://github.com/ranupaners-arch/kartu-anggota-nfc/actions/workflows/backend.yml"><img src="https://github.com/ranupaners-arch/kartu-anggota-nfc/actions/workflows/backend.yml/badge.svg" alt="CI Backend"></a>
   <a href="https://github.com/ranupaners-arch/kartu-anggota-nfc/actions/workflows/app.yml"><img src="https://github.com/ranupaners-arch/kartu-anggota-nfc/actions/workflows/app.yml/badge.svg" alt="CI App"></a>
-  <a href="https://github.com/ranupaners-arch/kartu-anggota-nfc/actions/workflows/deploy.yml"><img src="https://github.com/ranupaners-arch/kartu-anggota-nfc/actions/workflows/deploy.yml/badge.svg" alt="Uji stack Docker"></a>
+  <a href="https://github.com/ranupaners-arch/kartu-anggota-nfc/actions/workflows/image.yml"><img src="https://github.com/ranupaners-arch/kartu-anggota-nfc/actions/workflows/image.yml/badge.svg" alt="Uji stack & image"></a>
 </p>
 
 <p align="center">
@@ -129,7 +129,7 @@ pemulihan, pemantauan (`/api/health`, Sentry opsional), dan pengaturan email.
 
 CI ([`.github/workflows`](.github/workflows)):
 - **Backend (Laravel)** dan **App (Flutter)** — tes di setiap pull request.
-- **Deploy (uji stack Docker)** — membangun stack produksi lalu menguji login, antrean, scheduler, uji beban scan, dan backup/restore; di setiap merge ke `main` dan tiap minggu.
+- **Deploy (uji stack Docker)** — membangun stack produksi lalu menguji login, antrean, scheduler, uji beban scan, dan backup/restore; di setiap merge ke `main` (sebelum image diterbitkan) dan tiap minggu.
 - APK uji dibuat manual (`gh workflow run app.yml`).
 
 ## Keamanan & privasi
