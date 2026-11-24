@@ -14,19 +14,31 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 /**
- * Perangkat dicabut: scan offline yang belum terkirim tidak otomatis diterima, tetapi ditahan untuk
+ * Perangkat dicabut, peran diubah, atau akun dinonaktifkan: scan offline yang belum terkirim tidak otomatis diterima, tetapi ditahan untuk
  * ditinjau. Token lama hanya berlaku untuk unggahan ini dan hanya beberapa hari.
  */
 class HeldScanService
 {
-    /** Perangkat dicabut pemilik token ini, atau null bila token tidak berhak mengunggah. */
+    /** Keluarkan user dari semua perangkat, tetapi scan yang belum terkirim masih bisa dititipkan untuk ditinjau. */
+    public function signOut(User $user): void
+    {
+        DB::transaction(function () use ($user) {
+            foreach ($user->tokens()->get() as $token) {
+                Device::withoutGlobalScopes()->where('user_id', $user->id)->where('token_id', $token->id)
+                    ->update(['held_token_hash' => $token->token, 'held_at' => now()]);
+            }
+            $user->tokens()->delete();
+        });
+    }
+
+    /** Perangkat pemilik token yang aksesnya berakhir ini, atau null bila token tidak berhak mengunggah. */
     public function deviceFor(?string $bearer): ?Device
     {
         if (! $bearer || ! preg_match('/^(\d{1,18})\|(.+)$/', $bearer, $m)) {
             return null;
         }
         $device = Device::withoutGlobalScopes()->with('user')->where('token_id', (int) $m[1])
-            ->where('revoked_at', '>', now()->subDays(config('attendance.held_days')))->first();
+            ->where('held_at', '>', now()->subDays(config('attendance.held_days')))->first();
 
         return $device?->held_token_hash && hash_equals($device->held_token_hash, hash('sha256', $m[2])) ? $device : null;
     }
@@ -61,7 +73,8 @@ class HeldScanService
                 }
                 abort_if(count($known) >= config('attendance.held_max'), 422, 'Terlalu banyak scan dari perangkat ini. Hubungi pengurus.');
                 HeldScan::create([
-                    'organization_id' => $orgId, 'device_id' => $device->id, 'event_id' => $s['event_id'], 'member_id' => $card->member_id,
+                    'organization_id' => $orgId, 'device_id' => $device->id, 'user_id' => $device->user_id,
+                    'access_ended_at' => $device->held_at, 'event_id' => $s['event_id'], 'member_id' => $card->member_id,
                     'session_id' => $s['session_id'] ?? null, 'client_uuid' => $uuid, 'payload' => $s['payload'],
                     'scanned_at' => Carbon::parse($s['scanned_at'])->utc()->setTimezone(config('app.timezone')),
                 ]);
@@ -91,7 +104,7 @@ class HeldScanService
             $result = app(ScanService::class)->process($s->event, [
                 'payload' => $s->payload, 'source' => 'nfc', 'client_uuid' => $s->client_uuid,
                 'scanned_at' => $s->scanned_at->toIso8601String(), 'session_id' => $s->session_id,
-            ], $s->device->user, $s->device, fromBatch: true);
+            ], $s->user, $s->device, fromBatch: true);
             if (! in_array($result['status'], ['ok', 'duplicate'], true)) {
                 throw ValidationException::withMessages(['reason' => "Tidak bisa diterima: {$result['message']}"]);
             }

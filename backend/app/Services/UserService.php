@@ -53,7 +53,7 @@ class UserService
         $accessChanged = $user->isDirty(['role', 'division_id', 'member_id']);
         $user->save();
         if ($accessChanged) {
-            $user->tokens()->delete();
+            app(HeldScanService::class)->signOut($user);
         }
         AuditLogger::log('user.updated', 'user', $user->id, ['fields' => array_keys($d)] + ($accessChanged ? ['signed_out' => true] : []));
 
@@ -77,7 +77,7 @@ class UserService
         abort_if($user->is($actor), 422, 'Tidak bisa menonaktifkan akun sendiri.');
         $user->update(['disabled_at' => $disabled ? now() : null]);
         if ($disabled) {
-            $user->tokens()->delete();
+            app(HeldScanService::class)->signOut($user);
         }
         AuditLogger::log($disabled ? 'user.disabled' : 'user.enabled', 'user', $user->id);
 

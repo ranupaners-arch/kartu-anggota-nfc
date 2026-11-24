@@ -20,10 +20,11 @@ class HeldScan extends Model
 
     protected function casts(): array
     {
-        return ['scanned_at' => 'datetime', 'reviewed_at' => 'datetime'];
+        return ['scanned_at' => 'datetime', 'reviewed_at' => 'datetime', 'access_ended_at' => 'datetime'];
     }
 
     public function device() { return $this->belongsTo(Device::class); }
+    public function user() { return $this->belongsTo(User::class); }
     public function event() { return $this->belongsTo(Event::class); }
     public function member() { return $this->belongsTo(Member::class); }
 }
