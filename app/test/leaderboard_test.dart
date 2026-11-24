@@ -57,6 +57,23 @@ void main() {
     expect(find.text('Budi (Anda)'), findsNothing);
   });
 
+  testWidgets('poin 0: tidak menyebut peringkat; nama tampil setelah poin pertama', (tester) async {
+    await pump(
+      tester,
+      (_) async => http.Response(
+        jsonEncode({
+          'opted_in': true,
+          'me': {'points': 0, 'rank': 1, 'total': 18},
+          'top': <Object>[],
+        }),
+        200,
+      ),
+    );
+    expect(find.text('Anda belum punya poin periode ini.'), findsOneWidget);
+    expect(find.textContaining('setelah mendapat poin pertama'), findsOneWidget);
+    expect(find.textContaining('1 dari 18'), findsNothing);
+  });
+
   testWidgets('gagal mengubah: pilihan lama tetap & pesan tampil', (tester) async {
     await pump(tester, (r) async => r.method == 'PUT' ? throw http.ClientException('putus') : http.Response(jsonEncode(board()), 200));
     await tester.tap(find.text('Tampilkan nama saya'));
