@@ -87,6 +87,8 @@ Route::middleware(['auth:web', 'dashboard'])->group(function () {
     Route::get('izin/{excuse}/bukti', [Dashboard\ExcuseController::class, 'attachment'])->name('excuses.attachment');
     Route::resource('pengumuman', Dashboard\AnnouncementController::class)->parameters(['pengumuman' => 'announcement'])->names('announcements')->only(['index', 'store', 'update', 'destroy']);
     Route::get('tinjauan', [Dashboard\ReviewController::class, 'index'])->name('reviews.index');
+    Route::post('tinjauan/tertahan/{scan}/terima', [Dashboard\ReviewController::class, 'acceptHeld'])->name('reviews.held.accept');
+    Route::post('tinjauan/tertahan/{scan}/batalkan', [Dashboard\ReviewController::class, 'rejectHeld'])->name('reviews.held.reject');
     Route::post('tinjauan/{attendance}/terima', [Dashboard\ReviewController::class, 'accept'])->name('reviews.accept');
     Route::post('tinjauan/{attendance}/batalkan', [Dashboard\ReviewController::class, 'void'])->name('reviews.void');
     Route::get('rekap', [Dashboard\ReportController::class, 'index'])->name('reports.index');

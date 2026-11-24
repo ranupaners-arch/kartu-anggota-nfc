@@ -12,34 +12,53 @@ import { fmtDateTime } from '@/lib/format';
 import type { Paginated } from '@/types';
 
 type Att = { id: number; status: string; scanned_at: string | null; review_reason: string | null; member: { member_no: string; name: string } | null; event: { title: string } | null };
+type Held = { id: number; scanned_at: string; member: Att['member']; event: Att['event']; device: { name: string; revoked_at: string; user: { name: string } | null } | null };
 type Log = { id: number; created_at: string; entity_id: number; payload: { event_id?: number; device_id?: number } | null };
 
 const reasons: Record<string, string> = { card_blocked_after_scan: 'Kartu diblokir setelah scan offline' };
 
-function Actions({ a, canAccept }: { a: Att; canAccept: boolean }) {
+function Actions({ path, canAccept }: { path: string; canAccept: boolean }) {
     const [reason, setReason] = useState('');
-    const send = (action: 'terima' | 'batalkan') => router.post(`/tinjauan/${a.id}/${action}`, { reason }, { preserveScroll: true });
+    const [error, setError] = useState('');
+    const send = (action: 'terima' | 'batalkan') => router.post(`${path}/${action}`, { reason }, { preserveScroll: true, onError: (e) => setError(e.reason ?? '') });
     return (
         <div className="flex flex-wrap items-center gap-1.5">
             <Input className="h-7 w-32" placeholder="Alasan" value={reason} onChange={(e) => setReason(e.target.value)} />
             {canAccept && <Button size="sm" disabled={!reason} onClick={() => send('terima')}>Terima</Button>}
             <Button size="sm" variant="destructive" disabled={!reason} onClick={() => send('batalkan')}>Batalkan</Button>
+            {error && <p className="w-full text-xs text-destructive">{error}</p>}
         </div>
     );
 }
 
-export default function Reviews({ tab, items }: { tab: string; items: Paginated<Att | Log> }) {
+export default function Reviews({ tab, items }: { tab: string; items: Paginated<Att | Log | Held> }) {
     const help: Record<string, string> = {
         offline: 'Scan offline yang bermasalah saat disinkron, mis. kartu diblokir setelah scan. Terima bila sah, batalkan bila tidak.',
+        tertahan: 'Scan offline dari HP petugas yang aksesnya dicabut. Belum tercatat; terima hanya bila Anda yakin kartunya benar ditempel saat kegiatan.',
         override: 'Scan di luar jendela check-in yang di-override petugas dengan alasan.',
         anomali: 'Kartu yang sama di-tap di kegiatan/perangkat berbeda dalam < 60 detik. Periksa kemungkinan kartu digandakan.',
     };
     return (
         <AppLayout title="Perlu Ditinjau">
             <Head title="Perlu Ditinjau" />
-            <PageTabs tabs={{ offline: 'Konflik Offline', override: 'Override', anomali: 'Anomali' }} current={tab} />
+            <PageTabs tabs={{ offline: 'Konflik Offline', tertahan: 'Perangkat Dicabut', override: 'Override', anomali: 'Anomali' }} current={tab} />
             <p className="text-sm text-muted-foreground">{help[tab]}</p>
-            {tab === 'anomali' ? (
+            {tab === 'tertahan' ? (
+                <DataTable head={['Anggota', 'Kegiatan', 'Perangkat', 'Waktu scan', 'Tindakan']} count={items.data.length} empty="Tidak ada scan tertahan.">
+                    {(items.data as Held[]).map((h) => (
+                        <TableRow key={h.id}>
+                            <TableCell>{h.member?.name ?? '—'}<div className="text-xs text-muted-foreground">{h.member?.member_no}</div></TableCell>
+                            <TableCell>{h.event?.title}</TableCell>
+                            <TableCell>{h.device?.name}<div className="text-xs text-muted-foreground">{h.device?.user?.name}</div></TableCell>
+                            <TableCell>
+                                {fmtDateTime(h.scanned_at)}
+                                {h.device && new Date(h.scanned_at) > new Date(h.device.revoked_at) && <div className="text-xs text-destructive">Setelah akses dicabut</div>}
+                            </TableCell>
+                            <TableCell><Actions path={`/tinjauan/tertahan/${h.id}`} canAccept /></TableCell>
+                        </TableRow>
+                    ))}
+                </DataTable>
+            ) : tab === 'anomali' ? (
                 <DataTable head={['Waktu', 'Kartu', 'Detail']} count={items.data.length} empty="Tidak ada anomali.">
                     {(items.data as Log[]).map((l) => (
                         <TableRow key={l.id}>
@@ -57,7 +76,7 @@ export default function Reviews({ tab, items }: { tab: string; items: Paginated<
                             <TableCell><StatusBadge status={a.status} /></TableCell>
                             <TableCell>{fmtDateTime(a.scanned_at)}</TableCell>
                             <TableCell className="text-muted-foreground">{a.review_reason ? (reasons[a.review_reason] ?? a.review_reason) : '—'}</TableCell>
-                            <TableCell><Actions a={a} canAccept={tab === 'offline'} /></TableCell>
+                            <TableCell><Actions path={`/tinjauan/${a.id}`} canAccept={tab === 'offline'} /></TableCell>
                         </TableRow>
                     ))}
                 </DataTable>

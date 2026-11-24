@@ -10,10 +10,13 @@ class DeviceService
     /** Cabut perangkat: token dibatalkan, request berikutnya ditolak. */
     public function revoke(Device $device): Device
     {
-        $device->update(['revoked_at' => now()]);
-        if ($device->token_id) {
-            PersonalAccessToken::find($device->token_id)?->delete();
-        }
+        $token = $device->token_id ? PersonalAccessToken::find($device->token_id) : null;
+        $device->update([
+            'revoked_at' => $device->revoked_at ?? now(),
+            // Disimpan agar scan offline yang belum terkirim bisa ditahan untuk ditinjau (HeldScanService).
+            'held_token_hash' => $token?->token ?? $device->held_token_hash,
+        ]);
+        $token?->delete();
         AuditLogger::log('device.revoked', 'device', $device->id);
 
         return $device->fresh();

@@ -73,6 +73,6 @@ class AttendanceService
 
     public function pendingReviewCount(User $user): int
     {
-        return $this->visibleTo($user)->where('needs_review', true)->count();
+        return $this->visibleTo($user)->where('needs_review', true)->count() + app(HeldScanService::class)->pending($user)->count();
     }
 }

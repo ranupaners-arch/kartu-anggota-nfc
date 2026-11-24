@@ -18,6 +18,8 @@ class Device extends Model
 
     protected $guarded = [];
 
+    protected $hidden = ['held_token_hash'];
+
     protected function casts(): array
     {
         return ['last_seen_at' => 'datetime', 'revoked_at' => 'datetime'];
