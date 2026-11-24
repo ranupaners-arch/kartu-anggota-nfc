@@ -25,8 +25,8 @@ Tugas Anda: mencatat kehadiran anggota dengan menempelkan kartu ke HP (atau memi
 
 - Sapaan & peran Anda, lalu menu cepat **Pindai · Alat NFC · Panduan** (Super Admin juga **Terbitkan
   Kartu**).
-- Bila ada **scan offline yang belum tersinkron**, jumlahnya tampil di Beranda — buka kegiatannya saat
-  ada sinyal agar terkirim.
+- Bila ada **scan offline yang belum tersinkron**, jumlahnya tampil di Beranda dan terkirim
+  otomatis saat ada sinyal, termasuk untuk kegiatan yang sudah tutup.
 - **Panduan** berisi tips singkat (scan kartu, kartu tertinggal, tanpa sinyal, kartu ditolak, NFC
   tidak membaca). Di tablet, menu di kiri dan kegiatan di kanan.
 
