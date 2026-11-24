@@ -31,4 +31,5 @@ berbeda bisa saling memperbarui. Kunci **tidak** ada di repo:
   APK berikutnya harus di-uninstall dulu sebelum dipasang.
 - CI: secret repo `APK_UJI_*`, diisi dengan `bash app/scripts/pasang-kunci-ci.sh`.
 
-Kunci rilis Play Store dibuat terpisah saat siap rilis.
+APK rilis memakai kunci terpisah: lihat [docs/rilis-apk.md](../docs/rilis-apk.md). Tanpa kunci itu build
+release gagal; untuk menjalankan di HP pakai `flutter run --profile`.
