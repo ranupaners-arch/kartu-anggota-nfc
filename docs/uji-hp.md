@@ -58,6 +58,14 @@ HP A tetap dicabut setelah 5.1: pakai HP B atau HP lain untuk uji berikutnya.
 - [ ] 6.3 Layar anggota: tarik untuk memuat ulang di Kegiatan, Riwayat, Kartu, Notifikasi.
 - [ ] 6.4 Dua HP scan bersamaan di satu kegiatan → tidak ada data ganda.
 
+## 7. Notifikasi HP
+
+- [ ] 7.1 Akun → **Notifikasi HP → Nyalakan** → izin diminta; tolak → petunjuk; izinkan → menyala.
+- [ ] 7.2 Tutup app (bukan paksa berhenti), terbitkan pengumuman → notifikasi muncul (tunggu sampai ±45 menit).
+- [ ] 7.3 Ketuk → halaman Notifikasi terbuka. Layar terkunci → isi tersembunyi.
+- [ ] 7.4 Nyalakan ulang HP, jangan buka app → pengumuman berikutnya tetap muncul.
+- [ ] 7.5 Keluar akun → tidak ada notifikasi lagi; masuk akun lain → tidak menampilkan milik akun lama.
+
 ## Lolos bila
 
 Semua langkah bagian 1–5 berhasil dan tidak ada scan hilang atau ganda. Satu saja gagal → jangan dipakai di kegiatan
