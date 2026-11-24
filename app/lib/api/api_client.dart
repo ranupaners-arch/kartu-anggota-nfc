@@ -11,6 +11,9 @@ class ApiException implements Exception {
 
   /// Server meminta kode 2FA (akun pengurus dengan 2FA aktif).
   final bool otpRequired;
+
+  /// Server mati di belakang proxy (bukan jawaban aplikasi): perlakukan seperti tanpa koneksi.
+  bool get unreachable => status == 502 || status == 503 || status == 504;
   @override
   String toString() => 'HTTP $status: $message';
 }
@@ -86,6 +89,21 @@ class EventSummary {
 
   /// Sesi yang sedang membuka check-in menurut server (saat daftar dimuat).
   final int? currentSessionId;
+
+  /// Belum lewat waktu tutup check-in sesi terakhirnya (daftar kegiatan tersimpan saat offline).
+  bool isOngoingAt(DateTime now) {
+    final closes = [?checkinClosesAt, for (final s in sessions) s.closesAt];
+    return closes.isEmpty || closes.any((t) => !now.isAfter(t));
+  }
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'title': title,
+    'location': location,
+    'checkin_closes_at': checkinClosesAt?.toUtc().toIso8601String(),
+    'sessions': [for (final s in sessions) s.toJson()],
+    'current_session_id': currentSessionId,
+  };
 }
 
 /// Hasil scan dari server: status ok|duplicate|blocked|invalid|not_target|outside_window|clock_drift.
@@ -273,7 +291,7 @@ class ApiClient {
       'client_uuid': clientUuid ?? uuidV4(),
       'scanned_at': (scannedAt ?? DateTime.now()).toUtc().toIso8601String(),
       'session_id': ?sessionId,
-    });
+    }, const Duration(seconds: 4)); // antrean kartu tidak boleh menunggu lama; client_uuid mencegah data ganda
     return ScanResult.fromJson(j);
   }
 
@@ -374,12 +392,13 @@ class ApiClient {
     return [for (final r in j['results'] as List) r as Map<String, dynamic>];
   }
 
-  Future<Map<String, dynamic>> _send(String method, String path, [Map<String, dynamic>? body]) async {
+  Future<Map<String, dynamic>> _send(String method, String path, [Map<String, dynamic>? body, Duration timeout = const Duration(seconds: 10)]) async {
     final req = http.Request(method, Uri.parse('$baseUrl$path'))
       ..headers.addAll({'Accept': 'application/json', if (body != null) 'Content-Type': 'application/json', if (token != null) 'Authorization': 'Bearer $token'});
     if (body != null) req.body = jsonEncode(body);
 
-    final res = await http.Response.fromStream(await _http.send(req).timeout(const Duration(seconds: 10)));
+    // Batas waktu mencakup isi respons: koneksi yang putus di tengah tidak menggantung.
+    final res = await _http.send(req).then(http.Response.fromStream).timeout(timeout);
     Object? decoded;
     try {
       decoded = res.body.isEmpty ? <String, dynamic>{} : jsonDecode(res.body);

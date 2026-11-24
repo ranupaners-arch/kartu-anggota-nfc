@@ -92,11 +92,15 @@ class _ScanScreenState extends State<ScanScreen> with WidgetsBindingObserver {
     _last = null;
   });
 
-  /// Ambil roster terbaru bila online (simpan untuk offline), selain itu pakai yang tersimpan.
+  /// Pakai roster tersimpan dulu (siap offline seketika), lalu perbarui dari server bila online.
   Future<void> _initOffline() async {
     final store = widget.store ?? await OfflineStore.open();
     if (!mounted) return;
     _store = store;
+    _useRoster(store.loadRoster(widget.event.id));
+    setState(() => _pending = store.pending(eventId: widget.event.id).length);
+    _syncTimer = Timer.periodic(const Duration(seconds: 30), (_) => _sync(quiet: true));
+    if (_pending > 0) unawaited(_sync(quiet: true));
     try {
       _photos = widget.photos ?? await PhotoCache.open(); // juga saat offline: foto yang sudah tersimpan
     } catch (_) {
@@ -105,16 +109,17 @@ class _ScanScreenState extends State<ScanScreen> with WidgetsBindingObserver {
     try {
       final roster = Roster.fromApi(await _api.roster(widget.event.id));
       await store.saveRoster(roster);
-      _roster = roster;
+      if (!mounted) return;
+      setState(() => _useRoster(roster));
       unawaited(_cachePhotos(roster)); // di latar belakang; scan tidak menunggu
     } catch (_) {
-      _roster = store.loadRoster(widget.event.id);
+      // Offline: tetap memakai roster tersimpan.
     }
-    if (!mounted) return;
-    _sessionId ??= _defaultSession(_roster?.sessions ?? const [])?.id; // offline: sesi dari roster tersimpan
-    setState(() => _pending = store.pending(eventId: widget.event.id).length);
-    _syncTimer = Timer.periodic(const Duration(seconds: 30), (_) => _sync(quiet: true));
-    if (_pending > 0) _sync(quiet: true);
+  }
+
+  void _useRoster(Roster? roster) {
+    _roster = roster;
+    _sessionId ??= _defaultSession(roster?.sessions ?? const [])?.id; // offline: sesi dari roster tersimpan
   }
 
   Future<void> _cachePhotos(Roster roster) async {
@@ -219,6 +224,7 @@ class _ScanScreenState extends State<ScanScreen> with WidgetsBindingObserver {
       _show(r);
       if (_pending > 0) unawaited(_sync(quiet: true)); // sedang online: kirim antrean
     } on ApiException catch (e) {
+      if (e.unreachable) return await _offline(payload, source, uuid, scannedAt); // server mati di belakang proxy
       _show(ScanResult(status: 'error', message: e.status == 401 ? 'Sesi berakhir. Keluar lalu masuk lagi.' : e.message));
     } catch (_) {
       await _offline(payload, source, uuid, scannedAt); // jaringan putus

@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../api/api_client.dart';
 import 'roster.dart';
 
 /// Scan yang belum terkirim ke server. client_uuid membuat pengiriman ulang tidak menggandakan data.
@@ -36,6 +37,7 @@ class OfflineStore {
 
   final SharedPreferences _prefs;
   static const _queueKey = 'offline_queue';
+  static const eventsKey = 'offline_events';
   static String _rosterKey(int eventId) => 'roster:$eventId';
 
   static Future<OfflineStore> open() async => OfflineStore(await SharedPreferences.getInstance());
@@ -49,6 +51,20 @@ class OfflineStore {
       return Roster.fromApi(jsonDecode(raw) as Map<String, dynamic>);
     } catch (_) {
       return null; // data rusak/format lama: anggap tidak ada
+    }
+  }
+
+  /// Daftar kegiatan terakhir dari server, agar layar Scan bisa dibuka tanpa internet.
+  Future<void> saveEvents(List<EventSummary> events) => _prefs.setString(eventsKey, jsonEncode([for (final e in events) e.toJson()]));
+
+  /// Kegiatan tersimpan yang check-in-nya belum ditutup.
+  List<EventSummary> loadEvents(DateTime now) {
+    final raw = _prefs.getString(eventsKey);
+    if (raw == null) return [];
+    try {
+      return [for (final j in jsonDecode(raw) as List) EventSummary.fromJson(j as Map<String, dynamic>)].where((e) => e.isOngoingAt(now)).toList();
+    } catch (_) {
+      return []; // data rusak/format lama: anggap tidak ada
     }
   }
 

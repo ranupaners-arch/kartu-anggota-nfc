@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:material_ui/material_ui.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
@@ -6,6 +8,7 @@ import '../app/server_config.dart';
 import '../app/session.dart';
 import '../app/session_watch.dart';
 import '../offline/offline_store.dart';
+import '../offline/roster.dart';
 import '../widgets/ui.dart';
 import 'connect_screen.dart';
 import 'issue_card_screen.dart';
@@ -48,6 +51,7 @@ class _EventsScreenState extends State<EventsScreen> with SessionWatch<EventsScr
   late Future<List<EventSummary>> _events = _load();
   String? _org;
   int _pendingOffline = 0;
+  bool _offline = false;
 
   @override
   void initState() {
@@ -60,7 +64,7 @@ class _EventsScreenState extends State<EventsScreen> with SessionWatch<EventsScr
 
   Future<void> _countOffline() async {
     try {
-      final store = await (widget.offlineStore ?? OfflineStore.open)();
+      final store = await _openStore();
       if (mounted) setState(() => _pendingOffline = store.pending().length);
     } catch (_) {
       // penyimpanan tidak tersedia: abaikan
@@ -69,12 +73,48 @@ class _EventsScreenState extends State<EventsScreen> with SessionWatch<EventsScr
 
   Future<List<EventSummary>> _load() async {
     try {
-      return await _api.ongoingEvents();
+      final events = await _api.ongoingEvents();
+      _offline = false;
+      unawaited(_prepareOffline(events)); // di latar belakang; daftar tidak menunggu
+      return events;
     } on ApiException catch (e) {
       if (e.status == 401 && mounted) await _logout(expired: true);
-      rethrow;
+      if (!e.unreachable) rethrow;
+      return _savedEvents(e);
+    } catch (e) {
+      return _savedEvents(e);
     }
   }
+
+  /// Tanpa koneksi: daftar kegiatan terakhir; bila tidak ada, teruskan galat aslinya.
+  Future<List<EventSummary>> _savedEvents(Object error) async {
+    final events = await _openStore().then((s) => s.loadEvents(DateTime.now()), onError: (_) => <EventSummary>[]);
+    if (events.isEmpty) throw error;
+    _offline = true;
+    return events;
+  }
+
+  /// Simpan daftar kegiatan & data pesertanya selagi online, agar scan jalan walau sinyal hilang kemudian.
+  Future<void> _prepareOffline(List<EventSummary> events) async {
+    try {
+      final store = await _openStore();
+      if (!mounted) return; // sudah keluar akun: jangan tulis ulang data yang baru dihapus
+      await store.saveEvents(events);
+      for (final e in events) {
+        try {
+          final roster = Roster.fromApi(await _api.roster(e.id));
+          if (!mounted) return;
+          await store.saveRoster(roster);
+        } catch (_) {
+          // satu kegiatan gagal tidak menghentikan yang lain
+        }
+      }
+    } catch (_) {
+      // penyimpanan tidak tersedia: abaikan
+    }
+  }
+
+  Future<OfflineStore> _openStore() => (widget.offlineStore ?? OfflineStore.open)();
 
   Future<void> _refresh() async {
     setState(() => _events = _load());
@@ -242,6 +282,16 @@ class _EventsScreenState extends State<EventsScreen> with SessionWatch<EventsScr
                 ),
               );
             } else {
+              if (_offline) {
+                right.addAll(const [
+                  ShadAlert(
+                    icon: Icon(LucideIcons.cloudOff),
+                    title: Text('Mode offline'),
+                    description: Text('Menampilkan kegiatan terakhir yang tersimpan di HP ini. Scan kartu NFC tetap bisa dipakai.'),
+                  ),
+                  SizedBox(height: 12),
+                ]);
+              }
               // HP: satu kolom. Layar lebar: kartu kegiatan berdampingan, sama tinggi.
               right.add(
                 ResponsiveGrid(
