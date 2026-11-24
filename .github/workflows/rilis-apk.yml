@@ -1,0 +1,104 @@
+name: Rilis APK
+
+# Hanya saat tag app-vX.Y.Z di-push (lihat docs/rilis-apk.md). Hasil: draf GitHub Release berisi APK bertanda
+# tangan kunci rilis; diterbitkan manual setelah diuji di HP.
+on:
+  push:
+    tags: ['app-v*']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: rilis-apk
+  cancel-in-progress: false
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    environment: rilis-apk
+    permissions:
+      contents: write # membuat draf release
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Periksa tag & kunci
+        id: versi
+        env:
+          KEYSTORE: ${{ secrets.APK_RILIS_KEYSTORE_BASE64 }}
+          SIDIK: ${{ vars.APK_RILIS_SHA256 }}
+        run: |
+          versi="${GITHUB_REF_NAME#app-v}"
+          if ! [[ "$versi" =~ ^([0-9]{1,2})\.([0-9]{1,2})\.([0-9]{1,2})$ ]]; then
+            echo "::error::Tag harus app-vX.Y.Z (tiap bagian 0-99)"; exit 1
+          fi
+          kode=$((10#${BASH_REMATCH[1]} * 10000 + 10#${BASH_REMATCH[2]} * 100 + 10#${BASH_REMATCH[3]}))
+          [ "$kode" -gt 0 ] || { echo "::error::Versi tidak boleh 0.0.0"; exit 1; }
+          git merge-base --is-ancestor "$GITHUB_SHA" origin/main || { echo "::error::Tag harus menunjuk commit di main"; exit 1; }
+          [ -n "$KEYSTORE" ] && [ -n "$SIDIK" ] || { echo "::error::Isi secret APK_RILIS_* dan variabel APK_RILIS_SHA256"; exit 1; }
+          printf 'versi=%s\nkode=%s\n' "$versi" "$kode" >> "$GITHUB_OUTPUT"
+
+      - name: Bebaskan ruang disk
+        working-directory: /
+        run: sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/share/boost /usr/local/.ghcup
+
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.50.0'
+          channel: stable
+
+      - run: flutter pub get --enforce-lockfile
+      - run: flutter analyze
+      - run: flutter test
+
+      - name: Build APK rilis
+        env:
+          KEYSTORE: ${{ secrets.APK_RILIS_KEYSTORE_BASE64 }}
+          APK_RILIS_STORE_PASSWORD: ${{ secrets.APK_RILIS_STORE_PASSWORD }}
+          APK_RILIS_KEY_ALIAS: ${{ secrets.APK_RILIS_KEY_ALIAS }}
+          APK_RILIS_KEY_PASSWORD: ${{ secrets.APK_RILIS_KEY_PASSWORD }}
+          VERSI: ${{ steps.versi.outputs.versi }}
+          KODE: ${{ steps.versi.outputs.kode }}
+        run: |
+          export APK_RILIS_KEYSTORE_PATH="$RUNNER_TEMP/apk-rilis.jks"
+          trap 'rm -f "$APK_RILIS_KEYSTORE_PATH"' EXIT
+          umask 077
+          printf '%s' "$KEYSTORE" | base64 -d > "$APK_RILIS_KEYSTORE_PATH"
+          flutter build apk --release --target-platform android-arm,android-arm64 --build-name "$VERSI" --build-number "$KODE"
+
+      # Salah kunci = petugas tidak bisa memperbarui app. Cocokkan sebelum dirilis.
+      - name: Cocokkan sertifikat & manifest
+        env:
+          SIDIK: ${{ vars.APK_RILIS_SHA256 }}
+          VERSI: ${{ steps.versi.outputs.versi }}
+        run: |
+          apk=build/app/outputs/flutter-apk/app-release.apk
+          tools=$(find "${ANDROID_HOME:-$ANDROID_SDK_ROOT}/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)
+          "$tools/apksigner" verify --print-certs "$apk" | tee cert.txt
+          norm() { tr -d ': \n' | tr 'A-F' 'a-f'; }
+          ada=$(sed -n 's/^.*certificate SHA-256 digest: //p' cert.txt | head -1 | norm)
+          [ -n "$ada" ] && [ "$ada" = "$(printf '%s' "$SIDIK" | norm)" ] || { echo "::error::Sertifikat APK tidak cocok dengan APK_RILIS_SHA256"; exit 1; }
+          "$tools/aapt2" dump xmltree --file AndroidManifest.xml "$apk" > manifest.txt
+          if grep -qE 'usesCleartextTraffic.*(true|0xffffffff)|debuggable.*(true|0xffffffff)' manifest.txt; then
+            echo "::error::APK rilis mengizinkan HTTP atau debug"; exit 1
+          fi
+          mkdir -p keluar
+          mv "$apk" "keluar/kartu-anggota-$VERSI.apk"
+          (cd keluar && sha256sum ./*.apk > SHA256SUMS.txt)
+
+      - name: Buat draf release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSI: ${{ steps.versi.outputs.versi }}
+        run: gh release create "$GITHUB_REF_NAME" keluar/* --draft --verify-tag --title "App $VERSI" --generate-notes

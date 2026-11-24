@@ -19,6 +19,11 @@ val apkUjiProps = Properties().apply {
 fun apkUji(prop: String, env: String): String? = System.getenv(env)?.takeIf { it.isNotEmpty() } ?: apkUjiProps.getProperty(prop)
 val apkUjiStore = apkUji("storeFile", "APK_UJI_KEYSTORE_PATH")
 
+// Kunci rilis: terpisah dari kunci uji, hanya dari variabel lingkungan (workflow "Rilis APK" atau build
+// lokal pemegang kunci). Tanpa kunci lengkap, build release gagal: tidak ada lagi rilis berkunci debug.
+fun rilis(env: String): String? = System.getenv("APK_RILIS_$env")?.takeIf { it.isNotEmpty() }
+val rilisSiap = listOf("KEYSTORE_PATH", "STORE_PASSWORD", "KEY_ALIAS", "KEY_PASSWORD").all { rilis(it) != null }
+
 android {
     namespace = "dev.kukerjain.kartuanggota"
     compileSdk = flutter.compileSdkVersion
@@ -49,6 +54,15 @@ android {
         }
     }
 
+    if (rilisSiap) {
+        signingConfigs.create("apkRilis") {
+            storeFile = file(rilis("KEYSTORE_PATH")!!)
+            storePassword = rilis("STORE_PASSWORD")
+            keyAlias = rilis("KEY_ALIAS")
+            keyPassword = rilis("KEY_PASSWORD")
+        }
+    }
+
     buildTypes {
         configureEach {
             if (apkUjiStore != null && (name == "debug" || name == "profile")) {
@@ -56,9 +70,8 @@ android {
             }
         }
         release {
-            // Rilis Play Store belum disiapkan: sementara ditandatangani kunci debug agar
-            // `flutter run --release` jalan. APK uji memakai mode profile (kunci apkUji di atas).
-            signingConfig = signingConfigs.getByName("debug")
+            // APK uji memakai mode profile (kunci apkUji di atas).
+            signingConfig = if (rilisSiap) signingConfigs.getByName("apkRilis") else null
         }
     }
 }
@@ -66,6 +79,12 @@ android {
 kotlin {
     compilerOptions {
         jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
+    }
+}
+
+gradle.taskGraph.whenReady {
+    if (!rilisSiap && allTasks.any { it.path == ":app:packageRelease" || it.path == ":app:bundleRelease" }) {
+        throw GradleException("Kunci rilis belum diisi (APK_RILIS_*). Lihat docs/rilis-apk.md; untuk uji pakai --profile.")
     }
 }
 
