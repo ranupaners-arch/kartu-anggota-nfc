@@ -75,7 +75,7 @@ mixin SessionWatch<T extends StatefulWidget> on State<T> {
     }
   }
 
-  static String? heldNotice(int held) => held == 0 ? null : 'Akses perangkat ini dicabut. $held scan offline dikirim untuk ditinjau pengurus.';
+  static String? heldNotice(int held) => held == 0 ? null : 'Akses Anda di perangkat ini berakhir. $held scan offline dikirim untuk ditinjau pengurus.';
 
   Future<void> _signedOut() async {
     final r = await uploadHeldScans();
