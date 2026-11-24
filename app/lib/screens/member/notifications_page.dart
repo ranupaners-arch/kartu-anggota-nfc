@@ -94,7 +94,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
         final list = snap.data ?? const <MemberNotice>[];
         return RefreshIndicator(
           onRefresh: () async {
-            setState(() => _notices = widget.api.myNotifications());
+            setState(() { _notices = widget.api.myNotifications(); });
             await _notices.catchError((_) => <MemberNotice>[]);
           },
           child: ListView(
