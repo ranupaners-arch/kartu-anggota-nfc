@@ -19,6 +19,13 @@ class CardRequest extends Model
         return ['reviewed_at' => 'datetime'];
     }
 
-    public function member() { return $this->belongsTo(Member::class); }
-    public function reviewer() { return $this->belongsTo(User::class, 'reviewed_by'); }
+    public function member()
+    {
+        return $this->belongsTo(Member::class);
+    }
+
+    public function reviewer()
+    {
+        return $this->belongsTo(User::class, 'reviewed_by');
+    }
 }

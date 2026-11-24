@@ -36,13 +36,15 @@ class FakeNfc implements NfcManager {
 
   /// Tempelkan tag seperti dari Android (UID 7 byte, NfcA + IsoDep seperti e-KTP).
   Future<void> tap() async {
-    onDiscovered!(NfcTag(
-      data: TagPigeon(
-        handle: 'h',
-        id: Uint8List.fromList([0x04, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66]),
-        techList: ['android.nfc.tech.NfcA', 'android.nfc.tech.IsoDep'],
+    onDiscovered!(
+      NfcTag(
+        data: TagPigeon(
+          handle: 'h',
+          id: Uint8List.fromList([0x04, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66]),
+          techList: ['android.nfc.tech.NfcA', 'android.nfc.tech.IsoDep'],
+        ),
       ),
-    ));
+    );
     await Future<void>.delayed(Duration.zero);
   }
 

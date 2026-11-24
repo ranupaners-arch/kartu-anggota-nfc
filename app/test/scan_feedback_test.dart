@@ -16,7 +16,11 @@ void main() {
     expect(soundFor(telat), ScanSound.warning);
     expect(soundFor(dobel), ScanSound.warning);
     for (final s in ['blocked', 'invalid', 'not_target', 'outside_window', 'clock_drift', 'error']) {
-      expect(soundFor(ScanResult(status: s, message: '')), ScanSound.error, reason: s);
+      expect(
+        soundFor(ScanResult(status: s, message: '')),
+        ScanSound.error,
+        reason: s,
+      );
     }
   });
 

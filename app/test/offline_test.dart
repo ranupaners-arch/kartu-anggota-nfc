@@ -16,22 +16,39 @@ const sitiOldCard = 'card:v1:k1:01M7HC95QETAHJ4309PDSPG35P:aaaaaaaaaaaaaaaaaaaaa
 
 /// Bentuk persis respons GET /api/events/{id}/roster (tanggal Eloquent dengan mikrodetik).
 Map<String, dynamic> rosterJson() => {
-      'event': {
-        'id': 7, 'title': 'Rapat Pleno', 'location': 'Aula', 'closed_at': null,
-        'checkin_opens_at': '2026-11-17T01:00:00.000000Z',
-        'late_after': '2026-11-17T01:30:00.000000Z',
-        'checkin_closes_at': '2026-11-17T03:00:00.000000Z',
-      },
-      'members': [
-        {'id': 1, 'member_no': '001', 'name': 'Budi', 'division': 'Humas', 'photo_url': null, 'cards': [
-          {'public_id': '01M7HC95QETAHJ4309PDSPG35N', 'status': 'active', 'payload_sha256': CardPayload.fingerprint(budiCard)},
-        ]},
-        {'id': 2, 'member_no': '002', 'name': 'Siti', 'division': null, 'photo_url': null, 'cards': [
-          {'public_id': '01M7HC95QETAHJ4309PDSPG35P', 'status': 'blocked', 'payload_sha256': CardPayload.fingerprint(sitiOldCard)},
-        ]},
+  'event': {
+    'id': 7,
+    'title': 'Rapat Pleno',
+    'location': 'Aula',
+    'closed_at': null,
+    'checkin_opens_at': '2026-11-17T01:00:00.000000Z',
+    'late_after': '2026-11-17T01:30:00.000000Z',
+    'checkin_closes_at': '2026-11-17T03:00:00.000000Z',
+  },
+  'members': [
+    {
+      'id': 1,
+      'member_no': '001',
+      'name': 'Budi',
+      'division': 'Humas',
+      'photo_url': null,
+      'cards': [
+        {'public_id': '01M7HC95QETAHJ4309PDSPG35N', 'status': 'active', 'payload_sha256': CardPayload.fingerprint(budiCard)},
       ],
-      'generated_at': '2026-11-17T00:55:00+00:00',
-    };
+    },
+    {
+      'id': 2,
+      'member_no': '002',
+      'name': 'Siti',
+      'division': null,
+      'photo_url': null,
+      'cards': [
+        {'public_id': '01M7HC95QETAHJ4309PDSPG35P', 'status': 'blocked', 'payload_sha256': CardPayload.fingerprint(sitiOldCard)},
+      ],
+    },
+  ],
+  'generated_at': '2026-11-17T00:55:00+00:00',
+};
 
 DateTime at(String hhmmUtc) => DateTime.parse('2026-11-17T$hhmmUtc:00Z');
 
@@ -71,8 +88,7 @@ void main() {
 
   group('antrean & sinkron', () {
     late OfflineStore store;
-    PendingScan scan(String uuid, {int eventId = 7}) =>
-        PendingScan(clientUuid: uuid, eventId: eventId, payload: budiCard, source: 'nfc', scannedAt: at('01:10'));
+    PendingScan scan(String uuid, {int eventId = 7}) => PendingScan(clientUuid: uuid, eventId: eventId, payload: budiCard, source: 'nfc', scannedAt: at('01:10'));
 
     setUp(() async {
       SharedPreferences.setMockInitialValues({});
@@ -94,14 +110,22 @@ void main() {
       await store.enqueue(scan('a'));
       await store.enqueue(scan('b'));
       Map<String, dynamic>? sentBody;
-      final api = ApiClient(baseUrl: 'http://srv', client: MockClient((req) async {
-        sentBody = jsonDecode(req.body) as Map<String, dynamic>;
-        expect(req.url.path, '/api/events/7/scan/batch');
-        return http.Response(jsonEncode({'results': [
-          {'client_uuid': 'a', 'status': 'ok'},
-          {'client_uuid': 'b', 'status': 'duplicate'},
-        ]}), 200);
-      }))..token = 't';
+      final api = ApiClient(
+        baseUrl: 'http://srv',
+        client: MockClient((req) async {
+          sentBody = jsonDecode(req.body) as Map<String, dynamic>;
+          expect(req.url.path, '/api/events/7/scan/batch');
+          return http.Response(
+            jsonEncode({
+              'results': [
+                {'client_uuid': 'a', 'status': 'ok'},
+                {'client_uuid': 'b', 'status': 'duplicate'},
+              ],
+            }),
+            200,
+          );
+        }),
+      )..token = 't';
 
       final r = await SyncService(api, store).sync(7);
       expect(r.ok, isTrue);
@@ -121,8 +145,19 @@ void main() {
 
     test('server menolak sebagian item: yang dijawab tetap dihapus', () async {
       await store.enqueue(scan('a'));
-      final api = ApiClient(baseUrl: 'http://srv', client: MockClient((_) async =>
-          http.Response(jsonEncode({'results': [{'client_uuid': 'a', 'status': 'blocked'}]}), 200)));
+      final api = ApiClient(
+        baseUrl: 'http://srv',
+        client: MockClient(
+          (_) async => http.Response(
+            jsonEncode({
+              'results': [
+                {'client_uuid': 'a', 'status': 'blocked'},
+              ],
+            }),
+            200,
+          ),
+        ),
+      );
       final r = await SyncService(api, store).sync(7);
       expect((r.rejected, r.remaining), (1, 0));
     });

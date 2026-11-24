@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Password;
 class PasswordResetService
 {
     public const SENT = 'Bila email itu terdaftar, tautan untuk membuat password baru sudah dikirim. Periksa kotak masuk (dan folder spam).';
+
     public const DISABLED = 'Reset password lewat email belum aktif di organisasi ini. Hubungi pengurus untuk reset password.';
 
     public function sendLink(string $email): void

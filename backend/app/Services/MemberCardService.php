@@ -2,10 +2,14 @@
 
 namespace App\Services;
 
+use App\Models\AuditLog;
+use App\Models\Card;
+use App\Models\CardRequest;
 use App\Models\Member;
 use App\Models\Membership;
 use App\Models\Term;
 use App\Models\User;
+use App\Support\CardPayload;
 
 /**
  * Data kartu anggota untuk tampilan kartu di app & portal.
@@ -66,7 +70,7 @@ class MemberCardService
      */
     public function issuedBy(array $cardIds): array
     {
-        return \App\Models\AuditLog::where('entity', 'card')->whereIn('entity_id', $cardIds)
+        return AuditLog::where('entity', 'card')->whereIn('entity_id', $cardIds)
             ->whereIn('action', ['card.issued', 'card.self_issued'])->get()
             ->mapWithKeys(fn ($l) => [$l->entity_id => $l->action === 'card.self_issued' ? 'self' : 'admin'])->all();
     }
@@ -83,7 +87,7 @@ class MemberCardService
                 'issued_at' => $c->issued_at?->toIso8601String(), 'revoked_at' => $c->revoked_at?->toIso8601String(),
                 'issued_by' => $by[$c->id] ?? null,
             ])->values(),
-            'requests' => \App\Models\CardRequest::where('member_id', $member->id)->latest()->limit(20)->get()
+            'requests' => CardRequest::where('member_id', $member->id)->latest()->limit(20)->get()
                 ->map(fn ($r) => $r->only('reason', 'status', 'note', 'review_note', 'resolution') + [
                     'created_at' => $r->created_at?->toIso8601String(), 'reviewed_at' => $r->reviewed_at?->toIso8601String(),
                 ])->values(),
@@ -97,11 +101,11 @@ class MemberCardService
      */
     public function check(Member $member, string $payload): array
     {
-        $p = \App\Support\CardPayload::verify($payload);
+        $p = CardPayload::verify($payload);
         if (! $p) {
             return ['result' => 'invalid'];
         }
-        $card = \App\Models\Card::where('public_id', $p['public_id'])->first();
+        $card = Card::where('public_id', $p['public_id'])->first();
         if (! $card || ! $card->member_id) {
             return ['result' => 'unknown'];
         }

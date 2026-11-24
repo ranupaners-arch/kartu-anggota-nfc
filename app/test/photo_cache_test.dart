@@ -60,7 +60,13 @@ void main() {
   testWidgets('hasil scan offline memakai foto tersimpan', (tester) async {
     final file = File('${tmp.path}/1_aaaa1111.jpg')..writeAsBytesSync([1, 2, 3]);
     const r = ScanResult(status: 'ok', message: 'Berhasil.', memberId: 1, memberName: 'Budi', photoUrl: 'http://s/api/members/1/photo?v=aaaa1111', offline: true);
-    await tester.pumpWidget(KartuAnggotaApp(home: Scaffold(body: ScanResultCard(result: r, photoFile: file))));
+    await tester.pumpWidget(
+      KartuAnggotaApp(
+        home: Scaffold(
+          body: ScanResultCard(result: r, photoFile: file),
+        ),
+      ),
+    );
     expect(tester.widget<MemberPhoto>(find.byType(MemberPhoto)).file, file);
     expect(find.byWidgetPredicate((w) => w is Image && w.image is FileImage), findsOneWidget);
   });

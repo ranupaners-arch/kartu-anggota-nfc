@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\Storage;
 class CardPrintService
 {
     public const FORMATS = ['a4', 'kartu'];
+
     public const PER_PAGE = 10;
 
     /** @return array{0:string,1:string} [bytes PDF, nama berkas] */

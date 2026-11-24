@@ -79,7 +79,9 @@ Future<OneTapNfc> pumpScan(WidgetTester tester, OfflineStore store, ApiClient ap
 
 Future<void> pumpHome(WidgetTester tester, OfflineStore store, ApiClient api) async {
   await tester.pumpWidget(
-    KartuAnggotaApp(home: EventsScreen(key: UniqueKey(), session: session, api: api, offlineStore: () async => store)),
+    KartuAnggotaApp(
+      home: EventsScreen(key: UniqueKey(), session: session, api: api, offlineStore: () async => store),
+    ),
   );
   await tester.pumpAndSettle();
 }

@@ -18,6 +18,13 @@ class ExcuseRequest extends Model
         return ['reviewed_at' => 'datetime', 'used' => 'boolean'];
     }
 
-    public function member() { return $this->belongsTo(Member::class); }
-    public function event() { return $this->belongsTo(Event::class); }
+    public function member()
+    {
+        return $this->belongsTo(Member::class);
+    }
+
+    public function event()
+    {
+        return $this->belongsTo(Event::class);
+    }
 }

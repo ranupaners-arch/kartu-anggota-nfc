@@ -20,10 +20,15 @@ class StatsTest extends TestCase
     use RefreshDatabase;
 
     private Organization $org;
+
     private Term $term;
+
     private Division $humas;
+
     private Division $inti;
+
     private User $admin;
+
     private array $events = [];
 
     protected function setUp(): void

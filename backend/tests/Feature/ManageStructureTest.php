@@ -20,8 +20,11 @@ class ManageStructureTest extends TestCase
     use RefreshDatabase;
 
     private Organization $org;
+
     private Term $term;
+
     private User $admin;
+
     private Event $event;
 
     protected function setUp(): void

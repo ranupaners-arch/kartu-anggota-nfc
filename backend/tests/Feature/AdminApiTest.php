@@ -6,6 +6,7 @@ use App\Models\Attendance;
 use App\Models\Card;
 use App\Models\Division;
 use App\Models\Event;
+use App\Models\Export;
 use App\Models\Member;
 use App\Models\Membership;
 use App\Models\Organization;
@@ -21,9 +22,13 @@ class AdminApiTest extends TestCase
     use RefreshDatabase;
 
     private Organization $org;
+
     private Term $term;
+
     private Division $humas;
+
     private Division $inti;
+
     private User $admin;
 
     protected function setUp(): void
@@ -37,7 +42,10 @@ class AdminApiTest extends TestCase
         $this->admin = User::factory()->create(['organization_id' => $this->org->id, 'role' => 'super_admin']);
     }
 
-    private function as(User $u) { return $this->actingAs($u, 'sanctum'); }
+    private function as(User $u)
+    {
+        return $this->actingAs($u, 'sanctum');
+    }
 
     private function member(string $no, ?Division $div = null, string $status = 'active'): Member
     {
@@ -165,7 +173,7 @@ class AdminApiTest extends TestCase
             $res = $this->as($this->admin)->postJson('/api/exports', $params + ['format' => $format])->assertAccepted();
             $export = $this->as($this->admin)->getJson("/api/exports/{$res['id']}")->assertOk();
             $this->assertSame('ready', $export['status'], (string) $export['error']);
-            $this->assertStringEndsWith(".$format", \App\Models\Export::find($res['id'])->path);
+            $this->assertStringEndsWith(".$format", Export::find($res['id'])->path);
             $this->as($this->admin)->get("/api/exports/{$res['id']}/download")->assertOk()->assertDownload();
         }
 

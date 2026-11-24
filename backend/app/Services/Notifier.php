@@ -2,9 +2,12 @@
 
 namespace App\Services;
 
+use App\Jobs\SendNotice;
 use App\Mail\NoticeMail;
 use App\Models\CardRequest;
+use App\Models\Duty;
 use App\Models\Member;
+use App\Models\ProfileChange;
 use App\Models\User;
 use App\Services\Push\PushService;
 use Illuminate\Support\Collection;
@@ -25,7 +28,7 @@ class Notifier
     public static function later(string $event, int $id): void
     {
         abort_unless(in_array($event, self::EVENTS, true), 500);
-        \App\Jobs\SendNotice::dispatch($event, $id)->afterCommit();
+        SendNotice::dispatch($event, $id)->afterCommit();
     }
 
     public function membershipApproved(int $memberId): void
@@ -67,7 +70,7 @@ class Notifier
 
     public function newProfileChange(int $changeId): void
     {
-        $c = \App\Models\ProfileChange::withoutGlobalScopes()->with(['member' => fn ($q) => $q->withoutGlobalScopes()])->find($changeId);
+        $c = ProfileChange::withoutGlobalScopes()->with(['member' => fn ($q) => $q->withoutGlobalScopes()])->find($changeId);
         if ($c?->member) {
             $what = collect(['name' => 'nama', 'phone' => 'no. HP', 'photo_path' => 'foto'])->filter(fn ($l, $k) => filled($c->{$k}))->implode(', ');
             $this->send($this->superAdmins($c->member->organization_id), 'Perubahan data: '.$c->member->name, "{$c->member->name} ({$c->member->member_no}) mengajukan perubahan {$what}.", '/perubahan-data', 'Tinjau');
@@ -76,7 +79,7 @@ class Notifier
 
     public function profileChangeDecided(int $changeId): void
     {
-        $c = \App\Models\ProfileChange::withoutGlobalScopes()->find($changeId);
+        $c = ProfileChange::withoutGlobalScopes()->find($changeId);
         if (! $c) {
             return;
         }
@@ -89,7 +92,7 @@ class Notifier
 
     public function dutyGranted(int $dutyId): void
     {
-        $d = \App\Models\Duty::withoutGlobalScopes()->with(['user' => fn ($q) => $q->withoutGlobalScopes(), 'division' => fn ($q) => $q->withoutGlobalScopes()])->find($dutyId);
+        $d = Duty::withoutGlobalScopes()->with(['user' => fn ($q) => $q->withoutGlobalScopes(), 'division' => fn ($q) => $q->withoutGlobalScopes()])->find($dutyId);
         if ($d?->user && ! $d->ended_at) {
             $what = DutyService::LABELS[$d->type] ?? $d->type;
             $until = $d->ends_on ? ' sampai '.$d->ends_on->locale('id')->translatedFormat('j F Y') : ' sampai akhir periode';
@@ -99,7 +102,7 @@ class Notifier
 
     public function dutyEnded(int $dutyId): void
     {
-        $d = \App\Models\Duty::withoutGlobalScopes()->with(['user' => fn ($q) => $q->withoutGlobalScopes()])->find($dutyId);
+        $d = Duty::withoutGlobalScopes()->with(['user' => fn ($q) => $q->withoutGlobalScopes()])->find($dutyId);
         if ($d?->user && $d->end_reason !== 'Diganti tugas baru') {
             $what = DutyService::LABELS[$d->type] ?? $d->type;
             $this->send(collect([$d->user]), "Tugas {$what} berakhir", "Terima kasih atas tugas Anda. Akun Anda kembali sebagai anggota ({$d->end_reason}).", '/saya');

@@ -10,8 +10,11 @@ class Card extends Model
     use BelongsToOrganization;
 
     public const UNASSIGNED = 'unassigned';
+
     public const ACTIVE = 'active';
+
     public const BLOCKED = 'blocked';
+
     public const LOST = 'lost';
 
     protected $guarded = [];
@@ -21,7 +24,13 @@ class Card extends Model
         return ['issued_at' => 'datetime', 'revoked_at' => 'datetime'];
     }
 
-    public function member() { return $this->belongsTo(Member::class); }
+    public function member()
+    {
+        return $this->belongsTo(Member::class);
+    }
 
-    public function isUsable(): bool { return $this->status === self::ACTIVE; }
+    public function isUsable(): bool
+    {
+        return $this->status === self::ACTIVE;
+    }
 }

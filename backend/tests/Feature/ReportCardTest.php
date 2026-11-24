@@ -19,8 +19,11 @@ class ReportCardTest extends TestCase
     use RefreshDatabase;
 
     private Organization $org;
+
     private Term $term;
+
     private Member $member;
+
     private Division $humas;
 
     protected function setUp(): void

@@ -20,8 +20,11 @@ class SelfRegistrationTest extends TestCase
     use RefreshDatabase;
 
     private Organization $org;
+
     private Term $term;
+
     private Division $humas;
+
     private User $admin;
 
     protected function setUp(): void

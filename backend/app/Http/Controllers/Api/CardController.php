@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Card;
 use App\Models\Member;
 use App\Services\AuditLogger;
+use App\Services\CardService;
+use App\Services\MemberService;
 use App\Support\CardPayload;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -32,7 +34,7 @@ class CardController extends Controller
     {
         $d = $r->validate(['member_id' => 'required|integer', 'hw_uid' => 'nullable|string|max:64']);
         $member = Member::findOrFail($d['member_id']); // ter-scope ke organisasi
-        app(\App\Services\MemberService::class)->assertNotAnonymized($member);
+        app(MemberService::class)->assertNotAnonymized($member);
         abort_unless($card->status === Card::UNASSIGNED, 409, 'Kartu sudah dipakai.');
 
         DB::transaction(function () use ($card, $d, $member) {
@@ -52,6 +54,6 @@ class CardController extends Controller
     {
         $d = $r->validate(['status' => 'sometimes|in:blocked,lost']);
 
-        return app(\App\Services\CardService::class)->block($card, $d['status'] ?? Card::BLOCKED);
+        return app(CardService::class)->block($card, $d['status'] ?? Card::BLOCKED);
     }
 }

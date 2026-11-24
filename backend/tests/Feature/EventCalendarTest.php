@@ -17,9 +17,13 @@ class EventCalendarTest extends TestCase
     use RefreshDatabase;
 
     private Organization $org;
+
     private Term $term;
+
     private User $admin;
+
     private Division $humas;
+
     private Division $inti;
 
     protected function setUp(): void

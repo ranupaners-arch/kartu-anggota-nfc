@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Scanner;
 
 use App\Http\Controllers\Controller;
 use App\Models\Event;
-use App\Models\Member;
 use App\Services\AuditLogger;
 use App\Services\EventService;
 use App\Services\ScanService;

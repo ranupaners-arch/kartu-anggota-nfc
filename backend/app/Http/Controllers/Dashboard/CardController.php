@@ -5,15 +5,17 @@ namespace App\Http\Controllers\Dashboard;
 use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
 use App\Models\Card;
+use App\Models\CardRequest;
 use App\Models\User;
 use App\Services\CardService;
+use App\Services\SelfCardService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class CardController extends Controller
 {
     /** Setujui (jatah tulis kartu sendiri +1) atau tolak permintaan kartu pengganti. */
-    public function reviewRequest(Request $r, \App\Models\CardRequest $request, \App\Services\SelfCardService $cards)
+    public function reviewRequest(Request $r, CardRequest $request, SelfCardService $cards)
     {
         $d = $r->validate(['action' => 'required|in:approve,reject', 'resolution' => 'nullable|in:self,admin', 'note' => 'nullable|string|max:500']);
         $resolution = $d['resolution'] ?? 'self';
@@ -31,7 +33,7 @@ class CardController extends Controller
         $tab = $r->query('tab', 'semua');
         if ($tab === 'pengganti') {
             return Inertia::render('cards/index', ['tab' => $tab, 'filters' => ['q' => null, 'status' => null],
-                'items' => \App\Models\CardRequest::with('member:id,member_no,name,self_card_writes_left', 'reviewer:id,name')
+                'items' => CardRequest::with('member:id,member_no,name,self_card_writes_left', 'reviewer:id,name')
                     ->orderByRaw("status = 'pending' desc")->latest()->paginate(30)->withQueryString()]);
         }
         if ($tab === 'ditolak') {

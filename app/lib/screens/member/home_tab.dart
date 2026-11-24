@@ -375,7 +375,10 @@ class HomeTabState extends State<HomeTab> {
                                 borderRadius: BorderRadius.circular(8),
                                 onTap: () => _open(
                                   'Poin & lencana',
-                                  ListView(padding: const EdgeInsets.all(16), children: [SectionCard(child: BadgesView(data: a.data!))]),
+                                  ListView(
+                                    padding: const EdgeInsets.all(16),
+                                    children: [SectionCard(child: BadgesView(data: a.data!))],
+                                  ),
                                 ),
                                 child: Padding(
                                   padding: const EdgeInsets.symmetric(vertical: 4),
@@ -383,7 +386,9 @@ class HomeTabState extends State<HomeTab> {
                                     children: [
                                       Icon(LucideIcons.award, size: 16, color: theme.colorScheme.foreground),
                                       const SizedBox(width: 6),
-                                      Expanded(child: Text('${a.data!.points} poin · ${a.data!.earned} lencana', style: theme.textTheme.small.copyWith(fontWeight: FontWeight.w600))),
+                                      Expanded(
+                                        child: Text('${a.data!.points} poin · ${a.data!.earned} lencana', style: theme.textTheme.small.copyWith(fontWeight: FontWeight.w600)),
+                                      ),
                                       Icon(LucideIcons.chevronRight, size: 16, color: theme.colorScheme.mutedForeground),
                                     ],
                                   ),

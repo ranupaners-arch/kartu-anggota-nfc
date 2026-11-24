@@ -94,7 +94,12 @@ void main() {
       await tester.pumpWidget(
         KartuAnggotaApp(
           home: Scaffold(
-            body: Column(children: [ShadInput(controller: c), const ShadInput(placeholder: Text('Petunjuk'))]),
+            body: Column(
+              children: [
+                ShadInput(controller: c),
+                const ShadInput(placeholder: Text('Petunjuk')),
+              ],
+            ),
           ),
         ),
       );

@@ -21,7 +21,7 @@ class ScanService
      * Proses satu scan. Mengembalikan array respons dengan `status`:
      * ok | duplicate | blocked | invalid | not_target | outside_window | clock_drift
      *
-     * @param array{payload:string,source?:string,scanned_at?:string,client_uuid?:string,session_id?:int,override_reason?:string} $in
+     * @param  array{payload:string,source?:string,scanned_at?:string,client_uuid?:string,session_id?:int,override_reason?:string}  $in
      */
     public function process(Event $event, array $in, User $user, ?Device $device, bool $fromBatch = false, ?ScanContext $ctx = null): array
     {

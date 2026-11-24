@@ -11,7 +11,6 @@ use App\Models\Organization;
 use App\Models\PushSubscription;
 use App\Models\Term;
 use App\Models\User;
-use App\Services\Push\PushService;
 use App\Services\Push\PushTransport;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -21,6 +20,7 @@ use Tests\TestCase;
 class FakePushTransport implements PushTransport
 {
     public array $sent = [];
+
     public array $expire = [];
 
     public function send(iterable $subscriptions, array $message): array
@@ -39,9 +39,13 @@ class PushNotificationTest extends TestCase
     use RefreshDatabase;
 
     private Organization $org;
+
     private Term $term;
+
     private Division $humas;
+
     private Division $inti;
+
     private FakePushTransport $fake;
 
     protected function setUp(): void

@@ -8,3 +8,8 @@ analyzer:
 
 linter:
   rules:
+
+# Lebar baris mengikuti gaya kode yang sudah ada; `dart format` memakai aturan ini.
+formatter:
+  page_width: 200
+  trailing_commas: preserve

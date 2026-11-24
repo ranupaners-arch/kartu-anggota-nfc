@@ -31,5 +31,8 @@ class EventSession extends Model
         });
     }
 
-    public function event() { return $this->belongsTo(Event::class); }
+    public function event()
+    {
+        return $this->belongsTo(Event::class);
+    }
 }

@@ -8,12 +8,20 @@ import 'package:kartuanggota/widgets/scan_result_card.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
-Future<void> show(WidgetTester t, ScanResult r) => t.pumpWidget(KartuAnggotaApp(home: Scaffold(body: ScanResultCard(result: r, token: 'tok-123'))));
+Future<void> show(WidgetTester t, ScanResult r) => t.pumpWidget(
+  KartuAnggotaApp(
+    home: Scaffold(
+      body: ScanResultCard(result: r, token: 'tok-123'),
+    ),
+  ),
+);
 
 void main() {
   test('photo_url dari respons scan terbaca', () {
     final r = ScanResult.fromJson({
-      'status': 'ok', 'message': 'Berhasil.', 'attendance_status': 'hadir',
+      'status': 'ok',
+      'message': 'Berhasil.',
+      'attendance_status': 'hadir',
       'member': {'id': 5, 'name': 'Budi', 'member_no': '001', 'photo_url': 'http://srv/api/members/5/photo'},
     });
     expect(r.photoUrl, 'http://srv/api/members/5/photo');
@@ -43,9 +51,16 @@ void main() {
     final roster = Roster.fromApi({
       'event': {'id': 1, 'title': 'X', 'closed_at': null, 'checkin_opens_at': '2026-11-18T00:00:00Z', 'late_after': '2026-11-18T01:00:00Z', 'checkin_closes_at': '2026-11-18T05:00:00Z'},
       'members': [
-        {'id': 5, 'member_no': '001', 'name': 'Budi', 'division': null, 'photo_url': 'http://srv/api/members/5/photo', 'cards': [
-          {'public_id': '01M7HC95QETAHJ4309PDSPG35N', 'status': 'active', 'payload_sha256': CardPayload.fingerprint(card)},
-        ]},
+        {
+          'id': 5,
+          'member_no': '001',
+          'name': 'Budi',
+          'division': null,
+          'photo_url': 'http://srv/api/members/5/photo',
+          'cards': [
+            {'public_id': '01M7HC95QETAHJ4309PDSPG35N', 'status': 'active', 'payload_sha256': CardPayload.fingerprint(card)},
+          ],
+        },
       ],
       'generated_at': '2026-11-18T00:00:00Z',
     });

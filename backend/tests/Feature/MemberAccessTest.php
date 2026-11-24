@@ -19,10 +19,15 @@ class MemberAccessTest extends TestCase
     use RefreshDatabase;
 
     private Organization $org;
+
     private Term $term;
+
     private User $admin;
+
     private User $humasAdmin;
+
     private Member $humasMember;
+
     private Member $intiMember;
 
     protected function setUp(): void

@@ -53,7 +53,9 @@ class _AccountTabState extends State<AccountTab> {
         void open(String title, Widget page) => pushMemberPage<void>(context, title, page);
         return RefreshIndicator(
           onRefresh: () async {
-            setState(() { _card = _load(); });
+            setState(() {
+              _card = _load();
+            });
             await _card;
           },
           // Daftar menu satu kolom, di tengah & tidak membentang di tablet/laptop.
@@ -99,11 +101,15 @@ class _AccountTabState extends State<AccountTab> {
                 if (member)
                   _Section('Keanggotaan', [
                     _Item(LucideIcons.idCard, 'Data keanggotaan', 'Nama, NIM, divisi, periode, status', () => open('Data keanggotaan', MembershipPage(api: widget.api))),
-                  _Item(LucideIcons.userPen, 'Ubah data diri', 'Nama, no. HP, foto — disetujui pengurus', () => open('Ubah data diri', ProfileChangePage(api: widget.api))),
+                    _Item(LucideIcons.userPen, 'Ubah data diri', 'Nama, no. HP, foto — disetujui pengurus', () => open('Ubah data diri', ProfileChangePage(api: widget.api))),
                     if (active)
                       _Item(LucideIcons.creditCard, 'Kartu saya', 'Daftarkan kartu NFC, unduh PDF, lapor kartu', () async {
                         await widget.onOpenCard?.call(context);
-                        if (mounted) setState(() { _card = _load(); });
+                        if (mounted) {
+                          setState(() {
+                            _card = _load();
+                          });
+                        }
                       }),
                   ]),
                 if (active)

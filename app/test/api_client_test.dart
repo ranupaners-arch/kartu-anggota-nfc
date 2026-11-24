@@ -14,10 +14,21 @@ void main() {
       client: MockClient((req) async {
         seen.add(req);
         if (req.url.path == '/api/auth/login') {
-          return http.Response(jsonEncode({'token': 'T1', 'user': {'role': 'scanner'}}), 200);
+          return http.Response(
+            jsonEncode({
+              'token': 'T1',
+              'user': {'role': 'scanner'},
+            }),
+            200,
+          );
         }
         return http.Response(
-          jsonEncode({'status': 'ok', 'attendance_status': 'hadir', 'message': 'Berhasil.', 'member': {'name': 'Budi', 'member_no': '001'}}),
+          jsonEncode({
+            'status': 'ok',
+            'attendance_status': 'hadir',
+            'message': 'Berhasil.',
+            'member': {'name': 'Budi', 'member_no': '001'},
+          }),
           200,
         );
       }),

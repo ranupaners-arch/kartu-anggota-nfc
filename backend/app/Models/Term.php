@@ -15,7 +15,4 @@ class Term extends Model
     {
         return ['starts_on' => 'date:Y-m-d', 'ends_on' => 'date:Y-m-d', 'is_current' => 'boolean'];
     }
-
-
-
 }

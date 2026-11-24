@@ -7,14 +7,21 @@ use App\Models\Division;
 use App\Models\Event;
 use App\Models\EventTarget;
 use App\Models\Membership;
-use App\Models\User;
+use App\Models\PushSubscription;
 use App\Models\Term;
+use App\Models\User;
 use App\Services\AuditLogger;
+use App\Services\DutyService;
+use App\Services\HealthService;
+use App\Services\MailStatus;
 use App\Services\PrivacyService;
+use App\Services\Push\PushService;
+use App\Services\RegistrationService;
 use Illuminate\Http\Request;
-use Inertia\Inertia;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\Rule;
+use Inertia\Inertia;
 
 class SettingsController extends Controller
 {
@@ -34,12 +41,12 @@ class SettingsController extends Controller
                 'exportDays' => (int) config('attendance.export_retention_days'),
                 'pending' => app(PrivacyService::class)->retention($r->user()->organization, dryRun: true),
             ] : null,
-            'health' => fn () => $r->query('tab') === 'sistem' ? app(\App\Services\HealthService::class)->check() + [
+            'health' => fn () => $r->query('tab') === 'sistem' ? app(HealthService::class)->check() + [
                 'sentry' => (bool) config('sentry.dsn'),
                 'healthTokenSet' => (bool) config('attendance.health_token'),
                 'healthUrl' => url('/api/health'),
-                'push' => ['enabled' => \App\Services\Push\PushService::enabled(), 'devices' => \App\Models\PushSubscription::whereHas('user', fn ($u) => $u->where('organization_id', $r->user()->organization_id))->count()],
-                'mail' => ['enabled' => \App\Services\MailStatus::enabled(), 'mailer' => \App\Services\MailStatus::mailer(), 'from' => config('mail.from.address')],
+                'push' => ['enabled' => PushService::enabled(), 'devices' => PushSubscription::whereHas('user', fn ($u) => $u->where('organization_id', $r->user()->organization_id))->count()],
+                'mail' => ['enabled' => MailStatus::enabled(), 'mailer' => MailStatus::mailer(), 'from' => config('mail.from.address')],
             ] : null,
         ]);
     }
@@ -62,7 +69,7 @@ class SettingsController extends Controller
     }
 
     /** Pendaftaran anggota mandiri: buka (buat tautan), ganti tautan, atau tutup. */
-    public function registration(Request $r, \App\Services\RegistrationService $registrations)
+    public function registration(Request $r, RegistrationService $registrations)
     {
         $d = $r->validate(['action' => 'required|in:open,rotate,close']);
         $org = $r->user()->organization;
@@ -71,7 +78,7 @@ class SettingsController extends Controller
             'rotate' => $registrations->open($org, rotate: true),
             'close' => $registrations->close($org),
         };
-        \App\Services\AuditLogger::log("organization.registration_{$d['action']}", 'organization', $org->id);
+        AuditLogger::log("organization.registration_{$d['action']}", 'organization', $org->id);
 
         return back()->with('status', match ($d['action']) {
             'open' => 'Pendaftaran dibuka. Bagikan tautan atau QR-nya.',
@@ -83,9 +90,9 @@ class SettingsController extends Controller
     /** Kirim email uji ke akun sendiri untuk memastikan pengaturan SMTP benar. */
     public function testMail(Request $r)
     {
-        abort_unless(\App\Services\MailStatus::enabled(), 422, 'Email server belum diatur.');
+        abort_unless(MailStatus::enabled(), 422, 'Email server belum diatur.');
         try {
-            \Illuminate\Support\Facades\Mail::raw('Email uji dari Kartu Anggota. Bila Anda menerima ini, pengaturan email server sudah benar.', fn ($m) => $m
+            Mail::raw('Email uji dari Kartu Anggota. Bila Anda menerima ini, pengaturan email server sudah benar.', fn ($m) => $m
                 ->to($r->user()->email)->subject('Email uji Kartu Anggota'));
         } catch (\Throwable $e) {
             report($e);
@@ -164,7 +171,7 @@ class SettingsController extends Controller
             $term->update(['is_current' => true]);
         });
         AuditLogger::log('term.set_current', 'term', $term->id);
-        $ended = app(\App\Services\DutyService::class)->expire(); // tugas periode lama berakhir
+        $ended = app(DutyService::class)->expire(); // tugas periode lama berakhir
 
         return back()->with('status', "Periode berjalan sekarang: {$term->name}.".($ended ? " {$ended} tugas petugas/pengurus periode lama berakhir — perpanjang di Petugas & Pengurus bila perlu." : ''));
     }

@@ -128,7 +128,15 @@ void main() {
     addTearDown(tester.platformDispatcher.clearAllTestValues);
     final store = await freshStore();
     await store.addRejected([
-      RejectedScan(clientUuid: 'a', eventId: 7, eventTitle: 'Rapat Pleno Tahunan Pengurus Besar', memberName: 'Nama Anggota Yang Sangat Panjang Sekali', status: 'outside_window', message: 'Di luar jendela check-in.', scannedAt: at('01:10')),
+      RejectedScan(
+        clientUuid: 'a',
+        eventId: 7,
+        eventTitle: 'Rapat Pleno Tahunan Pengurus Besar',
+        memberName: 'Nama Anggota Yang Sangat Panjang Sekali',
+        status: 'outside_window',
+        message: 'Di luar jendela check-in.',
+        scannedAt: at('01:10'),
+      ),
     ]);
     await tester.pumpWidget(KartuAnggotaApp(home: RejectedScansScreen(store: store)));
     await tester.pumpAndSettle();

@@ -12,6 +12,7 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 /**
  * Pendaftaran anggota mandiri lewat tautan publik (tanpa login). Pendaftar masuk dengan status
@@ -63,7 +64,7 @@ class RegistrationService
         $org = Organization::findOrFail($user->organization_id);
         $term = $this->currentTerm($org) ?? abort(422, 'Belum ada periode aktif. Hubungi pengurus.');
         if (Member::where('organization_id', $org->id)->whereRaw('lower(email) = ?', [Str::lower($user->email)])->exists()) {
-            throw \Illuminate\Validation\ValidationException::withMessages(['email' => 'Email akun ini sudah terdaftar sebagai anggota. Minta pengurus menautkan akun Anda.']);
+            throw ValidationException::withMessages(['email' => 'Email akun ini sudah terdaftar sebagai anggota. Minta pengurus menautkan akun Anda.']);
         }
 
         return DB::transaction(function () use ($user, $org, $term, $d, $photo) {

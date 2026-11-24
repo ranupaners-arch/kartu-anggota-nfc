@@ -9,6 +9,7 @@ use App\Models\Device;
 use App\Models\Division;
 use App\Models\Event;
 use App\Models\ExcuseRequest;
+use App\Models\Export;
 use App\Models\Member;
 use App\Models\Membership;
 use App\Models\Organization;
@@ -26,11 +27,17 @@ class DashboardTest extends TestCase
     use RefreshDatabase;
 
     private Organization $org;
+
     private Term $term;
+
     private Division $humas;
+
     private Division $inti;
+
     private User $admin;
+
     private User $humasAdmin;
+
     private Event $event;
 
     protected function setUp(): void
@@ -222,7 +229,7 @@ class DashboardTest extends TestCase
         $this->assertFalse($this->term->fresh()->is_current);
 
         $this->post(route('exports.store'), ['report' => 'event', 'event_id' => $this->event->id, 'format' => 'xlsx'])->assertRedirect(route('reports.index', ['tab' => 'ekspor']));
-        $export = \App\Models\Export::firstOrFail();
+        $export = Export::firstOrFail();
         $this->assertSame('ready', $export->status);
         $this->get(route('exports.download', $export))->assertOk()->assertDownload();
         $this->assertTrue(AuditLog::where('action', 'user.created')->exists());

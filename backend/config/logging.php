@@ -1,5 +1,6 @@
 <?php
 
+use App\Logging\AddUserContext;
 use Monolog\Handler\NullHandler;
 use Monolog\Handler\StreamHandler;
 use Monolog\Handler\SyslogUdpHandler;
@@ -59,7 +60,7 @@ return [
         ],
 
         'single' => [
-            'tap' => [App\Logging\AddUserContext::class],
+            'tap' => [AddUserContext::class],
             'driver' => 'single',
             'path' => storage_path('logs/laravel.log'),
             'level' => env('LOG_LEVEL', 'debug'),
@@ -67,7 +68,7 @@ return [
         ],
 
         'daily' => [
-            'tap' => [App\Logging\AddUserContext::class],
+            'tap' => [AddUserContext::class],
             'driver' => 'daily',
             'path' => storage_path('logs/laravel.log'),
             'level' => env('LOG_LEVEL', 'debug'),
@@ -105,7 +106,7 @@ return [
         ],
 
         'stderr' => [
-            'tap' => [App\Logging\AddUserContext::class],
+            'tap' => [AddUserContext::class],
             'driver' => 'monolog',
             'level' => env('LOG_LEVEL', 'debug'),
             'handler' => StreamHandler::class,

@@ -3,10 +3,15 @@
 namespace App\Http\Controllers\Dashboard;
 
 use App\Http\Controllers\Controller;
+use App\Mail\WeeklySummaryMail;
 use App\Services\AuditLogger;
+use App\Services\MailStatus;
+use App\Services\Push\PushService;
 use App\Services\TwoFactorService;
+use App\Services\WeeklySummaryService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rules\Password;
+use Inertia\Inertia;
 
 class AccountController extends Controller
 {
@@ -16,11 +21,11 @@ class AccountController extends Controller
         $twoFactor = app(TwoFactorService::class);
         $enrolling = $user->two_factor_secret && ! $user->two_factor_confirmed_at;
 
-        return \Inertia\Inertia::render('account/edit', [
+        return Inertia::render('account/edit', [
             'user' => $user->only('name', 'email', 'role') + ['member' => $user->member?->only('member_no', 'name')],
             // Tautan langganan jadwal (.ics); null = belum dibuat.
-            'pushKey' => \App\Services\Push\PushService::enabled() ? config('services.webpush.public_key') : null,
-            'weeklySummary' => ['enabled' => (bool) ($user->weekly_summary ?? true), 'mailEnabled' => \App\Services\MailStatus::enabled()],
+            'pushKey' => PushService::enabled() ? config('services.webpush.public_key') : null,
+            'weeklySummary' => ['enabled' => (bool) ($user->weekly_summary ?? true), 'mailEnabled' => MailStatus::enabled()],
             'calendarUrl' => $user->calendar_token ? route('calendar.feed', ['token' => $user->calendar_token]) : null,
             'twoFactor' => [
                 'enabled' => $twoFactor->enabled($user),
@@ -68,9 +73,9 @@ class AccountController extends Controller
     }
 
     /** Contoh email ringkasan dengan data saat ini (bisa dilihat walau email server belum diatur). */
-    public function weeklySummaryPreview(Request $r, \App\Services\WeeklySummaryService $summaries)
+    public function weeklySummaryPreview(Request $r, WeeklySummaryService $summaries)
     {
-        return (new \App\Mail\WeeklySummaryMail($summaries->build($r->user())))->render();
+        return (new WeeklySummaryMail($summaries->build($r->user())))->render();
     }
 
     public function password(Request $r)

@@ -23,9 +23,13 @@ class AdminExcuseTest extends TestCase
     use RefreshDatabase;
 
     private Organization $org;
+
     private Term $term;
+
     private User $admin;
+
     private Division $humas;
+
     private Member $budi;
 
     protected function setUp(): void

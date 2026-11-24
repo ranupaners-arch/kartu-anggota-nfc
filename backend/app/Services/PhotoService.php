@@ -14,6 +14,7 @@ use Illuminate\Validation\ValidationException;
 class PhotoService
 {
     public const MAX_SIDE = 480;
+
     public const QUALITY = 82;
 
     /** Simpan foto yang sudah diperkecil; kembalikan path di disk 'local'. */

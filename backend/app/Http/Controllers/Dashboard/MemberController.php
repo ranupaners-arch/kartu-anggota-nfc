@@ -4,16 +4,25 @@ namespace App\Http\Controllers\Dashboard;
 
 use App\Http\Controllers\Controller;
 use App\Models\Attendance;
+use App\Models\AuditLog;
+use App\Models\CardRequest;
 use App\Models\Division;
 use App\Models\Member;
 use App\Models\Membership;
+use App\Models\Term;
 use App\Models\User;
+use App\Services\AuditLogger;
+use App\Services\CardPrintService;
+use App\Services\MemberAccountService;
+use App\Services\MemberCardService;
 use App\Services\MemberImportService;
 use App\Services\MemberService;
 use App\Services\PrivacyService;
+use App\Services\ReportCardService;
 use Illuminate\Http\Request;
-use Inertia\Inertia;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;
+use Inertia\Inertia;
 
 class MemberController extends Controller
 {
@@ -30,7 +39,9 @@ class MemberController extends Controller
         $q = $this->members->visibleTo($r->user())
             ->with(['memberships' => fn ($m) => $m->where('term_id', $term->id)->with('division:id,name'), 'activeCard:id,member_id,status'])->withExists('user')
             ->when($tab !== 'semua', fn ($q) => $q->whereHas('memberships', fn ($m) => $m->where('term_id', $term->id)
-                ->where('status', match ($tab) { 'alumni' => 'alumni', 'pendaftar' => 'applicant', default => 'active' })))
+                ->where('status', match ($tab) {
+                    'alumni' => 'alumni', 'pendaftar' => 'applicant', default => 'active'
+                })))
             ->when($r->query('q'), fn ($q, $s) => $q->where(fn ($w) => $w->where('name', 'ilike', "%$s%")->orWhere('member_no', 'ilike', "%$s%")))
             ->when($r->query('division_id'), fn ($q, $d) => $q->whereHas('memberships', fn ($m) => $m->where('term_id', $term->id)->where('division_id', $d)))
             // Kesiapan: anggota yang belum punya akun app / kartu aktif (untuk memantau persiapan).
@@ -53,7 +64,7 @@ class MemberController extends Controller
     }
 
     /** Anggota yang dihapus (soft delete), bisa dipulihkan. Yang data pribadinya dihapus tidak tampil. */
-    private function archive(Request $r, \App\Models\Term $term)
+    private function archive(Request $r, Term $term)
     {
         $q = Member::onlyTrashed()->whereNull('anonymized_at')
             ->when($r->query('q'), fn ($q, $s) => $q->where(fn ($w) => $w->where('name', 'ilike', "%$s%")->orWhere('member_no', 'ilike', "%$s%")))
@@ -99,7 +110,7 @@ class MemberController extends Controller
                 + ['photo_url' => $member->photoUrl('members.photo')],
             'canManage' => $r->user()->isSuperAdmin(),
             'duty' => $r->user()->isSuperAdmin() ? DutyController::forMember($member) : null,
-            'cardPreview' => app(\App\Services\MemberCardService::class)->forMember($member, $r->user()->organization?->name),
+            'cardPreview' => app(MemberCardService::class)->forMember($member, $r->user()->organization?->name),
             'privacy' => [
                 'consentedAt' => $member->consented_at,
                 'consentedBy' => $member->consented_by ? User::find($member->consented_by)?->name : null,
@@ -112,7 +123,7 @@ class MemberController extends Controller
             ]),
             'cards' => $this->cardHistory($member),
             // Laporan kartu (hilang/rusak/HP tanpa NFC) & jatah daftar kartu sendiri.
-            'cardRequests' => \App\Models\CardRequest::with('reviewer:id,name')->where('member_id', $member->id)->latest()->get()
+            'cardRequests' => CardRequest::with('reviewer:id,name')->where('member_id', $member->id)->latest()->get()
                 ->map(fn ($q) => $q->only('id', 'reason', 'note', 'status', 'resolution', 'review_note', 'created_at', 'reviewed_at') + ['reviewer' => $q->reviewer?->name]),
             'selfCardWritesLeft' => (int) $member->self_card_writes_left,
             'attendances' => $tab === 'riwayat'
@@ -172,10 +183,10 @@ class MemberController extends Controller
     }
 
     /** Kartu anggota + siapa yang menerbitkan (pengurus lewat app petugas, atau anggota sendiri). */
-    private function cardHistory(Member $member): \Illuminate\Support\Collection
+    private function cardHistory(Member $member): Collection
     {
         $cards = $member->cards->sortByDesc('issued_at')->values();
-        $logs = \App\Models\AuditLog::where('entity', 'card')->whereIn('entity_id', $cards->pluck('id'))
+        $logs = AuditLog::where('entity', 'card')->whereIn('entity_id', $cards->pluck('id'))
             ->whereIn('action', ['card.issued', 'card.self_issued'])->get()->keyBy('entity_id');
         $names = User::whereIn('id', $logs->pluck('user_id')->filter())->pluck('name', 'id');
 
@@ -193,30 +204,30 @@ class MemberController extends Controller
     {
         abort_if($member->self_card_writes_left >= 3, 422, 'Jatah sudah maksimal (3).');
         $member->increment('self_card_writes_left');
-        \App\Services\AuditLogger::log('card.self_write_granted', 'member', $member->id);
+        AuditLogger::log('card.self_write_granted', 'member', $member->id);
 
         return back()->with('status', 'Jatah daftar kartu sendiri ditambah 1.');
     }
 
     /** Desain kartu siap cetak (PDF) untuk anggota terpilih; ?format=a4 (bawaan) atau kartu (printer PVC). */
-    public function printCards(Request $r, \App\Services\CardPrintService $printer)
+    public function printCards(Request $r, CardPrintService $printer)
     {
         $d = $r->validate([
             'ids' => 'required|array|min:1|max:200', 'ids.*' => 'integer',
-            'format' => 'nullable|in:'.implode(',', \App\Services\CardPrintService::FORMATS),
+            'format' => 'nullable|in:'.implode(',', CardPrintService::FORMATS),
         ]);
         $term = $this->members->currentTerm();
         $members = Member::whereIn('id', $d['ids'])->whereNull('anonymized_at')->orderBy('name')
             ->with(['memberships' => fn ($q) => $q->where('term_id', $term->id)->with('division:id,name'), 'activeCard:id,member_id,public_id'])->get();
         abort_if($members->isEmpty(), 404, 'Anggota tidak ditemukan.');
         [$pdf, $name] = $printer->pdf($members, $term, $r->user()->organization, $d['format'] ?? 'a4');
-        \App\Services\AuditLogger::log('member.cards_printed', 'member', null, ['count' => $members->count()]);
+        AuditLogger::log('member.cards_printed', 'member', null, ['count' => $members->count()]);
 
         return response($pdf, 200, ['Content-Type' => 'application/pdf', 'Content-Disposition' => 'inline; filename="'.$name.'"']);
     }
 
     /** Buat akun app untuk anggota terpilih; hasil (password sementara) hanya ditampilkan sekali. */
-    public function createAccounts(Request $r, \App\Services\MemberAccountService $accounts)
+    public function createAccounts(Request $r, MemberAccountService $accounts)
     {
         $d = $r->validate(['ids' => 'required|array|min:1|max:100', 'ids.*' => 'integer']);
         $res = $accounts->createFor($r->user(), $d['ids']);
@@ -256,10 +267,10 @@ class MemberController extends Controller
     }
 
     /** Rapor kehadiran PDF; ?periode= (bawaan: periode berjalan). */
-    public function reportCard(Request $r, Member $member, \App\Services\ReportCardService $cards)
+    public function reportCard(Request $r, Member $member, ReportCardService $cards)
     {
         $this->members->authorizeView($r->user(), $member);
-        $term = $r->integer('periode') ? \App\Models\Term::findOrFail($r->integer('periode')) : $this->members->currentTerm();
+        $term = $r->integer('periode') ? Term::findOrFail($r->integer('periode')) : $this->members->currentTerm();
         [$pdf, $name] = $cards->pdf($member, $term);
 
         return response($pdf, 200, ['Content-Type' => 'application/pdf', 'Content-Disposition' => 'inline; filename="'.$name.'"']);

@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Attendance;
 use App\Models\Card;
 use App\Models\Division;
 use App\Models\Event;
@@ -26,7 +27,9 @@ class ScanPerformanceTest extends TestCase
     use RefreshDatabase;
 
     private User $scanner;
+
     private Event $event;
+
     /** @var array<int, string> */
     private array $payloads = [];
 
@@ -104,11 +107,11 @@ class ScanPerformanceTest extends TestCase
         ];
         $r = $this->postJson("/api/events/{$this->event->id}/scan/batch", ['scans' => $scans])->assertOk()->json('results');
         $this->assertSame(['ok', 'duplicate', 'duplicate', 'invalid'], array_column($r, 'status'));
-        $this->assertSame(1, \App\Models\Attendance::count());
+        $this->assertSame(1, Attendance::count());
 
         // Kirim ulang batch yang sama (mis. koneksi putus sebelum respons): tidak ada data ganda.
         $again = $this->postJson("/api/events/{$this->event->id}/scan/batch", ['scans' => $scans])->json('results');
         $this->assertSame(['duplicate', 'duplicate', 'duplicate', 'invalid'], array_column($again, 'status'));
-        $this->assertSame(1, \App\Models\Attendance::count());
+        $this->assertSame(1, Attendance::count());
     }
 }

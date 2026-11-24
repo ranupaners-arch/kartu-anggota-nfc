@@ -20,11 +20,30 @@ class Duty extends Model
         return ['ends_on' => 'date', 'ended_at' => 'datetime'];
     }
 
-    public function user() { return $this->belongsTo(User::class); }
-    public function term() { return $this->belongsTo(Term::class); }
-    public function division() { return $this->belongsTo(Division::class); }
-    public function granter() { return $this->belongsTo(User::class, 'granted_by'); }
-    public function ender() { return $this->belongsTo(User::class, 'ended_by'); }
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function term()
+    {
+        return $this->belongsTo(Term::class);
+    }
+
+    public function division()
+    {
+        return $this->belongsTo(Division::class);
+    }
+
+    public function granter()
+    {
+        return $this->belongsTo(User::class, 'granted_by');
+    }
+
+    public function ender()
+    {
+        return $this->belongsTo(User::class, 'ended_by');
+    }
 
     /** Belum diakhiri (masa berlaku dicek terpisah oleh DutyService::expire). */
     public function scopeOpen(Builder $q): Builder

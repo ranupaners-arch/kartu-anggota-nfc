@@ -22,17 +22,22 @@ class ScanContext
     public readonly Collection $sessions;
 
     private bool $hasTargets;
+
     /** @var array<int, true> */
     private array $targetDivisions;
+
     /** @var array<int, true> */
     private array $targetMembers;
+
     /** @var array<int, true>|null */
     private ?array $approvedExcuses = null;
 
     /** @var array<string, Card|null> public_id → kartu (+ anggota, keanggotaan, divisi) */
     private array $cards = [];
+
     /** @var array<string, Attendance|null> client_uuid → absensi */
     private array $byClientUuid = [];
+
     /** @var array<string, Attendance|null> "sesi:anggota" → absensi */
     private array $bySessionMember = [];
 

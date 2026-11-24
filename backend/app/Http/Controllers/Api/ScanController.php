@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Device;
 use App\Models\Event;
+use App\Services\ScanContext;
 use App\Services\ScanService;
 use Illuminate\Http\Request;
 
@@ -30,7 +31,7 @@ class ScanController extends Controller
         $device = $this->device($r);
 
         // Data kegiatan, kartu, dan absensi dimuat sekali untuk seluruh batch.
-        $ctx = new \App\Services\ScanContext($event);
+        $ctx = new ScanContext($event);
         $ctx->prefetch($r->input('scans'));
 
         $results = collect($r->input('scans'))->map(function ($s) use ($event, $user, $device, $ctx) {

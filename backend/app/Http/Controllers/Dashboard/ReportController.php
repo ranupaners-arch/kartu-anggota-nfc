@@ -9,8 +9,8 @@ use App\Models\Term;
 use App\Services\ExportService;
 use App\Services\ReportService;
 use Illuminate\Http\Request;
-use Inertia\Inertia;
 use Illuminate\Support\Facades\Storage;
+use Inertia\Inertia;
 
 class ReportController extends Controller
 {

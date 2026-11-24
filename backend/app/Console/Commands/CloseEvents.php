@@ -9,6 +9,7 @@ use Illuminate\Console\Command;
 class CloseEvents extends Command
 {
     protected $signature = 'events:close';
+
     protected $description = 'Tutup kegiatan yang jendela check-in-nya selesai dan tandai Alpa otomatis';
 
     public function handle(CloseEvent $closer): int

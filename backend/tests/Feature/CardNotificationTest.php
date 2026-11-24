@@ -36,8 +36,11 @@ class CardNotificationTest extends TestCase
     use RefreshDatabase;
 
     private Organization $org;
+
     private Term $term;
+
     private User $admin;
+
     private RecordingPushTransport $push;
 
     protected function setUp(): void

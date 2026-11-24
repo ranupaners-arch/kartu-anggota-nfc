@@ -45,7 +45,16 @@ void main() {
         home: Builder(
           builder: (context) => Scaffold(
             body: TextButton(
-              onPressed: () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => ChangePasswordScreen(api: api, session: session, currentPassword: 'Kq7m-Xt3a-Pw9e', server: const ServerConfig(url: 'http://srv', name: 'HMPS')))),
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => ChangePasswordScreen(
+                    api: api,
+                    session: session,
+                    currentPassword: 'Kq7m-Xt3a-Pw9e',
+                    server: const ServerConfig(url: 'http://srv', name: 'HMPS'),
+                  ),
+                ),
+              ),
               child: const Text('buka'),
             ),
           ),

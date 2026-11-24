@@ -21,9 +21,13 @@ class MemberAppTest extends TestCase
     use RefreshDatabase;
 
     private Organization $org;
+
     private Term $term;
+
     private Member $me;
+
     private User $user;
+
     private Event $open;
 
     protected function setUp(): void
@@ -54,9 +58,15 @@ class MemberAppTest extends TestCase
         ]);
     }
 
-    private function as() { return $this->actingAs($this->user, 'sanctum'); }
+    private function as()
+    {
+        return $this->actingAs($this->user, 'sanctum');
+    }
 
-    private function excuse(array $data) { return $this->as()->post('/api/excuses', $data + ['event_id' => $this->open->id, 'type' => 'sakit', 'reason' => 'Demam'], ['Accept' => 'application/json']); }
+    private function excuse(array $data)
+    {
+        return $this->as()->post('/api/excuses', $data + ['event_id' => $this->open->id, 'type' => 'sakit', 'reason' => 'Demam'], ['Accept' => 'application/json']);
+    }
 
     public function test_my_events_only_where_i_am_target_with_status_and_excuse_info(): void
     {

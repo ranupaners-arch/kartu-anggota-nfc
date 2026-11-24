@@ -29,13 +29,38 @@ void main() {
       client: MockClient((req) async {
         switch (req.url.path) {
           case '/api/me/card':
-            return http.Response(jsonEncode({'state': state, 'organization': 'HMPS', 'member': state == 'none' ? null : {'name': 'Dina Ayu', 'member_no': '2501001', 'division': 'Humas', 'photo_url': null}}), 200);
+            return http.Response(
+              jsonEncode({
+                'state': state,
+                'organization': 'HMPS',
+                'member': state == 'none' ? null : {'name': 'Dina Ayu', 'member_no': '2501001', 'division': 'Humas', 'photo_url': null},
+              }),
+              200,
+            );
           case '/api/me/profile-form':
-            return http.Response(jsonEncode({'organization': 'HMPS', 'term': '2026', 'name': 'Dina', 'email': 'dina@mhs.test', 'divisions': [{'id': 3, 'name': 'Humas'}]}), 200);
+            return http.Response(
+              jsonEncode({
+                'organization': 'HMPS',
+                'term': '2026',
+                'name': 'Dina',
+                'email': 'dina@mhs.test',
+                'divisions': [
+                  {'id': 3, 'name': 'Humas'},
+                ],
+              }),
+              200,
+            );
           case '/api/me/profile':
             sent = req;
             state = 'pending';
-            return http.Response(jsonEncode({'state': 'pending', 'organization': 'HMPS', 'member': {'name': 'Dina Ayu', 'member_no': '2501001'}}), 201);
+            return http.Response(
+              jsonEncode({
+                'state': 'pending',
+                'organization': 'HMPS',
+                'member': {'name': 'Dina Ayu', 'member_no': '2501001'},
+              }),
+              201,
+            );
         }
         return http.Response('{}', 404);
       }),
@@ -48,7 +73,9 @@ void main() {
             api: api,
             name: 'Dina',
             onRegister: (context) => Navigator.of(context).push<bool>(
-              MaterialPageRoute(builder: (_) => EProfileScreen(api: api, pickPhoto: () async => (name: 'wajah.jpg', bytes: List.filled(100, 1)))),
+              MaterialPageRoute(
+                builder: (_) => EProfileScreen(api: api, pickPhoto: () async => (name: 'wajah.jpg', bytes: List.filled(100, 1))),
+              ),
             ),
           ),
         ),
@@ -93,12 +120,22 @@ void main() {
       client: MockClient((req) async {
         if (req.url.path == '/api/auth/register') {
           body = jsonDecode(req.body) as Map<String, dynamic>;
-          return http.Response(jsonEncode({'token': 'T', 'user': {'name': 'Dina', 'role': 'member', 'member_id': null}}), 201);
+          return http.Response(
+            jsonEncode({
+              'token': 'T',
+              'user': {'name': 'Dina', 'role': 'member', 'member_id': null},
+            }),
+            201,
+          );
         }
         return http.Response(jsonEncode({'state': 'none', 'organization': 'HMPS', 'member': null}), 200);
       }),
     );
-    await tester.pumpWidget(KartuAnggotaApp(home: RegisterScreen(server: server, api: api)));
+    await tester.pumpWidget(
+      KartuAnggotaApp(
+        home: RegisterScreen(server: server, api: api),
+      ),
+    );
     await tester.pumpAndSettle();
     final fields = find.byType(EditableText);
     await tester.enterText(fields.at(0), 'Dina');

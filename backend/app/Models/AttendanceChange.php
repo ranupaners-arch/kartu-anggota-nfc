@@ -13,6 +13,5 @@ class AttendanceChange extends Model
         return ['created_at' => 'datetime'];
     }
 
-
     public $timestamps = false;
 }

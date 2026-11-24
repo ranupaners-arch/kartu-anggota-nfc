@@ -13,7 +13,12 @@ void main() {
   tearDown(() => links.close());
 
   Future<void> open(WidgetTester tester, String link) async {
-    await tester.pumpWidget(KartuAnggotaApp(home: const Scaffold(body: Text('Beranda')), links: links.stream));
+    await tester.pumpWidget(
+      KartuAnggotaApp(
+        home: const Scaffold(body: Text('Beranda')),
+        links: links.stream,
+      ),
+    );
     links.add(Uri.parse(link));
     await tester.pumpAndSettle();
   }

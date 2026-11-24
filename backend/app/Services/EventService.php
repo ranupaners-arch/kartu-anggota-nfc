@@ -74,6 +74,7 @@ class EventService
     }
 
     public const REPEATS = ['none', 'weekly', 'biweekly', 'monthly'];
+
     public const MAX_REPEAT = 12;
 
     /**

@@ -17,13 +17,31 @@ class Member extends Model
         return ['consented_at' => 'datetime', 'anonymized_at' => 'datetime'];
     }
 
-    public function memberships() { return $this->hasMany(Membership::class); }
-    public function cards() { return $this->hasMany(Card::class); }
-    /** Akun login app (peran Anggota) yang tertaut ke anggota ini, bila ada. */
-    public function user() { return $this->hasOne(User::class); }
+    public function memberships()
+    {
+        return $this->hasMany(Membership::class);
+    }
 
-    public function activeCard() { return $this->hasOne(Card::class)->where('status', 'active'); }
-    public function qr() { return $this->hasOne(MemberQr::class); }
+    public function cards()
+    {
+        return $this->hasMany(Card::class);
+    }
+
+    /** Akun login app (peran Anggota) yang tertaut ke anggota ini, bila ada. */
+    public function user()
+    {
+        return $this->hasOne(User::class);
+    }
+
+    public function activeCard()
+    {
+        return $this->hasOne(Card::class)->where('status', 'active');
+    }
+
+    public function qr()
+    {
+        return $this->hasOne(MemberQr::class);
+    }
 
     /**
      * URL foto (route bernama) dengan penanda versi: berubah tiap foto diganti, sehingga app &
