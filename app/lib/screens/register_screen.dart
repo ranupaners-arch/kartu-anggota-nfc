@@ -57,7 +57,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     try {
       final api = widget.api ?? ApiClient(baseUrl: widget.server.url);
       final user = await api.register(name: _name.text.trim(), email: _email.text.trim(), password: _password.text, deviceUuid: await deviceUuid());
-      final session = Session(baseUrl: widget.server.url, token: api.token!, userName: user['name'] as String? ?? '', role: user['role'] as String? ?? 'member');
+      final session = Session(baseUrl: widget.server.url, token: api.token!, userName: user['name'] as String? ?? '', role: user['role'] as String? ?? 'member', userId: user['id'] as int?);
       await session.save();
       if (!mounted) return;
       Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute<void>(builder: (_) => homeFor(session)), (_) => false);

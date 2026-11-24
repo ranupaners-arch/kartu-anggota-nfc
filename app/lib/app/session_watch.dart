@@ -43,8 +43,14 @@ mixin SessionWatch<T extends StatefulWidget> on State<T> {
       final name = me['name'] as String? ?? watchedSession.userName;
       final hasMember = me['member_id'] != null;
       if (role == null || !mounted) return;
+      final id = me['id'] as int?;
+      if (id != null && watchedSession.userId == null) {
+        watchedSession.userId = id; // sesi dari versi app lama: data offline kini terikat ke akun ini
+        await watchedSession.save();
+        if (!mounted) return;
+      }
       if (role != watchedSession.role || hasMember != watchedSession.hasMember) {
-        final next = Session(baseUrl: watchedSession.baseUrl, token: watchedSession.token, userName: name, role: role, hasMember: hasMember);
+        final next = Session(baseUrl: watchedSession.baseUrl, token: watchedSession.token, userName: name, role: role, hasMember: hasMember, userId: watchedSession.userId);
         await next.save();
         if (!mounted) return;
         Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute<void>(builder: (_) => homeFor(next)), (_) => false);

@@ -94,7 +94,7 @@ class _ScanScreenState extends State<ScanScreen> with WidgetsBindingObserver {
 
   /// Pakai roster tersimpan dulu (siap offline seketika), lalu perbarui dari server bila online.
   Future<void> _initOffline() async {
-    final store = widget.store ?? await OfflineStore.open();
+    final store = widget.store ?? await OfflineStore.open(owner: widget.session.owner);
     if (!mounted) return;
     _store = store;
     _useRoster(store.loadRoster(widget.event.id));

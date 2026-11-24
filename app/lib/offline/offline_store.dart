@@ -63,16 +63,60 @@ class RejectedScan {
   };
 }
 
-/// Penyimpanan lokal: roster per kegiatan dan antrean scan offline.
+/// Penyimpanan lokal: roster per kegiatan dan antrean scan offline, terpisah per [owner] (server + akun).
+/// Tanpa owner: kunci versi app lama; isinya dipindahkan ke akun pertama yang membuka penyimpanan.
 class OfflineStore {
-  OfflineStore(this._prefs);
+  OfflineStore(this._prefs, {this.owner});
 
   final SharedPreferences _prefs;
-  static const _queueKey = 'offline_queue';
+  final String? owner;
+  static const _queueBase = 'offline_queue';
   static const eventsKey = 'offline_events';
-  static String _rosterKey(int eventId) => 'roster:$eventId';
+  static const _rejectedBase = 'offline_rejected';
 
-  static Future<OfflineStore> open() async => OfflineStore(await SharedPreferences.getInstance());
+  String _key(String base) => owner == null ? base : '$base@$owner';
+  String get _queueKey => _key(_queueBase);
+  String get _rejectedKey => _key(_rejectedBase);
+  String _rosterKey(int eventId) => _key('roster:$eventId');
+
+  static Future<OfflineStore> open({String? owner}) async {
+    final store = OfflineStore(await SharedPreferences.getInstance(), owner: owner);
+    if (owner != null) await store._adoptLegacy();
+    return store;
+  }
+
+  /// Pindahkan data versi app lama ke akun ini: tulis dulu, baru hapus yang lama.
+  Future<void> _adoptLegacy() async {
+    final old = OfflineStore(_prefs);
+    // Tanpa await di antara baca, tulis & hapus: scan yang masuk bersamaan tidak boleh ikut terhapus.
+    final ids = {for (final p in pending()) p.clientUuid}, known = {for (final r in rejected()) r.clientUuid};
+    final queue = old.pending().where((p) => !ids.contains(p.clientUuid)).toList();
+    final refused = old.rejected().where((r) => !known.contains(r.clientUuid)).toList();
+    await Future.wait([
+      if (queue.isNotEmpty) _write([...pending(), ...queue]),
+      _prefs.remove(_queueBase),
+      if (refused.isNotEmpty) _writeRejected([...rejected(), ...refused]),
+      _prefs.remove(_rejectedBase),
+    ]);
+    for (final k in _prefs.getKeys().where((k) => k == eventsKey || (k.startsWith('roster:') && !k.contains('@'))).toList()) {
+      final value = _prefs.getString(k);
+      if (value != null && !_prefs.containsKey(_key(k))) await _prefs.setString(_key(k), value);
+      await _prefs.remove(k);
+    }
+  }
+
+  /// Jumlah scan tertunda milik akun/server lain di HP ini (tanpa isi: hanya untuk pemberitahuan).
+  int othersPending() {
+    var n = 0;
+    for (final k in _prefs.getKeys().where((k) => k.startsWith('$_queueBase@') && k != _queueKey)) {
+      try {
+        n += (jsonDecode(_prefs.getString(k) ?? '[]') as List).length;
+      } catch (_) {
+        // data rusak: abaikan
+      }
+    }
+    return n;
+  }
 
   Future<void> saveRoster(Roster r) => _prefs.setString(_rosterKey(r.eventId), jsonEncode(r.toApiJson()));
 
@@ -87,11 +131,11 @@ class OfflineStore {
   }
 
   /// Daftar kegiatan terakhir dari server, agar layar Scan bisa dibuka tanpa internet.
-  Future<void> saveEvents(List<EventSummary> events) => _prefs.setString(eventsKey, jsonEncode([for (final e in events) e.toJson()]));
+  Future<void> saveEvents(List<EventSummary> events) => _prefs.setString(_key(eventsKey), jsonEncode([for (final e in events) e.toJson()]));
 
   /// Kegiatan tersimpan yang check-in-nya belum ditutup.
   List<EventSummary> loadEvents(DateTime now) {
-    final raw = _prefs.getString(eventsKey);
+    final raw = _prefs.getString(_key(eventsKey));
     if (raw == null) return [];
     try {
       return [for (final j in jsonDecode(raw) as List) EventSummary.fromJson(j as Map<String, dynamic>)].where((e) => e.isOngoingAt(now)).toList();
@@ -116,8 +160,6 @@ class OfflineStore {
     final drop = clientUuids.toSet();
     await _write(pending().where((p) => !drop.contains(p.clientUuid)).toList());
   }
-
-  static const _rejectedKey = 'offline_rejected';
 
   List<RejectedScan> rejected() {
     final raw = _prefs.getString(_rejectedKey);

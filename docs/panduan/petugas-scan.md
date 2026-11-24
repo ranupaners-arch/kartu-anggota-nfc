@@ -70,7 +70,8 @@ ke QR itu. QR berganti tiap menit, jadi tangkapan layar tidak bisa dipakai. **QR
 - Saat offline, scan kartu tetap jalan. Hasil berlabel **Offline** dan muncul
   "**N scan belum tersinkron**".
 - Saat internet kembali, data terkirim otomatis (≤ 30 detik) atau ketuk **Sinkron**.
-  Jangan keluar akun sebelum semua scan tersinkron.
+  Jangan keluar akun sebelum semua scan tersinkron: scan terikat ke akun Anda dan baru terkirim setelah
+  Anda masuk lagi di HP itu.
 - Scan yang sama tidak akan tercatat ganda walau terkirim dua kali.
 - Bila server menolak scan offline (mis. kartu sudah diblokir), Beranda menampilkan **N scan ditolak
   server** → **Lihat rincian** berisi nama, kegiatan, dan alasannya. Laporkan ke pengurus bila perlu

@@ -54,6 +54,7 @@ class _EventsScreenState extends State<EventsScreen> with SessionWatch<EventsScr
   String? _org;
   int _pendingOffline = 0;
   int _rejected = 0;
+  int _othersPending = 0;
   bool _offline = false;
   bool _syncing = false;
   String? _syncNote;
@@ -106,6 +107,7 @@ class _EventsScreenState extends State<EventsScreen> with SessionWatch<EventsScr
         setState(() {
           _pendingOffline = store.pending().length;
           _rejected = store.rejected().length;
+          _othersPending = store.othersPending();
         });
       }
     } catch (_) {
@@ -156,7 +158,7 @@ class _EventsScreenState extends State<EventsScreen> with SessionWatch<EventsScr
     }
   }
 
-  Future<OfflineStore> _openStore() => (widget.offlineStore ?? OfflineStore.open)();
+  Future<OfflineStore> _openStore() => widget.offlineStore?.call() ?? OfflineStore.open(owner: widget.session.owner);
 
   Future<void> _refresh() async {
     final events = _load();
@@ -181,7 +183,7 @@ class _EventsScreenState extends State<EventsScreen> with SessionWatch<EventsScr
       context: context,
       builder: (context) => ShadDialog(
         title: const Text('Keluar dari akun?'),
-        description: const Text('Scan offline yang belum tersinkron tetap tersimpan di HP ini.'),
+        description: const Text('Scan offline yang belum tersinkron tetap tersimpan di HP ini dan baru terkirim setelah akun yang sama masuk lagi.'),
         actions: [
           ShadButton.outline(onPressed: () => Navigator.of(context).pop(false), child: const Text('Batal')),
           ShadButton.destructive(onPressed: () => Navigator.of(context).pop(true), child: const Text('Keluar')),
@@ -303,6 +305,14 @@ class _EventsScreenState extends State<EventsScreen> with SessionWatch<EventsScr
                   icon: const Icon(LucideIcons.cloudUpload),
                   title: Text('$_pendingOffline scan offline belum tersinkron'),
                   description: const Text('Tersimpan aman di HP ini dan terkirim otomatis saat ada sinyal.'),
+                ),
+                const SizedBox(height: 20),
+              ],
+              if (_othersPending > 0) ...[
+                ShadAlert(
+                  icon: const Icon(LucideIcons.users),
+                  title: Text('$_othersPending scan milik akun lain'),
+                  description: const Text('Tersimpan di HP ini dan terkirim setelah akun pemiliknya masuk lagi.'),
                 ),
                 const SizedBox(height: 20),
               ],
