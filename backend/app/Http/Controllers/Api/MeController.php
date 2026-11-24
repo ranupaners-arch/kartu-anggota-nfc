@@ -23,6 +23,7 @@ use App\Services\RegistrationService;
 use App\Services\ReportCardService;
 use App\Services\SelfCardService;
 use App\Services\StatsService;
+use App\Services\RsvpService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -47,7 +48,9 @@ class MeController extends Controller
             ->orderBy('session_id')->get()->groupBy('event_id');
         $excuses = ExcuseRequest::whereIn('event_id', $events->pluck('id'))->where('member_id', $memberId)->get()->keyBy('event_id');
 
-        return ['data' => $events->map(function (Event $e) use ($attendance, $excuses) {
+        $rsvps = app(RsvpService::class)->forMember($events, $memberId);
+
+        return ['data' => $events->map(function (Event $e) use ($attendance, $excuses, $rsvps) {
             $rows = $attendance[$e->id] ?? collect();
             $x = $excuses[$e->id] ?? null;
             $presentSessions = $rows->whereIn('status', ['hadir', 'telat'])->count();
@@ -57,11 +60,21 @@ class MeController extends Controller
                 'my_status' => $rows->last()?->status, // sesi terakhir yang tercatat
                 'sessions' => $sessions,
                 'present_sessions' => $presentSessions,
+                'rsvp' => $rsvps[$e->id] ?? null,
                 'excuse' => $x?->only('id', 'type', 'reason', 'status', 'review_note'),
                 // Izin berlaku untuk sesi yang tidak dihadiri; tidak perlu bila semua sesi sudah dihadiri.
                 'can_request_excuse' => ! $e->closed_at && $presentSessions < $sessions && (! $x || $x->status === 'pending'),
             ];
         })];
+    }
+
+    public function rsvp(Request $r, Event $event, RsvpService $rsvps)
+    {
+        $d = $r->validate(['going' => 'required|boolean']);
+        $memberId = $this->memberId($r);
+        $rsvps->respond($event, $memberId, (bool) $d['going']);
+
+        return $rsvps->forMember(collect([$event->fresh()]), $memberId)[$event->id];
     }
 
     /** Pengumuman aktif untuk anggota ini (semua anggota + divisinya di periode berjalan); disematkan dulu. */

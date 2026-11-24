@@ -20,7 +20,7 @@ class Event extends Model
             'starts_at' => 'datetime', 'ends_at' => 'datetime',
             'checkin_opens_at' => 'datetime', 'late_after' => 'datetime',
             'checkin_closes_at' => 'datetime', 'closed_at' => 'datetime',
-            'is_mandatory' => 'boolean',
+            'is_mandatory' => 'boolean', 'rsvp_enabled' => 'boolean', 'rsvp_deadline' => 'datetime', 'quota' => 'integer',
         ];
     }
 
