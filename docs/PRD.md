@@ -5,7 +5,7 @@
 | **Status** | Draft v1.1 |
 | **Tanggal** | 2026-11-16 |
 | **Pemilik** | Ranu |
-| **Stack** | Flutter (mobile), Laravel 13 (API + dashboard Blade), PostgreSQL, Redis |
+| **Stack** | Flutter (mobile), Laravel 13 (API + dashboard Inertia + React), PostgreSQL, Redis |
 
 ---
 
@@ -222,7 +222,7 @@ Semua rekap dan (fase 2) poin dihitung per periode, dan selalu dalam lingkup sat
 ## 10. Arsitektur
 
 ```
-Kartu NTAG ─tap─▶ Flutter App ──HTTPS/JSON──▶ Laravel (API + Blade) ─▶ PostgreSQL
+Kartu NTAG ─tap─▶ Flutter App ──HTTPS/JSON──▶ Laravel (API + web) ───▶ PostgreSQL
 Browser (Dashboard) ──────────────────────────▶         │            ▶ Redis (queue/cache)
 ESP32+PN532 (fase 3) ─────────────────────────▶         │            ▶ Storage (foto/bukti/ekspor)
 ```

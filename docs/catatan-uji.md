@@ -176,7 +176,19 @@ dan — untuk alur pendaftaran — **Pengaturan → Aplikasi → Buka pendaftara
   *Periode sebelumnya* → centang → *Perpanjang*.
 - Ubah peran akun di Pengguna & Peran → HP akun itu keluar sendiri, layar Masuk menampilkan penjelasan.
 
-## Belum diuji
+## 2026-11-24 · Uji kartu NFC (laporan penguji)
 
-- Baca/tulis kartu NTAG215 (kartu belum ada).
+Versi APK dan rincian langkah tidak dicatat.
+
+| Yang diuji | Hasil | Status |
+|---|---|---|
+| Kartu NFC di app | **Berhasil** | OK |
+| Scan offline | **Belum berhasil** (gejala di layar tidak dicatat) | Perbaikan di PR #70; perlu uji ulang di HP |
+
+## Perlu diuji ulang
+
+- **Scan offline (setelah PR #70 masuk APK):** online → buka Beranda, tunggu beberapa detik → mode pesawat
+  (nyalakan lagi NFC) → tutup paksa & buka app → pilih kegiatan → tempel kartu → hasil berlabel *Offline* →
+  sambungkan internet, tetap di layar Scan → antrean terkirim ±30 detik. Ulangi dengan internet menyala
+  tetapi Tailscale/server mati.
 
