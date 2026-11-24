@@ -119,7 +119,11 @@ Kehadiran Anda periode ini dihitung menjadi **poin** (hadir 10, telat 6, izin/sa
 **lencana**: *Langkah Pertama*, *Tepat Waktu* (5× tepat waktu berturut-turut), *Beruntun* (10× hadir
 berturut-turut), *Rajin* (kehadiran ≥ 90%), *Tanpa Alpa*, dan *Kartu Setia* (selalu absen dengan kartu NFC,
 bukan QR). Lihat di **Riwayat → Poin & lencana** atau ketuk baris poin di kartu kehadiran **Beranda**;
-ketuk lencana untuk melihat syarat & progresnya. Hanya Anda yang bisa melihatnya (tidak ada papan peringkat).
+ketuk lencana untuk melihat syarat & progresnya. Poin & lencana hanya Anda yang melihat.
+
+**Papan peringkat** (Riwayat): Anda selalu bisa melihat peringkat sendiri. Nama Anda **tidak tampil** untuk anggota
+lain kecuali Anda memilih **Tampilkan nama saya** (yang terlihat: nama, divisi, poin); bisa disembunyikan lagi
+kapan saja.
 
 ## Denda
 
