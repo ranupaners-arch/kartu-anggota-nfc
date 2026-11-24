@@ -392,6 +392,12 @@ class ApiClient {
     return [for (final r in j['results'] as List) r as Map<String, dynamic>];
   }
 
+  /// Perangkat dicabut: kirim scan tersisa untuk ditinjau pengurus (token lama).
+  Future<List<Map<String, dynamic>>> heldScans(List<Map<String, dynamic>> scans) async {
+    final j = await _send('POST', '/api/devices/held-scans', {'scans': scans});
+    return [for (final r in j['results'] as List) r as Map<String, dynamic>];
+  }
+
   Future<Map<String, dynamic>> _send(String method, String path, [Map<String, dynamic>? body, Duration timeout = const Duration(seconds: 10)]) async {
     final req = http.Request(method, Uri.parse('$baseUrl$path'))
       ..headers.addAll({'Accept': 'application/json', if (body != null) 'Content-Type': 'application/json', if (token != null) 'Authorization': 'Bearer $token'});
