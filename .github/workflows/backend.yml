@@ -1,9 +1,8 @@
 name: Backend (Laravel)
 
-# Hanya di pull request (tidak diulang setelah merge ke main: isinya sama dengan yang sudah lulus di PR).
+# Dipanggil workflow CI (gerbang.yml) di pull request yang mengubah bagian ini; bisa juga dijalankan manual.
 on:
-  pull_request:
-    paths: ['backend/**', '.github/workflows/backend.yml']
+  workflow_call:
   workflow_dispatch:
 
 # Hemat menit Actions: push baru di PR yang sama membatalkan run yang masih berjalan.
@@ -12,7 +11,8 @@ permissions:
   contents: read
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  # Nama tetap: saat dipanggil, github.workflow berisi nama pemanggil (grupnya akan bentrok).
+  group: backend-${{ github.ref }}
   cancel-in-progress: true
 
 defaults:

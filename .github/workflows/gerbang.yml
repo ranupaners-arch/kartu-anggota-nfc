@@ -1,0 +1,60 @@
+name: CI
+
+# Satu pemeriksaan yang SELALU berjalan di pull request, sehingga job "gerbang" aman dijadikan status check
+# wajib: PR dokumentasi tidak menggantung, dan tes hanya dijalankan untuk bagian yang berubah.
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ubah:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      backend: ${{ steps.cek.outputs.backend }}
+      app: ${{ steps.cek.outputs.app }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 2 # commit merge PR: induk pertama = main
+      - id: cek
+        run: |
+          berkas=$(git diff --name-only HEAD^1 HEAD)
+          cocok() { if grep -qE "$1" <<< "$berkas"; then echo true; else echo false; fi; }
+          {
+            echo "backend=$(cocok '^(backend/|\.github/workflows/(backend|gerbang)\.yml$)')"
+            echo "app=$(cocok '^(app/|\.github/workflows/(app|gerbang)\.yml$)')"
+          } | tee -a "$GITHUB_OUTPUT"
+
+  backend:
+    needs: ubah
+    if: needs.ubah.outputs.backend == 'true'
+    uses: ./.github/workflows/backend.yml
+
+  app:
+    needs: ubah
+    if: needs.ubah.outputs.app == 'true'
+    uses: ./.github/workflows/app.yml
+
+  gerbang:
+    needs: [ubah, backend, app]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - env:
+          UBAH: ${{ needs.ubah.result }}
+          BACKEND: ${{ needs.backend.result }}
+          APP: ${{ needs.app.result }}
+        run: |
+          echo "ubah=$UBAH backend=$BACKEND app=$APP"
+          [ "$UBAH" = success ] || exit 1
+          for r in "$BACKEND" "$APP"; do
+            case "$r" in success | skipped) ;; *) exit 1 ;; esac
+          done
