@@ -18,8 +18,10 @@ class StatsService
 {
     /** Alpa berturut-turut (dari yang terbaru) yang memicu peringatan. */
     public const ALPA_STREAK = 3;
+
     /** Persentase hadir minimum; di bawahnya diperingatkan bila sudah cukup data. */
     public const MIN_RATE = 60;
+
     public const MIN_RECORDS = 5;
 
     public function __construct(private EventService $events) {}

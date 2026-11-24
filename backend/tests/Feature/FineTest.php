@@ -2,9 +2,9 @@
 
 namespace Tests\Feature;
 
-use App\Models\Attendance;
 use App\Models\Card;
 use App\Models\Event;
+use App\Models\Export;
 use App\Models\Fine;
 use App\Models\Member;
 use App\Models\MemberQr;
@@ -14,6 +14,7 @@ use App\Models\Term;
 use App\Models\User;
 use App\Support\CardPayload;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Inertia\Testing\AssertableInertia as Assert;
 use Laravel\Sanctum\Sanctum;
@@ -25,8 +26,11 @@ class FineTest extends TestCase
     use RefreshDatabase;
 
     private Organization $org;
+
     private Term $term;
+
     private User $admin;
+
     private User $scanner;
 
     protected function setUp(): void
@@ -129,13 +133,13 @@ class FineTest extends TestCase
 
     public function test_term_report_and_export_include_fines(): void
     {
-        \Illuminate\Support\Facades\Storage::fake('local');
+        Storage::fake('local');
         $this->policy(true, 5000);
         $m = $this->member('A', true);
         $this->member('B', false);
         $this->scanQr($m, $this->event());
         $this->scanQr($m, $this->event());
-        \App\Models\Fine::orderBy('id')->first()->update(['status' => Fine::PAID]);
+        Fine::orderBy('id')->first()->update(['status' => Fine::PAID]);
         auth()->forgetGuards();
 
         $this->actingAs($this->admin, 'web')->get('/rekap?tab=periode')->assertInertia(fn (Assert $p) => $p
@@ -144,11 +148,11 @@ class FineTest extends TestCase
                 && collect($rows)->firstWhere('member_no', 'A')['fines_paid'] === 5000 && collect($rows)->firstWhere('member_no', 'B')['fines_count'] === 0));
 
         $this->actingAs($this->admin, 'web')->post(route('exports.store'), ['report' => 'term', 'term_id' => $this->term->id, 'format' => 'pdf'])->assertRedirect();
-        $export = \App\Models\Export::sole();
+        $export = Export::sole();
         $this->assertSame('ready', $export->fresh()->status);
 
         $this->policy(false);
-        \App\Models\Fine::query()->delete();
+        Fine::query()->delete();
         $this->actingAs($this->admin, 'web')->get('/rekap?tab=periode')->assertInertia(fn (Assert $p) => $p->where('report.show_fines', false));
     }
 

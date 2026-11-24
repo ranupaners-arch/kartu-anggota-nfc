@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Device;
+use App\Services\DeviceService;
 
 class DeviceController extends Controller
 {
@@ -14,6 +15,6 @@ class DeviceController extends Controller
 
     public function revoke(Device $device)
     {
-        return app(\App\Services\DeviceService::class)->revoke($device);
+        return app(DeviceService::class)->revoke($device);
     }
 }

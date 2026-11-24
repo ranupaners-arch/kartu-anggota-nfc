@@ -10,6 +10,8 @@ use App\Models\Membership;
 use App\Models\Organization;
 use App\Models\Term;
 use App\Models\User;
+use App\Services\HeldScanService;
+use App\Services\UserService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
 use Tests\TestCase;
@@ -188,9 +190,9 @@ class HeldScanTest extends TestCase
 
     public function test_role_change_and_disable_hold_scans_too(): void
     {
-        $users = app(\App\Services\UserService::class);
+        $users = app(UserService::class);
         $cases = [
-            fn () => app(\App\Services\UserService::class)->update($this->admin, $this->scanner->fresh(), ['role' => 'member']),
+            fn () => app(UserService::class)->update($this->admin, $this->scanner->fresh(), ['role' => 'member']),
             fn () => $users->setDisabled($this->admin, $this->scanner->fresh(), true),
         ];
         foreach ($cases as $i => $end) {
@@ -207,7 +209,7 @@ class HeldScanTest extends TestCase
 
     public function test_next_login_on_the_device_closes_the_old_token_and_owner_stays_on_the_scan(): void
     {
-        app(\App\Services\HeldScanService::class)->signOut($this->scanner);
+        app(HeldScanService::class)->signOut($this->scanner);
         $this->upload([$this->item()])->assertOk();
         $other = User::factory()->create(['organization_id' => $this->org->id, 'role' => 'scanner', 'password' => 'secret123']);
         $this->app['auth']->forgetGuards();
@@ -222,7 +224,7 @@ class HeldScanTest extends TestCase
     public function test_password_reset_does_not_open_the_upload_path(): void
     {
         $this->actingAs($this->admin);
-        app(\App\Services\UserService::class)->resetPassword($this->admin, $this->scanner->fresh());
+        app(UserService::class)->resetPassword($this->admin, $this->scanner->fresh());
         $this->upload([$this->item()])->assertForbidden();
     }
 }

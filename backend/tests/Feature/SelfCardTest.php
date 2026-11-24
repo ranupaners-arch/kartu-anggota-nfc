@@ -20,8 +20,11 @@ class SelfCardTest extends TestCase
     use RefreshDatabase;
 
     private Organization $org;
+
     private Term $term;
+
     private Member $budi;
+
     private User $user;
 
     protected function setUp(): void

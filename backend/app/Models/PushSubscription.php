@@ -14,5 +14,8 @@ class PushSubscription extends Model
         return ['last_used_at' => 'datetime'];
     }
 
-    public function user() { return $this->belongsTo(User::class); }
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }

@@ -7,6 +7,7 @@ use App\Models\Announcement;
 use App\Models\Division;
 use App\Models\User;
 use App\Services\AuditLogger;
+use App\Services\Push\PushService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -34,7 +35,7 @@ class AnnouncementController extends Controller
         AuditLogger::log('announcement.created', 'announcement', $a->id);
         // Notifikasi push ke HP anggota (portal web) — di antrean agar tidak memperlambat halaman.
         $id = $a->id;
-        dispatch(fn () => app(\App\Services\Push\PushService::class)->announcement(\App\Models\Announcement::withoutGlobalScopes()->findOrFail($id)));
+        dispatch(fn () => app(PushService::class)->announcement(Announcement::withoutGlobalScopes()->findOrFail($id)));
 
         return back()->with('status', 'Pengumuman diterbitkan.');
     }

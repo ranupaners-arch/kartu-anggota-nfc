@@ -21,6 +21,7 @@ class GenerateExport implements ShouldQueue
     use Queueable;
 
     public int $tries = 2;
+
     public int $timeout = 300;
 
     public function __construct(public int $exportId) {}

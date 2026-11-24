@@ -24,10 +24,25 @@ class Event extends Model
         ];
     }
 
-    public function term() { return $this->belongsTo(Term::class); }
-    public function sessions() { return $this->hasMany(EventSession::class); }
-    public function targets() { return $this->hasMany(EventTarget::class); }
-    public function attendances() { return $this->hasMany(Attendance::class); }
+    public function term()
+    {
+        return $this->belongsTo(Term::class);
+    }
+
+    public function sessions()
+    {
+        return $this->hasMany(EventSession::class);
+    }
+
+    public function targets()
+    {
+        return $this->hasMany(EventTarget::class);
+    }
+
+    public function attendances()
+    {
+        return $this->hasMany(Attendance::class);
+    }
 
     protected static function booted(): void
     {

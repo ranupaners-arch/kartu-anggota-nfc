@@ -17,7 +17,9 @@ use Throwable;
 class HealthService
 {
     public const QUEUE_BEAT = 'health:queue-beat';
+
     public const SCHEDULER_BEAT = 'health:scheduler-beat';
+
     public const BOOTED_AT = 'health:first-seen';
 
     /** Detak lebih tua dari ini = proses dianggap mati. */

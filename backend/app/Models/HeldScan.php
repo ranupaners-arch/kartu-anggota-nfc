@@ -11,7 +11,9 @@ class HeldScan extends Model
     use BelongsToOrganization;
 
     public const PENDING = 'pending';
+
     public const ACCEPTED = 'accepted';
+
     public const REJECTED = 'rejected';
 
     protected $guarded = [];
@@ -23,8 +25,23 @@ class HeldScan extends Model
         return ['scanned_at' => 'datetime', 'reviewed_at' => 'datetime', 'access_ended_at' => 'datetime'];
     }
 
-    public function device() { return $this->belongsTo(Device::class); }
-    public function user() { return $this->belongsTo(User::class); }
-    public function event() { return $this->belongsTo(Event::class); }
-    public function member() { return $this->belongsTo(Member::class); }
+    public function device()
+    {
+        return $this->belongsTo(Device::class);
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function event()
+    {
+        return $this->belongsTo(Event::class);
+    }
+
+    public function member()
+    {
+        return $this->belongsTo(Member::class);
+    }
 }

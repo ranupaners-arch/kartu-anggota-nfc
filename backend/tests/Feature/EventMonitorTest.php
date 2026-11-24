@@ -22,9 +22,13 @@ class EventMonitorTest extends TestCase
     use RefreshDatabase;
 
     private Organization $org;
+
     private Term $term;
+
     private Division $humas;
+
     private User $admin;
+
     private Event $event;
 
     protected function setUp(): void

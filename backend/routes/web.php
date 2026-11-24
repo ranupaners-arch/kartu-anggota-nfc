@@ -1,16 +1,21 @@
 <?php
 
+use App\Http\Controllers\Api\MeController;
+use App\Http\Controllers\CalendarFeedController;
 use App\Http\Controllers\Dashboard;
+use App\Http\Controllers\Portal\PortalController;
+use App\Http\Controllers\Publik\RegistrationController;
+use App\Http\Controllers\Scanner\ScannerController;
 use Illuminate\Support\Facades\Route;
 
 // Langganan jadwal (.ics): tanpa login, token rahasia di URL.
-Route::get('jadwal/{token}.ics', [App\Http\Controllers\CalendarFeedController::class, 'show'])
+Route::get('jadwal/{token}.ics', [CalendarFeedController::class, 'show'])
     ->where('token', '[A-Za-z0-9]{48}')->middleware('throttle:30,1')->name('calendar.feed');
 
 // Pendaftaran anggota mandiri (tautan publik dari pengurus).
-Route::get('daftar/{token}', [App\Http\Controllers\Publik\RegistrationController::class, 'show'])->where('token', '[A-Za-z0-9]{24}')->name('register.show');
-Route::post('daftar/{token}', [App\Http\Controllers\Publik\RegistrationController::class, 'store'])->where('token', '[A-Za-z0-9]{24}')->middleware('throttle:5,1')->name('register.store');
-Route::get('daftar/{token}/terkirim', [App\Http\Controllers\Publik\RegistrationController::class, 'done'])->where('token', '[A-Za-z0-9]{24}')->name('register.done');
+Route::get('daftar/{token}', [RegistrationController::class, 'show'])->where('token', '[A-Za-z0-9]{24}')->name('register.show');
+Route::post('daftar/{token}', [RegistrationController::class, 'store'])->where('token', '[A-Za-z0-9]{24}')->middleware('throttle:5,1')->name('register.store');
+Route::get('daftar/{token}/terkirim', [RegistrationController::class, 'done'])->where('token', '[A-Za-z0-9]{24}')->name('register.done');
 
 Route::middleware('guest')->group(function () {
     Route::get('masuk', [Dashboard\AuthController::class, 'show'])->name('login');
@@ -25,30 +30,30 @@ Route::middleware('guest')->group(function () {
 
 // Portal anggota (web, untuk yang tidak memakai app Android).
 Route::middleware(['auth:web', 'portal'])->prefix('saya')->name('portal.')->group(function () {
-    Route::get('/', [App\Http\Controllers\Portal\PortalController::class, 'qr'])->name('qr');
-    Route::get('kegiatan', [App\Http\Controllers\Portal\PortalController::class, 'events'])->name('events');
-    Route::post('izin', [App\Http\Controllers\Portal\PortalController::class, 'storeExcuse'])->middleware('throttle:10,1')->name('excuse');
-    Route::get('riwayat', [App\Http\Controllers\Portal\PortalController::class, 'history'])->name('history');
-    Route::get('foto', [App\Http\Controllers\Api\MeController::class, 'photo'])->name('photo');
-    Route::get('kartu.pdf', [App\Http\Controllers\Api\MeController::class, 'cardPdf'])->middleware('throttle:10,1')->name('card-pdf');
-    Route::get('e-profil', [App\Http\Controllers\Portal\PortalController::class, 'profileForm'])->name('profile');
-    Route::post('e-profil', [App\Http\Controllers\Portal\PortalController::class, 'submitProfile'])->middleware('throttle:5,1')->name('profile.store');
-    Route::get('rapor', [App\Http\Controllers\Portal\PortalController::class, 'reportCard'])->middleware('throttle:10,1')->name('report-card');
-    Route::get('akun', [App\Http\Controllers\Portal\PortalController::class, 'account'])->name('account');
-    Route::put('password', [App\Http\Controllers\Portal\PortalController::class, 'password'])->middleware('throttle:10,1')->name('password');
-    Route::post('kalender', [App\Http\Controllers\CalendarFeedController::class, 'reset'])->name('calendar');
-    Route::post('notifikasi', [App\Http\Controllers\Portal\PortalController::class, 'subscribePush'])->middleware('throttle:20,1')->name('push.subscribe');
-    Route::delete('notifikasi', [App\Http\Controllers\Portal\PortalController::class, 'unsubscribePush'])->name('push.unsubscribe');
-    Route::post('notifikasi/uji', [App\Http\Controllers\Portal\PortalController::class, 'testPush'])->middleware('throttle:5,1')->name('push.test');
+    Route::get('/', [PortalController::class, 'qr'])->name('qr');
+    Route::get('kegiatan', [PortalController::class, 'events'])->name('events');
+    Route::post('izin', [PortalController::class, 'storeExcuse'])->middleware('throttle:10,1')->name('excuse');
+    Route::get('riwayat', [PortalController::class, 'history'])->name('history');
+    Route::get('foto', [MeController::class, 'photo'])->name('photo');
+    Route::get('kartu.pdf', [MeController::class, 'cardPdf'])->middleware('throttle:10,1')->name('card-pdf');
+    Route::get('e-profil', [PortalController::class, 'profileForm'])->name('profile');
+    Route::post('e-profil', [PortalController::class, 'submitProfile'])->middleware('throttle:5,1')->name('profile.store');
+    Route::get('rapor', [PortalController::class, 'reportCard'])->middleware('throttle:10,1')->name('report-card');
+    Route::get('akun', [PortalController::class, 'account'])->name('account');
+    Route::put('password', [PortalController::class, 'password'])->middleware('throttle:10,1')->name('password');
+    Route::post('kalender', [CalendarFeedController::class, 'reset'])->name('calendar');
+    Route::post('notifikasi', [PortalController::class, 'subscribePush'])->middleware('throttle:20,1')->name('push.subscribe');
+    Route::delete('notifikasi', [PortalController::class, 'unsubscribePush'])->name('push.unsubscribe');
+    Route::post('notifikasi/uji', [PortalController::class, 'testPush'])->middleware('throttle:5,1')->name('push.test');
 });
 
 // Mode petugas di browser: pindai QR Saya dengan kamera.
 Route::middleware(['auth:web', 'scanner.web'])->prefix('pindai')->name('scanner.')->group(function () {
-    Route::get('/', [App\Http\Controllers\Scanner\ScannerController::class, 'index'])->name('index');
-    Route::get('password', [App\Http\Controllers\Scanner\ScannerController::class, 'password'])->name('password');
-    Route::put('password', [App\Http\Controllers\Scanner\ScannerController::class, 'updatePassword'])->middleware('throttle:10,1')->name('password.update');
-    Route::get('{event}', [App\Http\Controllers\Scanner\ScannerController::class, 'show'])->whereNumber('event')->name('show');
-    Route::post('{event}/scan', [App\Http\Controllers\Scanner\ScannerController::class, 'scan'])->whereNumber('event')->middleware('throttle:120,1')->name('scan');
+    Route::get('/', [ScannerController::class, 'index'])->name('index');
+    Route::get('password', [ScannerController::class, 'password'])->name('password');
+    Route::put('password', [ScannerController::class, 'updatePassword'])->middleware('throttle:10,1')->name('password.update');
+    Route::get('{event}', [ScannerController::class, 'show'])->whereNumber('event')->name('show');
+    Route::post('{event}/scan', [ScannerController::class, 'scan'])->whereNumber('event')->middleware('throttle:120,1')->name('scan');
     Route::get('{event}/foto/{member}', [Dashboard\EventMonitorController::class, 'photo'])->whereNumber(['event', 'member'])->name('photo');
 });
 
@@ -58,12 +63,12 @@ Route::middleware(['auth:web', 'dashboard'])->group(function () {
     Route::get('cari', Dashboard\SearchController::class)->middleware('throttle:60,1')->name('search');
     Route::get('akun', [Dashboard\AccountController::class, 'edit'])->name('account');
     // Notifikasi push dashboard (mis. pendaftar & laporan kartu baru) — endpoint sama dengan portal.
-    Route::post('akun/notifikasi', [App\Http\Controllers\Portal\PortalController::class, 'subscribePush'])->middleware('throttle:20,1')->name('account.push.subscribe');
-    Route::delete('akun/notifikasi', [App\Http\Controllers\Portal\PortalController::class, 'unsubscribePush'])->name('account.push.unsubscribe');
-    Route::post('akun/notifikasi/uji', [App\Http\Controllers\Portal\PortalController::class, 'testPush'])->middleware('throttle:5,1')->name('account.push.test');
+    Route::post('akun/notifikasi', [PortalController::class, 'subscribePush'])->middleware('throttle:20,1')->name('account.push.subscribe');
+    Route::delete('akun/notifikasi', [PortalController::class, 'unsubscribePush'])->name('account.push.unsubscribe');
+    Route::post('akun/notifikasi/uji', [PortalController::class, 'testPush'])->middleware('throttle:5,1')->name('account.push.test');
     Route::put('akun/ringkasan', [Dashboard\AccountController::class, 'weeklySummary'])->name('account.weekly-summary');
     Route::get('akun/ringkasan/contoh', [Dashboard\AccountController::class, 'weeklySummaryPreview'])->name('account.weekly-summary.preview');
-    Route::post('akun/kalender', [App\Http\Controllers\CalendarFeedController::class, 'reset'])->name('account.calendar.reset');
+    Route::post('akun/kalender', [CalendarFeedController::class, 'reset'])->name('account.calendar.reset');
     Route::put('akun/password', [Dashboard\AccountController::class, 'password'])->name('account.password');
     Route::post('akun/2fa', [Dashboard\AccountController::class, 'startTwoFactor'])->name('account.2fa.start');
     Route::post('akun/2fa/konfirmasi', [Dashboard\AccountController::class, 'confirmTwoFactor'])->middleware('throttle:10,1')->name('account.2fa.confirm');

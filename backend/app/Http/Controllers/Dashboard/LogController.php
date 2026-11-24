@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Inertia\Inertia;
 
 class LogController extends Controller
@@ -17,7 +18,7 @@ class LogController extends Controller
             ->when($r->query('action'), fn ($q, $a) => $q->where('action', 'like', rtrim($a, '.').'.%'))
             ->when($r->query('user_id'), fn ($q, $u) => $q->where('user_id', $u))
             ->when($r->query('from'), fn ($q, $d) => $q->where('created_at', '>=', $d))
-            ->when($r->query('to'), fn ($q, $d) => $q->where('created_at', '<', \Illuminate\Support\Carbon::parse($d)->addDay()))
+            ->when($r->query('to'), fn ($q, $d) => $q->where('created_at', '<', Carbon::parse($d)->addDay()))
             ->latest('created_at')->paginate(50)->withQueryString();
 
         return Inertia::render('logs/index', [

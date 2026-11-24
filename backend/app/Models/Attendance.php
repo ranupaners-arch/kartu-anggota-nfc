@@ -12,9 +12,13 @@ class Attendance extends Model
     public string $organizationThrough = 'event';
 
     public const HADIR = 'hadir';
+
     public const TELAT = 'telat';
+
     public const IZIN = 'izin';
+
     public const SAKIT = 'sakit';
+
     public const ALPA = 'alpa';
 
     protected $guarded = [];
@@ -27,7 +31,18 @@ class Attendance extends Model
         ];
     }
 
-    public function member() { return $this->belongsTo(Member::class); }
-    public function event() { return $this->belongsTo(Event::class); }
-    public function changes() { return $this->hasMany(AttendanceChange::class); }
+    public function member()
+    {
+        return $this->belongsTo(Member::class);
+    }
+
+    public function event()
+    {
+        return $this->belongsTo(Event::class);
+    }
+
+    public function changes()
+    {
+        return $this->hasMany(AttendanceChange::class);
+    }
 }

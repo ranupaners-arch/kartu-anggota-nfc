@@ -2,17 +2,20 @@
 
 namespace Tests\Feature;
 
+use App\Models\Attendance;
 use App\Models\Card;
-use App\Models\Device;
 use App\Models\Division;
 use App\Models\Event;
+use App\Models\ExcuseRequest;
 use App\Models\Member;
 use App\Models\Membership;
 use App\Models\Organization;
 use App\Models\Term;
 use App\Models\User;
-use App\Support\CardPayload;
+use App\Services\CloseEvent;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Tests\TestCase;
 
@@ -21,9 +24,13 @@ class ScanFlowTest extends TestCase
     use RefreshDatabase;
 
     private Organization $org;
+
     private Term $term;
+
     private Event $event;
+
     private User $admin;
+
     private User $scanner;
 
     protected function setUp(): void
@@ -161,7 +168,7 @@ class ScanFlowTest extends TestCase
         $at = now()->toIso8601String();
 
         $this->travel(3)->hours();
-        app(\App\Services\CloseEvent::class)->handle($this->event->fresh());
+        app(CloseEvent::class)->handle($this->event->fresh());
         $this->assertDatabaseHas('attendances', ['member_id' => $m->id, 'status' => 'alpa']);
 
         $this->actingAs($this->scanner, 'sanctum')->postJson("/api/events/{$this->event->id}/scan/batch", ['scans' => [
@@ -178,9 +185,9 @@ class ScanFlowTest extends TestCase
         $absent = $this->member('2');
         $sick = $this->member('3');
         $this->scan($this->issueCard($present))->assertJson(['status' => 'ok']);
-        \App\Models\ExcuseRequest::create(['event_id' => $this->event->id, 'member_id' => $sick->id, 'type' => 'sakit', 'reason' => 'demam', 'status' => 'approved']);
+        ExcuseRequest::create(['event_id' => $this->event->id, 'member_id' => $sick->id, 'type' => 'sakit', 'reason' => 'demam', 'status' => 'approved']);
 
-        app(\App\Services\CloseEvent::class)->handle($this->event);
+        app(CloseEvent::class)->handle($this->event);
 
         $this->assertDatabaseHas('attendances', ['member_id' => $absent->id, 'status' => 'alpa']);
         $this->assertDatabaseHas('attendances', ['member_id' => $sick->id, 'status' => 'sakit']);
@@ -190,7 +197,7 @@ class ScanFlowTest extends TestCase
     public function test_correction_keeps_history_and_requires_reason(): void
     {
         $this->scan($this->issueCard($this->member()))->assertJson(['status' => 'ok']);
-        $att = \App\Models\Attendance::first();
+        $att = Attendance::first();
 
         $this->actingAs($this->admin, 'sanctum')->patchJson("/api/attendances/{$att->id}", ['status' => 'izin'])->assertUnprocessable();
         $this->actingAs($this->admin, 'sanctum')->patchJson("/api/attendances/{$att->id}", ['status' => 'izin', 'reason' => 'Salah catat'])->assertOk();
@@ -309,23 +316,23 @@ class ScanFlowTest extends TestCase
 
     public function test_scan_result_has_photo_url_scanner_can_open(): void
     {
-        \Illuminate\Support\Facades\Storage::fake('local');
+        Storage::fake('local');
         $m = $this->member();
         $payload = $this->issueCard($m);
         $this->actingAs($this->admin, 'sanctum')->post("/api/members/{$m->id}/photo",
-            ['photo' => \Illuminate\Http\UploadedFile::fake()->image('wajah.jpg', 800, 800)], ['Accept' => 'application/json'])->assertOk();
+            ['photo' => UploadedFile::fake()->image('wajah.jpg', 800, 800)], ['Accept' => 'application/json'])->assertOk();
 
         $url = $this->scan($payload)->assertJson(['status' => 'ok'])->json('member.photo_url');
         $this->assertStringContainsString("/api/members/{$m->id}/photo", $url);
         $this->actingAs($this->scanner, 'sanctum')->get(parse_url($url, PHP_URL_PATH))->assertOk()->assertHeader('Content-Type', 'image/jpeg');
 
         // Roster (dipakai app untuk foto offline) memakai URL yang sama; versi berubah saat foto diganti.
-        $event = \App\Models\Event::findOrFail($this->event->id);
+        $event = Event::findOrFail($this->event->id);
         $roster = collect($this->actingAs($this->scanner, 'sanctum')->getJson("/api/events/{$event->id}/roster")->json('members'))->firstWhere('id', $m->id);
         $this->assertSame($url, $roster['photo_url']);
         $this->assertMatchesRegularExpression('/\?v=[0-9a-f]{8}$/', $url);
         $this->actingAs($this->admin, 'sanctum')->post("/api/members/{$m->id}/photo",
-            ['photo' => \Illuminate\Http\UploadedFile::fake()->image('baru.jpg', 300, 300)], ['Accept' => 'application/json'])->assertOk();
+            ['photo' => UploadedFile::fake()->image('baru.jpg', 300, 300)], ['Accept' => 'application/json'])->assertOk();
         $this->assertNotSame($url, $this->scan($payload)->json('member.photo_url'));
     }
 }

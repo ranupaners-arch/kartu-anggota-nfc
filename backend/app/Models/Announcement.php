@@ -17,8 +17,15 @@ class Announcement extends Model
         return ['pinned' => 'boolean', 'expires_at' => 'datetime'];
     }
 
-    public function division() { return $this->belongsTo(Division::class); }
-    public function author() { return $this->belongsTo(User::class, 'created_by'); }
+    public function division()
+    {
+        return $this->belongsTo(Division::class);
+    }
+
+    public function author()
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
 
     /** Belum kedaluwarsa. */
     public function scopeActive(Builder $q): Builder

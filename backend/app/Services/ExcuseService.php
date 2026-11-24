@@ -7,8 +7,8 @@ use App\Models\Event;
 use App\Models\ExcuseRequest;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 /** Pengajuan izin/sakit. */

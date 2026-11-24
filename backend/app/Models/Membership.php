@@ -13,7 +13,18 @@ class Membership extends Model
 
     protected $guarded = [];
 
-    public function member() { return $this->belongsTo(Member::class); }
-    public function term() { return $this->belongsTo(Term::class); }
-    public function division() { return $this->belongsTo(Division::class); }
+    public function member()
+    {
+        return $this->belongsTo(Member::class);
+    }
+
+    public function term()
+    {
+        return $this->belongsTo(Term::class);
+    }
+
+    public function division()
+    {
+        return $this->belongsTo(Division::class);
+    }
 }

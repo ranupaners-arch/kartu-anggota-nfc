@@ -11,6 +11,7 @@ use App\Models\Term;
 use App\Models\User;
 use App\Services\AuditLogger;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Carbon;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
@@ -20,8 +21,11 @@ class FilterTest extends TestCase
     use RefreshDatabase;
 
     private Organization $org;
+
     private Term $term;
+
     private User $admin;
+
     private Division $humas;
 
     protected function setUp(): void
@@ -36,7 +40,7 @@ class FilterTest extends TestCase
 
     private function event(string $title, string $start, array $extra = []): Event
     {
-        $s = \Illuminate\Support\Carbon::parse($start);
+        $s = Carbon::parse($start);
 
         return Event::create($extra + ['organization_id' => $this->org->id, 'term_id' => $this->term->id, 'title' => $title,
             'starts_at' => $s, 'ends_at' => $s->copy()->addHour(), 'checkin_opens_at' => $s->copy()->subMinutes(30),

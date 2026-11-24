@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -23,7 +24,7 @@ return new class extends Migration
         });
 
         // Maks. satu kartu aktif per anggota (aturan PRD 7.2)
-        \Illuminate\Support\Facades\DB::statement(
+        DB::statement(
             "CREATE UNIQUE INDEX cards_one_active_per_member ON cards (member_id) WHERE status = 'active'"
         );
 

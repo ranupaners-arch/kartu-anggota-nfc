@@ -6,8 +6,13 @@ use App\Http\Controllers\Controller;
 use App\Models\Device;
 use App\Models\User;
 use App\Services\AuditLogger;
+use App\Services\PasswordResetService;
+use App\Services\RegistrationService;
+use App\Services\TwoFactorService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
+use Illuminate\Validation\Rules\Password;
 use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
@@ -26,7 +31,7 @@ class AuthController extends Controller
         }
         abort_if($user->disabled_at, 403, 'Akun dinonaktifkan. Hubungi pengurus.');
 
-        $twoFactor = app(\App\Services\TwoFactorService::class);
+        $twoFactor = app(TwoFactorService::class);
         if ($twoFactor->enabled($user)) {
             if (empty($d['otp'])) {
                 return response()->json(['message' => 'Masukkan kode 2FA dari aplikasi authenticator.', 'otp_required' => true,
@@ -41,14 +46,14 @@ class AuthController extends Controller
     }
 
     /** Daftar akun anggota dari app (hanya selama pendaftaran mandiri dibuka); langsung masuk. */
-    public function register(Request $r, \App\Services\RegistrationService $registrations)
+    public function register(Request $r, RegistrationService $registrations)
     {
         $org = $registrations->defaultOrganization();
         abort_unless($registrations->isOpen($org), 403, 'Pendaftaran akun sedang ditutup. Hubungi pengurus organisasi.');
-        $r->merge(['email' => \Illuminate\Support\Str::lower(trim((string) $r->input('email')))]); // unik tanpa beda huruf besar/kecil
+        $r->merge(['email' => Str::lower(trim((string) $r->input('email')))]); // unik tanpa beda huruf besar/kecil
         $d = $r->validate([
             'name' => 'required|string|max:150', 'email' => 'required|email|max:150|unique:users,email',
-            'password' => ['required', 'confirmed', \Illuminate\Validation\Rules\Password::min(10)->letters()->numbers()],
+            'password' => ['required', 'confirmed', Password::min(10)->letters()->numbers()],
             'device_uuid' => 'required|string|max:100', 'device_name' => 'required|string|max:100',
         ], ['email.unique' => 'Email ini sudah punya akun. Silakan masuk, atau pakai Lupa password.']);
         $user = $registrations->createAccount($org, $d);
@@ -90,12 +95,12 @@ class AuthController extends Controller
     }
 
     /** Lupa password dari app: kirim tautan ke email (halaman atur ulang di web). 503 bila email belum diatur. */
-    public function forgot(Request $r, \App\Services\PasswordResetService $resets)
+    public function forgot(Request $r, PasswordResetService $resets)
     {
         $r->validate(['email' => 'required|email']);
         $resets->sendLink($r->input('email'));
 
-        return ['message' => \App\Services\PasswordResetService::SENT];
+        return ['message' => PasswordResetService::SENT];
     }
 
     /** Ganti password dari app (wajib bila password masih sementara). Sesi perangkat lain dikeluarkan. */
@@ -103,7 +108,7 @@ class AuthController extends Controller
     {
         $r->validate([
             'current_password' => 'required|string',
-            'password' => ['required', 'confirmed', \Illuminate\Validation\Rules\Password::min(10)->letters()->numbers()],
+            'password' => ['required', 'confirmed', Password::min(10)->letters()->numbers()],
         ]);
         $user = $r->user();
         if (! Hash::check($r->input('current_password'), $user->password)) {

@@ -20,6 +20,7 @@ use Illuminate\Validation\ValidationException;
 class MemberImportService
 {
     public const TTL_MINUTES = 30;
+
     public const MAX_ROWS = 5000;
 
     public function preview(User $user, string $path): array

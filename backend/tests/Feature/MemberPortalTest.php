@@ -23,9 +23,13 @@ class MemberPortalTest extends TestCase
     use RefreshDatabase;
 
     private Organization $org;
+
     private Term $term;
+
     private Division $humas;
+
     private Member $budi;
+
     private User $member;
 
     protected function setUp(): void

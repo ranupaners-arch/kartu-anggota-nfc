@@ -2,18 +2,24 @@
 
 namespace Tests\Feature;
 
+use App\Exports\ReportSheet;
+use App\Jobs\GenerateExport;
 use App\Models\Attendance;
 use App\Models\Event;
 use App\Models\EventSession;
 use App\Models\ExcuseRequest;
+use App\Models\Export;
 use App\Models\Member;
 use App\Models\Membership;
 use App\Models\Organization;
 use App\Models\Term;
 use App\Models\User;
 use App\Services\CloseEvent;
+use App\Services\ReportService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Str;
+use Maatwebsite\Excel\Facades\Excel;
 use Tests\TestCase;
 
 /** Kegiatan multi-sesi: tiap sesi = satu kehadiran dengan jendela check-in sendiri. */
@@ -22,11 +28,17 @@ class MultiSessionTest extends TestCase
     use RefreshDatabase;
 
     private Organization $org;
+
     private Term $term;
+
     private User $admin;
+
     private User $scanner;
+
     private Event $event;
+
     private EventSession $day1;
+
     private EventSession $day2;
 
     protected function setUp(): void
@@ -117,7 +129,7 @@ class MultiSessionTest extends TestCase
         // Offline (batch): scan hari 2 yang dikirim belakangan tetap masuk sesi hari 2.
         $this->travelTo(Carbon::parse('2026-11-21 16:00:00'));
         $this->actingAs($this->scanner, 'sanctum')->postJson("/api/events/{$this->event->id}/scan/batch", ['scans' => [
-            ['payload' => $payload, 'client_uuid' => (string) \Illuminate\Support\Str::uuid(), 'scanned_at' => Carbon::parse('2026-11-21 12:50:00')->toIso8601String(), 'session_id' => $this->day2->id],
+            ['payload' => $payload, 'client_uuid' => (string) Str::uuid(), 'scanned_at' => Carbon::parse('2026-11-21 12:50:00')->toIso8601String(), 'session_id' => $this->day2->id],
         ]])->assertJsonPath('results.0.status', 'ok')->assertJsonPath('results.0.attendance_status', 'hadir');
     }
 
@@ -195,12 +207,12 @@ class MultiSessionTest extends TestCase
 
     public function test_event_export_has_a_row_per_session(): void
     {
-        \Maatwebsite\Excel\Facades\Excel::fake();
+        Excel::fake();
         $this->member('1');
-        $export = \App\Models\Export::create(['organization_id' => $this->org->id, 'user_id' => $this->admin->id, 'report' => 'event', 'format' => 'xlsx', 'params' => ['event_id' => $this->event->id]]);
-        (new \App\Jobs\GenerateExport($export->id))->handle(app(\App\Services\ReportService::class));
+        $export = Export::create(['organization_id' => $this->org->id, 'user_id' => $this->admin->id, 'report' => 'event', 'format' => 'xlsx', 'params' => ['event_id' => $this->event->id]]);
+        (new GenerateExport($export->id))->handle(app(ReportService::class));
 
-        \Maatwebsite\Excel\Facades\Excel::assertStored($export->fresh()->path, 'local', function (\App\Exports\ReportSheet $sheet) {
+        Excel::assertStored($export->fresh()->path, 'local', function (ReportSheet $sheet) {
             return $sheet->headings()[0] === 'Sesi' && array_column($sheet->array(), 0) === ['Pelatihan', 'Hari 2'];
         });
     }

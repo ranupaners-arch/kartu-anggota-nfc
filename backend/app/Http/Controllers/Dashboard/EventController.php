@@ -14,6 +14,7 @@ use App\Services\EventService;
 use App\Services\ReportService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 
 class EventController extends Controller
@@ -196,7 +197,7 @@ class EventController extends Controller
         $d = $r->validate(['title' => 'required|string|max:200', 'starts_at' => 'nullable|date', 'ends_at' => 'nullable|date|after_or_equal:starts_at', 'reason' => 'nullable|string|max:300']);
         $isDefault = $event->defaultSession()->is($session);
         if (! $isDefault && empty($d['starts_at'])) {
-            throw \Illuminate\Validation\ValidationException::withMessages(['starts_at' => 'Jam mulai sesi wajib diisi.']);
+            throw ValidationException::withMessages(['starts_at' => 'Jam mulai sesi wajib diisi.']);
         }
         $this->events->updateSession($event, $session, collect($d)->except('reason')->all(), $d['reason'] ?? null);
 

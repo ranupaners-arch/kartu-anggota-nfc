@@ -9,7 +9,9 @@ use App\Models\Membership;
 use App\Models\Term;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 
 /** Kelola anggota dan keanggotaannya di periode berjalan. Dipakai API dan dashboard. */
@@ -145,13 +147,13 @@ class MemberService
     }
 
     /** Ganti foto anggota (diperkecil, disk privat); foto lama dihapus. */
-    public function setPhoto(Member $member, \Illuminate\Http\UploadedFile $file): Member
+    public function setPhoto(Member $member, UploadedFile $file): Member
     {
         $this->assertNotAnonymized($member);
         $old = $member->photo_path;
         $member->update(['photo_path' => app(PhotoService::class)->store($file, "members/{$member->organization_id}")]);
         if ($old) {
-            \Illuminate\Support\Facades\Storage::disk('local')->delete($old);
+            Storage::disk('local')->delete($old);
         }
         AuditLogger::log('member.photo_updated', 'member', $member->id);
 

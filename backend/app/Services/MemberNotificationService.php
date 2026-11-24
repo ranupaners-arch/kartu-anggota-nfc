@@ -9,6 +9,7 @@ use App\Models\Event;
 use App\Models\ExcuseRequest;
 use App\Models\Fine;
 use App\Models\Membership;
+use App\Models\ProfileChange;
 use App\Models\Term;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -80,9 +81,9 @@ class MemberNotificationService
 
     private function profileChanges(int $memberId, Carbon $since): Collection
     {
-        return \App\Models\ProfileChange::where('member_id', $memberId)->whereIn('status', ['approved', 'rejected'])
+        return ProfileChange::where('member_id', $memberId)->whereIn('status', ['approved', 'rejected'])
             ->where('reviewed_at', '>=', $since)->get()
-            ->map(fn (\App\Models\ProfileChange $c) => [
+            ->map(fn (ProfileChange $c) => [
                 'id' => "profile:{$c->id}", 'type' => 'profile',
                 'title' => $c->status === 'approved' ? 'Perubahan data disetujui' : 'Perubahan data ditolak',
                 'body' => $c->review_note ?: ($c->status === 'approved' ? 'Data diri Anda sudah diperbarui.' : 'Data lama tetap dipakai.'),

@@ -23,8 +23,11 @@ class PrivacyTest extends TestCase
     use RefreshDatabase;
 
     private Organization $org;
+
     private Term $old;
+
     private Term $current;
+
     private User $admin;
 
     protected function setUp(): void

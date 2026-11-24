@@ -8,5 +8,8 @@ class Organization extends Model
 {
     protected $guarded = [];
 
-    public function terms() { return $this->hasMany(Term::class); }
+    public function terms()
+    {
+        return $this->hasMany(Term::class);
+    }
 }

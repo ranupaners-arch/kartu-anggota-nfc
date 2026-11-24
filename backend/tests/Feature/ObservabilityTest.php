@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Jobs\QueueHeartbeat;
+use App\Logging\AddUserContext;
 use App\Models\Organization;
 use App\Models\User;
 use App\Services\HealthService;
@@ -13,6 +14,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Route;
 use Inertia\Testing\AssertableInertia as Assert;
 use Monolog\Handler\TestHandler;
+use Sentry\SentrySdk;
 use Tests\TestCase;
 
 class ObservabilityTest extends TestCase
@@ -65,7 +67,7 @@ class ObservabilityTest extends TestCase
         $this->assertNotSame('jelek<script>', $this->getJson('/api/instance', ['X-Request-Id' => 'jelek<script>'])->headers->get('X-Request-Id'));
 
         // Baris log membawa request_id (Context) + id user/organisasi, tanpa email.
-        config(['logging.channels.uji' => ['driver' => 'monolog', 'handler' => TestHandler::class, 'tap' => [\App\Logging\AddUserContext::class]], 'logging.default' => 'uji']);
+        config(['logging.channels.uji' => ['driver' => 'monolog', 'handler' => TestHandler::class, 'tap' => [AddUserContext::class]], 'logging.default' => 'uji']);
         Route::middleware('auth:sanctum')->get('/api/_uji_log', fn () => Log::info('uji') ?? ['ok' => true]);
         $org = Organization::create(['name' => 'HMPS', 'slug' => 'hmps']);
         $user = User::factory()->create(['organization_id' => $org->id, 'role' => 'scanner', 'email' => 'rahasia@x.test']);
@@ -85,6 +87,6 @@ class ObservabilityTest extends TestCase
         $admin = User::factory()->create(['organization_id' => $org->id, 'role' => 'super_admin']);
         $this->actingAs($admin)->get('/pengaturan?tab=sistem')->assertInertia(fn (Assert $p) => $p
             ->where('health.status', 'ok')->where('health.sentry', false)->has('health.checks.scheduler'));
-        $this->assertNull(\Sentry\SentrySdk::getCurrentHub()->getClient()?->getOptions()->getDsn());
+        $this->assertNull(SentrySdk::getCurrentHub()->getClient()?->getOptions()->getDsn());
     }
 }

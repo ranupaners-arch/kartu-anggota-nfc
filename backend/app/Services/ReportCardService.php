@@ -8,6 +8,8 @@ use App\Models\Membership;
 use App\Models\Organization;
 use App\Models\Term;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Str;
 
 /** Rapor kehadiran satu anggota untuk satu periode (PDF), untuk dashboard & app anggota. */
 class ReportCardService
@@ -38,9 +40,9 @@ class ReportCardService
             'rate' => $total ? round(($counts['hadir'] + $counts['telat']) / $total * 100, 1) : null,
             'rows' => $rows->map(fn ($r) => [
                 'event' => $r->title.(($multi[$r->title] ?? 1) > 1 && $r->session_title !== $r->title ? " — {$r->session_title}" : ''),
-                'date' => \Illuminate\Support\Carbon::parse($r->starts_at)->timezone(config('app.timezone')),
+                'date' => Carbon::parse($r->starts_at)->timezone(config('app.timezone')),
                 'status' => self::STATUSES[$r->status] ?? $r->status,
-                'time' => $r->scanned_at ? \Illuminate\Support\Carbon::parse($r->scanned_at)->timezone(config('app.timezone'))->format('H.i') : '—',
+                'time' => $r->scanned_at ? Carbon::parse($r->scanned_at)->timezone(config('app.timezone'))->format('H.i') : '—',
             ])->all(),
             'statusLabels' => self::STATUSES,
         ];
@@ -50,7 +52,7 @@ class ReportCardService
     public function pdf(Member $member, Term $term): array
     {
         $data = $this->data($member, $term);
-        $name = 'rapor-'.\Illuminate\Support\Str::slug($member->member_no.'-'.$term->name).'.pdf';
+        $name = 'rapor-'.Str::slug($member->member_no.'-'.$term->name).'.pdf';
 
         return [Pdf::loadView('exports.rapor', $data)->setPaper('a4')->output(), $name];
     }

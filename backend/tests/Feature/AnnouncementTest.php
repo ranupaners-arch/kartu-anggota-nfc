@@ -18,10 +18,15 @@ class AnnouncementTest extends TestCase
     use RefreshDatabase;
 
     private Organization $org;
+
     private Division $humas;
+
     private Division $inti;
+
     private User $admin;
+
     private User $humasAdmin;
+
     private User $memberUser;
 
     protected function setUp(): void

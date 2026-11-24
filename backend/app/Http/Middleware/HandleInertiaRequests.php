@@ -2,6 +2,11 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\CardRequest;
+use App\Models\Membership;
+use App\Models\ProfileChange;
+use App\Services\AttendanceService;
+use App\Services\ExcuseService;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -48,12 +53,12 @@ class HandleInertiaRequests extends Middleware
             ] : null,
             // Badge jumlah pekerjaan di menu (dihitung hanya bila login).
             'navBadges' => fn () => $user?->isAdmin() ? [
-                'excuses' => app(\App\Services\ExcuseService::class)->visibleTo($user)->where('status', 'pending')->count(),
-                'reviews' => app(\App\Services\AttendanceService::class)->pendingReviewCount($user),
+                'excuses' => app(ExcuseService::class)->visibleTo($user)->where('status', 'pending')->count(),
+                'reviews' => app(AttendanceService::class)->pendingReviewCount($user),
                 // Pendaftar baru menunggu keputusan (hanya Super Admin yang mengelola anggota).
-                'cardRequests' => $user->isSuperAdmin() ? \App\Models\CardRequest::where('status', 'pending')->count() : 0,
-                'profileChanges' => $user->isSuperAdmin() ? \App\Models\ProfileChange::where('status', 'pending')->count() : 0,
-                'applicants' => $user->isSuperAdmin() ? \App\Models\Membership::whereHas('term', fn ($t) => $t->where('is_current', true))->where('status', 'applicant')->count() : 0,
+                'cardRequests' => $user->isSuperAdmin() ? CardRequest::where('status', 'pending')->count() : 0,
+                'profileChanges' => $user->isSuperAdmin() ? ProfileChange::where('status', 'pending')->count() : 0,
+                'applicants' => $user->isSuperAdmin() ? Membership::whereHas('term', fn ($t) => $t->where('is_current', true))->where('status', 'applicant')->count() : 0,
             ] : null,
             'flash' => fn () => ['status' => $request->session()->get('status')],
         ];

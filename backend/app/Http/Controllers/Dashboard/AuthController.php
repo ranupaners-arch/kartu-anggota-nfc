@@ -5,16 +5,18 @@ namespace App\Http\Controllers\Dashboard;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Services\AuditLogger;
+use App\Services\MailStatus;
 use App\Services\TwoFactorService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
+use Inertia\Inertia;
 
 class AuthController extends Controller
 {
     public function show()
     {
-        return \Inertia\Inertia::render('auth/login', ['canResetPassword' => \App\Services\MailStatus::enabled()]);
+        return Inertia::render('auth/login', ['canResetPassword' => MailStatus::enabled()]);
     }
 
     public function login(Request $r)
@@ -47,7 +49,7 @@ class AuthController extends Controller
 
     public function showTwoFactor(Request $r)
     {
-        return $this->pending($r) ? \Inertia\Inertia::render('auth/two-factor') : redirect()->route('login');
+        return $this->pending($r) ? Inertia::render('auth/two-factor') : redirect()->route('login');
     }
 
     public function twoFactor(Request $r, TwoFactorService $twoFactor)

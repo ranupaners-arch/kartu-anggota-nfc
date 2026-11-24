@@ -8,7 +8,9 @@ use App\Models\Term;
 use App\Services\AttendanceService;
 use App\Services\EventService;
 use App\Services\ExcuseService;
+use App\Services\StatsService;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 class HomeController extends Controller
 {
@@ -17,7 +19,7 @@ class HomeController extends Controller
         $user = $r->user();
         $term = Term::where('is_current', true)->first();
 
-        return \Inertia\Inertia::render('home', [
+        return Inertia::render('home', [
             'term' => $term?->only('id', 'name'),
             'activeMembers' => $term ? Membership::where('term_id', $term->id)->where('status', 'active')
                 ->when($user->role === 'division_admin', fn ($q) => $q->where('division_id', $user->division_id))
@@ -29,11 +31,11 @@ class HomeController extends Controller
             'scans7d' => $attendances->visibleTo($user)->where('scanned_at', '>=', now()->subDays(7))->count(),
             // Statistik & peringatan (dihitung hanya bila ada periode berjalan).
             'stats' => fn () => $term ? [
-                'trend' => app(\App\Services\StatsService::class)->trend($user, $term),
-                'divisions' => app(\App\Services\StatsService::class)->divisions($user, $term),
-                'comparison' => app(\App\Services\StatsService::class)->comparison($user, $term),
-                'atRisk' => array_slice(app(\App\Services\StatsService::class)->atRisk($user, $term), 0, 20),
-                'rules' => ['streak' => \App\Services\StatsService::ALPA_STREAK, 'minRate' => \App\Services\StatsService::MIN_RATE, 'minRecords' => \App\Services\StatsService::MIN_RECORDS],
+                'trend' => app(StatsService::class)->trend($user, $term),
+                'divisions' => app(StatsService::class)->divisions($user, $term),
+                'comparison' => app(StatsService::class)->comparison($user, $term),
+                'atRisk' => array_slice(app(StatsService::class)->atRisk($user, $term), 0, 20),
+                'rules' => ['streak' => StatsService::ALPA_STREAK, 'minRate' => StatsService::MIN_RATE, 'minRecords' => StatsService::MIN_RECORDS],
             ] : null,
         ]);
     }

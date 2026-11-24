@@ -23,6 +23,7 @@ use Illuminate\Support\Str;
 class PrivacyService
 {
     public const ANON_NAME = 'Anggota terhapus';
+
     public const PURGED_REASON = '[dihapus]';
 
     /** Alasan anggota belum boleh dihapus datanya, atau null bila boleh. */

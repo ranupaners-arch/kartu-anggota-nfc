@@ -21,7 +21,9 @@ class EProfileTest extends TestCase
     use RefreshDatabase;
 
     private Organization $org;
+
     private Term $term;
+
     private Division $humas;
 
     protected function setUp(): void

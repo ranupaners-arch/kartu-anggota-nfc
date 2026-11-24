@@ -20,5 +20,8 @@ class MemberQr extends Model
         return ['rotated_at' => 'datetime'];
     }
 
-    public function member() { return $this->belongsTo(Member::class); }
+    public function member()
+    {
+        return $this->belongsTo(Member::class);
+    }
 }

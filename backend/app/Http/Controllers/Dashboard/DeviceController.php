@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers\Dashboard;
 
-use Inertia\Inertia;
 use App\Http\Controllers\Controller;
 use App\Models\Device;
 use App\Services\DeviceService;
+use Inertia\Inertia;
 
 class DeviceController extends Controller
 {

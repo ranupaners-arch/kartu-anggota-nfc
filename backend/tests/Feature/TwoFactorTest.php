@@ -14,6 +14,7 @@ class TwoFactorTest extends TestCase
     use RefreshDatabase;
 
     private Organization $org;
+
     private User $admin;
 
     protected function setUp(): void

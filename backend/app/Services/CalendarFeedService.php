@@ -96,7 +96,7 @@ class CalendarFeedService
     /** Escape nilai TEXT: \ ; , dan baris baru. */
     private function text(string $v): string
     {
-        return str_replace(["\\", ';', ',', "\r\n", "\n"], ['\\\\', '\;', '\,', '\n', '\n'], $v);
+        return str_replace(['\\', ';', ',', "\r\n", "\n"], ['\\\\', '\;', '\,', '\n', '\n'], $v);
     }
 
     /** Lipat baris > 75 oktet (lanjutan diawali spasi), tanpa memotong karakter UTF-8. */

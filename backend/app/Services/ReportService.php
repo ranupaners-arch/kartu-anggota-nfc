@@ -5,7 +5,9 @@ namespace App\Services;
 use App\Models\Attendance;
 use App\Models\Event;
 use App\Models\EventSession;
+use App\Models\Fine;
 use App\Models\Member;
+use App\Models\Organization;
 use App\Models\Term;
 
 /** Rekap absensi. Semua angka mengabaikan absensi yang di-void. */
@@ -64,7 +66,7 @@ class ReportService
             ->groupBy('member_id');
 
         // Denda absen QR per anggota (tidak termasuk jatah gratis).
-        $fines = \App\Models\Fine::where('term_id', $term->id)->whereIn('member_id', $members->pluck('id'))->where('status', '!=', \App\Models\Fine::FREE)
+        $fines = Fine::where('term_id', $term->id)->whereIn('member_id', $members->pluck('id'))->where('status', '!=', Fine::FREE)
             ->selectRaw("member_id, count(*) as n, sum(case when status = 'unpaid' then amount else 0 end) as unpaid, sum(case when status = 'paid' then amount else 0 end) as paid")
             ->groupBy('member_id')->get()->keyBy('member_id');
 
@@ -96,7 +98,7 @@ class ReportService
                 ->whereNull('division_id')->orWhere('division_id', $divisionId)))->count(),
             'average_rate' => $rated->isNotEmpty() ? round($rated->avg('attendance_rate'), 1) : null,
             // Kolom denda ditampilkan bila kebijakan aktif atau sudah ada denda di periode ini.
-            'show_fines' => (bool) \App\Models\Organization::whereKey($term->organization_id)->value('fine_enabled') || $fines->isNotEmpty(),
+            'show_fines' => (bool) Organization::whereKey($term->organization_id)->value('fine_enabled') || $fines->isNotEmpty(),
             'fines_unpaid_total' => (int) $rows->sum('fines_unpaid'),
             'rows' => $rows,
         ];

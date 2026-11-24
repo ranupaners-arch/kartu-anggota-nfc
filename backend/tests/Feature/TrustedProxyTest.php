@@ -37,14 +37,14 @@ class TrustedProxyTest extends TestCase
     {
         $this->actingAs($this->admin())->withServerVariables($this->forwarded('172.18.0.5'))
             ->get('/pengaturan?tab=aplikasi')->assertOk()->assertInertia(fn (Assert $page) => $page
-                ->where('connect.server', 'https://absen.contoh.id')
-                ->where('connect.https', true));
+            ->where('connect.server', 'https://absen.contoh.id')
+            ->where('connect.https', true));
     }
 
     public function test_forwarded_headers_from_public_address_are_ignored(): void
     {
         $this->actingAs($this->admin())->withServerVariables($this->forwarded('198.51.100.20'))
             ->get('/pengaturan?tab=aplikasi')->assertOk()->assertInertia(fn (Assert $page) => $page
-                ->where('connect.https', false));
+            ->where('connect.https', false));
     }
 }

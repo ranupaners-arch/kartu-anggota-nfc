@@ -6,12 +6,12 @@ use App\Http\Controllers\Controller;
 use App\Models\Event;
 use App\Models\ExcuseRequest;
 use App\Models\Member;
-use Illuminate\Validation\ValidationException;
 use App\Services\EventService;
 use App\Services\ExcuseService;
 use Illuminate\Http\Request;
-use Inertia\Inertia;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
+use Inertia\Inertia;
 
 class ExcuseController extends Controller
 {

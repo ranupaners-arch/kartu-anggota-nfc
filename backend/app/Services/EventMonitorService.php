@@ -10,6 +10,7 @@ use App\Models\EventSession;
 class EventMonitorService
 {
     public const LATEST_LIMIT = 15;
+
     public const MISSING_LIMIT = 300;
 
     public function __construct(private ReportService $reports) {}
