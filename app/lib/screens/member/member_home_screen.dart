@@ -93,6 +93,8 @@ class _MemberHomeScreenState extends State<MemberHomeScreen> with SessionWatch<M
         await _openCard(context);
       case 'profile':
         await pushMemberPage<void>(context, 'Ubah data diri', ProfileChangePage(api: _api));
+      case 'due':
+        await pushMemberPage<void>(context, 'Riwayat', MyHistoryTab(api: _api));
       case 'fine':
         await pushMemberPage<void>(context, 'Denda', FinesPage(api: _api));
       case 'announcement':
