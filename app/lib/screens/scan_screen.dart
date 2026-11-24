@@ -140,7 +140,7 @@ class _ScanScreenState extends State<ScanScreen> with WidgetsBindingObserver {
       _syncing = false;
       _pending = r.remaining;
       if (r.sent > 0) {
-        _syncNote = '${r.sent} scan tersinkron (${r.accepted} diterima, ${r.duplicates} duplikat, ${r.rejected} ditolak).';
+        _syncNote = '${r.sent} scan tersinkron (${r.accepted} diterima, ${r.duplicates} duplikat, ${r.rejected} ditolak).${r.rejected > 0 ? ' Rincian ada di Beranda.' : ''}';
       } else if (!quiet && r.error != null) {
         _syncNote = r.error;
       }

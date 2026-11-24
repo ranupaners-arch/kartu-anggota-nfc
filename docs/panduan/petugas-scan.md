@@ -72,6 +72,9 @@ ke QR itu. QR berganti tiap menit, jadi tangkapan layar tidak bisa dipakai. **QR
 - Saat internet kembali, data terkirim otomatis (≤ 30 detik) atau ketuk **Sinkron**.
   Jangan keluar akun sebelum semua scan tersinkron.
 - Scan yang sama tidak akan tercatat ganda walau terkirim dua kali.
+- Bila server menolak scan offline (mis. kartu sudah diblokir), Beranda menampilkan **N scan ditolak
+  server** → **Lihat rincian** berisi nama, kegiatan, dan alasannya. Laporkan ke pengurus bila perlu
+  dikoreksi, lalu ketuk **Sudah ditangani**.
 
 ## Tanpa app: pindai QR lewat browser (iPhone / HP tanpa NFC)
 

@@ -29,13 +29,15 @@ class ScanResultCard extends StatelessWidget {
     'error': 'Gagal',
   };
 
+  static String labelFor(String status) => _labels[status] ?? 'Ditolak';
+
   ({Color color, IconData icon, String label}) _style() {
     if (result.ok) {
       final late = result.attendanceStatus == 'telat';
       return (color: late ? const Color(0xFFB45309) : const Color(0xFF047857), icon: late ? LucideIcons.clock : LucideIcons.circleCheck, label: late ? 'Telat' : 'Hadir');
     }
     if (result.status == 'duplicate') return (color: const Color(0xFF0369A1), icon: LucideIcons.info, label: _labels['duplicate']!);
-    return (color: const Color(0xFFB91C1C), icon: LucideIcons.circleX, label: _labels[result.status] ?? 'Ditolak');
+    return (color: const Color(0xFFB91C1C), icon: LucideIcons.circleX, label: labelFor(result.status));
   }
 
   @override

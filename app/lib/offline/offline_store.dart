@@ -31,6 +31,38 @@ class PendingScan {
   Map<String, dynamic> toBatchItem() => {'payload': payload, 'source': source, 'client_uuid': clientUuid, 'scanned_at': scannedAt.toUtc().toIso8601String(), 'session_id': ?sessionId};
 }
 
+/// Scan offline yang ditolak server, agar petugas tahu siapa yang tidak tercatat. Isi kartu tidak disimpan.
+class RejectedScan {
+  const RejectedScan({required this.clientUuid, required this.eventId, required this.status, required this.message, required this.scannedAt, this.eventTitle, this.memberName, this.memberNo});
+
+  factory RejectedScan.fromJson(Map<String, dynamic> j) => RejectedScan(
+    clientUuid: j['client_uuid'] as String,
+    eventId: j['event_id'] as int,
+    status: j['status'] as String,
+    message: j['message'] as String,
+    scannedAt: DateTime.parse(j['scanned_at'] as String),
+    eventTitle: j['event_title'] as String?,
+    memberName: j['member_name'] as String?,
+    memberNo: j['member_no'] as String?,
+  );
+
+  final String clientUuid, status, message;
+  final int eventId;
+  final DateTime scannedAt;
+  final String? eventTitle, memberName, memberNo;
+
+  Map<String, dynamic> toJson() => {
+    'client_uuid': clientUuid,
+    'event_id': eventId,
+    'status': status,
+    'message': message,
+    'scanned_at': scannedAt.toUtc().toIso8601String(),
+    'event_title': ?eventTitle,
+    'member_name': ?memberName,
+    'member_no': ?memberNo,
+  };
+}
+
 /// Penyimpanan lokal: roster per kegiatan dan antrean scan offline.
 class OfflineStore {
   OfflineStore(this._prefs);
@@ -84,6 +116,28 @@ class OfflineStore {
     final drop = clientUuids.toSet();
     await _write(pending().where((p) => !drop.contains(p.clientUuid)).toList());
   }
+
+  static const _rejectedKey = 'offline_rejected';
+
+  List<RejectedScan> rejected() {
+    final raw = _prefs.getString(_rejectedKey);
+    if (raw == null) return [];
+    try {
+      return [for (final j in jsonDecode(raw) as List) RejectedScan.fromJson(j as Map<String, dynamic>)];
+    } catch (_) {
+      return []; // data rusak/format lama: anggap tidak ada
+    }
+  }
+
+  Future<void> addRejected(List<RejectedScan> items) async {
+    if (items.isEmpty) return;
+    final ids = {for (final r in items) r.clientUuid};
+    await _writeRejected([...rejected().where((r) => !ids.contains(r.clientUuid)), ...items]);
+  }
+
+  Future<void> removeRejected(String clientUuid) => _writeRejected(rejected().where((r) => r.clientUuid != clientUuid).toList());
+
+  Future<void> _writeRejected(List<RejectedScan> list) => _prefs.setString(_rejectedKey, jsonEncode([for (final r in list) r.toJson()]));
 
   Future<void> _write(List<PendingScan> list) => _prefs.setString(_queueKey, jsonEncode([for (final p in list) p.toJson()]));
 }
