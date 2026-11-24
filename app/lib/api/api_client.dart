@@ -398,6 +398,10 @@ class ApiClient {
     return [for (final r in j['results'] as List) r as Map<String, dynamic>];
   }
 
+  Future<Leaderboard> leaderboard() async => Leaderboard.fromJson(await _send('GET', '/api/me/leaderboard'));
+
+  Future<Leaderboard> setLeaderboard({required bool optIn}) async => Leaderboard.fromJson(await _send('PUT', '/api/me/leaderboard', {'opt_in': optIn}));
+
   Future<void> rsvp(int eventId, {required bool going}) => _send('POST', '/api/me/events/$eventId/rsvp', {'going': going});
 
   /// Perangkat dicabut: kirim scan tersisa untuk ditinjau pengurus (token lama).
@@ -792,6 +796,35 @@ class ProfileChangeStatus {
 
   /// Keputusan terakhir (30 hari): status approved/rejected + catatan pengurus.
   final ({String? name, String? phone, bool photo, String status, String? note, DateTime? at})? lastDecision;
+}
+
+/// Papan peringkat poin (GET /api/me/leaderboard).
+class Leaderboard {
+  const Leaderboard({this.optedIn = false, this.me, this.top = const []});
+
+  factory Leaderboard.fromJson(Map<String, dynamic> j) {
+    final m = j['me'] as Map<String, dynamic>?;
+    return Leaderboard(
+      optedIn: j['opted_in'] == true,
+      me: m == null ? null : (points: (m['points'] as num).toInt(), rank: (m['rank'] as num).toInt(), total: (m['total'] as num).toInt()),
+      top: [
+        for (final t in (j['top'] as List?) ?? const [])
+          (
+            rank: ((t as Map<String, dynamic>)['rank'] as num).toInt(),
+            name: t['name'] as String,
+            division: t['division'] as String?,
+            points: (t['points'] as num).toInt(),
+            isMe: t['is_me'] == true,
+          ),
+      ],
+    );
+  }
+
+  final bool optedIn;
+
+  /// Null: bukan anggota aktif periode ini.
+  final ({int points, int rank, int total})? me;
+  final List<({int rank, String name, String? division, int points, bool isMe})> top;
 }
 
 /// Poin & lencana keaktifan anggota (GET /api/me/achievements).

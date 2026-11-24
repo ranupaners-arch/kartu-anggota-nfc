@@ -7,6 +7,8 @@ import '../../app/pdf.dart';
 import '../../widgets/attendance_chart.dart';
 import '../../widgets/badges.dart';
 import '../../widgets/ui.dart';
+import 'leaderboard_page.dart';
+import 'member_pages.dart';
 
 Future<String?> _saveAndOpenPdf(List<int> bytes) => saveAndOpenPdf(bytes, fileName: 'rapor-kehadiran.pdf');
 
@@ -184,7 +186,20 @@ class _MyHistoryTabState extends State<MyHistoryTab> {
                         child: SectionCard(
                           title: 'Poin & lencana',
                           icon: LucideIcons.award,
-                          child: BadgesView(data: a.data!),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            spacing: 12,
+                            children: [
+                              BadgesView(data: a.data!),
+                              FlexButton(
+                                label: 'Papan peringkat',
+                                icon: LucideIcons.trophy,
+                                small: true,
+                                variant: ShadButtonVariant.outline,
+                                onPressed: () => pushMemberPage<void>(context, 'Papan peringkat', LeaderboardPage(api: widget.api)),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
               ),
