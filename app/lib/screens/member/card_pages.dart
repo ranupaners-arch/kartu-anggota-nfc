@@ -116,7 +116,7 @@ class _CardHistoryPageState extends State<CardHistoryPage> {
         final h = snap.data;
         return RefreshIndicator(
           onRefresh: () async {
-            setState(() => _history = widget.api.myCardHistory());
+            setState(() { _history = widget.api.myCardHistory(); });
             await _history.catchError((_) => const CardHistory());
           },
           child: ListView(

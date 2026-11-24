@@ -19,6 +19,19 @@ class PhotoCache {
     return PhotoCache(Directory('${base.path}/photos'));
   }
 
+  /// Hapus semua foto tersimpan (saat keluar akun).
+  static Future<void> clearAll() async {
+    try {
+      await (await PhotoCache.open()).clear();
+    } catch (_) {
+      // penyimpanan tidak tersedia: tidak ada foto
+    }
+  }
+
+  Future<void> clear() async {
+    if (await dir.exists()) await dir.delete(recursive: true);
+  }
+
   /// Versi foto dari URL; null bila URL tidak berversi (tidak di-cache, agar tidak basi).
   static String? versionOf(String url) {
     final v = Uri.tryParse(url)?.queryParameters['v'];
