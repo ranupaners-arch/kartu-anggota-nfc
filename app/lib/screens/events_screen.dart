@@ -9,6 +9,7 @@ import '../app/session.dart';
 import '../app/session_watch.dart';
 import '../offline/offline_store.dart';
 import '../offline/roster.dart';
+import '../offline/sync_service.dart';
 import '../widgets/ui.dart';
 import 'connect_screen.dart';
 import 'issue_card_screen.dart';
@@ -52,6 +53,10 @@ class _EventsScreenState extends State<EventsScreen> with SessionWatch<EventsScr
   String? _org;
   int _pendingOffline = 0;
   bool _offline = false;
+  bool _syncing = false;
+  String? _syncNote;
+  Timer? _syncTimer;
+  late final AppLifecycleListener _resume;
 
   @override
   void initState() {
@@ -59,7 +64,37 @@ class _EventsScreenState extends State<EventsScreen> with SessionWatch<EventsScr
     ServerConfig.load().then((s) {
       if (mounted && s?.name != null) setState(() => _org = s!.name);
     }, onError: (_) {});
-    _countOffline();
+    _sync();
+    // Juga untuk kegiatan yang sudah tutup (tidak bisa dibuka lagi di layar Scan).
+    _syncTimer = Timer.periodic(const Duration(seconds: 30), (_) => _sync());
+    _resume = AppLifecycleListener(onResume: _sync);
+  }
+
+  @override
+  void dispose() {
+    _syncTimer?.cancel();
+    _resume.dispose();
+    super.dispose();
+  }
+
+  /// Kirim semua scan tertunda. Saat layar lain di atas (mis. Scan) dilewati: layar itu punya sinkron sendiri.
+  Future<void> _sync() async {
+    if (_syncing) return;
+    _syncing = true;
+    try {
+      final store = await _openStore();
+      if (!mounted) return;
+      if (store.pending().isNotEmpty && (ModalRoute.of(context)?.isCurrent ?? true)) {
+        final r = await SyncService(_api, store).syncAll();
+        if (!mounted) return;
+        if (r.sent > 0) _syncNote = '${r.sent} scan tersinkron (${r.accepted} diterima, ${r.duplicates} duplikat, ${r.rejected} ditolak).';
+      }
+      await _countOffline();
+    } catch (_) {
+      // penyimpanan tidak tersedia: dicoba lagi nanti
+    } finally {
+      _syncing = false;
+    }
   }
 
   Future<void> _countOffline() async {
@@ -118,7 +153,7 @@ class _EventsScreenState extends State<EventsScreen> with SessionWatch<EventsScr
 
   Future<void> _refresh() async {
     setState(() => _events = _load());
-    _countOffline();
+    _sync();
     await _events.catchError((_) => <EventSummary>[]);
   }
 
@@ -257,8 +292,12 @@ class _EventsScreenState extends State<EventsScreen> with SessionWatch<EventsScr
                 ShadAlert(
                   icon: const Icon(LucideIcons.cloudUpload),
                   title: Text('$_pendingOffline scan offline belum tersinkron'),
-                  description: const Text('Tersimpan aman di HP ini. Buka kegiatannya saat ada sinyal agar terkirim ke server.'),
+                  description: const Text('Tersimpan aman di HP ini dan terkirim otomatis saat ada sinyal.'),
                 ),
+                const SizedBox(height: 20),
+              ],
+              if (_syncNote != null) ...[
+                ShadAlert(icon: const Icon(LucideIcons.cloudCheck), title: Text(_syncNote!)),
                 const SizedBox(height: 20),
               ],
             ];
