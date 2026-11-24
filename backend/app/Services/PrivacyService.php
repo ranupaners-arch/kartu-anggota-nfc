@@ -67,7 +67,7 @@ class PrivacyService
 
             $member->forceFill([
                 'name' => self::ANON_NAME, 'member_no' => "HAPUS-{$member->id}", 'email' => null, 'phone' => null, 'cohort' => null,
-                'photo_path' => null, 'consented_at' => null, 'consented_by' => null, 'anonymized_at' => now(),
+                'photo_path' => null, 'consented_at' => null, 'consented_by' => null, 'leaderboard_opt_in_at' => null, 'anonymized_at' => now(),
             ])->save();
         });
         $this->deleteFiles($files);

@@ -7,7 +7,7 @@ use App\Models\Term;
 
 /**
  * Poin & lencana keaktifan anggota periode berjalan — dihitung dari kehadiran (tanpa tabel baru),
- * hanya untuk anggota itu sendiri (tanpa papan peringkat demi privasi).
+ * hanya untuk anggota itu sendiri. Papan peringkat (LeaderboardService) hanya memuat yang memilih tampil.
  */
 class AchievementService
 {

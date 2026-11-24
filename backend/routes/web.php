@@ -35,6 +35,7 @@ Route::middleware(['auth:web', 'portal'])->prefix('saya')->name('portal.')->grou
     Route::post('kegiatan/{event}/rsvp', [PortalController::class, 'rsvp'])->middleware('throttle:20,1')->name('rsvp');
     Route::post('izin', [PortalController::class, 'storeExcuse'])->middleware('throttle:10,1')->name('excuse');
     Route::get('riwayat', [PortalController::class, 'history'])->name('history');
+    Route::put('peringkat', [PortalController::class, 'leaderboard'])->middleware('throttle:20,1')->name('leaderboard');
     Route::get('foto', [MeController::class, 'photo'])->name('photo');
     Route::get('kartu.pdf', [MeController::class, 'cardPdf'])->middleware('throttle:10,1')->name('card-pdf');
     Route::get('e-profil', [PortalController::class, 'profileForm'])->name('profile');

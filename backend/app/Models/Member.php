@@ -14,7 +14,7 @@ class Member extends Model
 
     protected function casts(): array
     {
-        return ['consented_at' => 'datetime', 'anonymized_at' => 'datetime'];
+        return ['consented_at' => 'datetime', 'anonymized_at' => 'datetime', 'leaderboard_opt_in_at' => 'datetime'];
     }
 
     public function memberships()

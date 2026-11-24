@@ -11,6 +11,7 @@ use App\Models\Membership;
 use App\Models\PushSubscription;
 use App\Models\Term;
 use App\Services\AuditLogger;
+use App\Services\LeaderboardService;
 use App\Services\MemberCardService;
 use App\Services\Push\PushService;
 use App\Services\RegistrationService;
@@ -103,9 +104,16 @@ class PortalController extends Controller
         return back()->with('status', 'Pengajuan izin terkirim. Pengurus akan meninjaunya.');
     }
 
-    public function history(Request $r)
+    public function history(Request $r, LeaderboardService $board)
     {
-        return Inertia::render('portal/history', ['history' => $this->me->history($r)]);
+        return Inertia::render('portal/history', ['history' => $this->me->history($r), 'leaderboard' => $this->me->leaderboard($r, $board)]);
+    }
+
+    public function leaderboard(Request $r, LeaderboardService $board)
+    {
+        $result = $this->me->setLeaderboard($r, $board);
+
+        return back()->with('status', $result['opted_in'] ? 'Nama Anda tampil di papan peringkat.' : 'Nama Anda tidak lagi tampil di papan peringkat.');
     }
 
     public function reportCard(Request $r, ReportCardService $cards)
