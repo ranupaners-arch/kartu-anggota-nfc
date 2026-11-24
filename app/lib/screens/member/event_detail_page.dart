@@ -47,6 +47,47 @@ class _EventDetailPageState extends State<EventDetailPage> {
     }
   }
 
+  bool _answering = false;
+  String? _rsvpError;
+
+  Future<void> _answer(bool going) async {
+    setState(() {
+      _answering = true;
+      _rsvpError = null;
+    });
+    String? error;
+    try {
+      await widget.api.rsvp(_e.id, going: going);
+    } on ApiException catch (e) {
+      error = e.message;
+    } catch (_) {
+      error = 'Server tidak terjangkau. Jawaban belum terkirim.';
+    }
+    await _reload(); // juga saat gagal: mis. kuota/batas waktu baru berubah
+    if (!mounted) return;
+    setState(() {
+      _answering = false;
+      _rsvpError = error;
+    });
+  }
+
+  Widget _rsvpCard(MemberRsvp r) => SectionCard(
+    title: 'RSVP',
+    icon: LucideIcons.users,
+    description: [r.quota == null ? '${r.going} anggota ikut' : '${r.going} dari ${r.quota} tempat terisi', if (r.open) 'dijawab sampai ${fmtDateTime(r.deadline)}'].join(' · '),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      spacing: 8,
+      children: [
+        Text(r.label, style: ShadTheme.of(context).textTheme.p),
+        if (_rsvpError != null) ErrorBanner(_rsvpError!),
+        if (r.open && !r.joined) FlexButton(label: r.full ? 'Masuk daftar tunggu' : 'Ikut', icon: LucideIcons.check, enabled: !_answering, onPressed: () => _answer(true)),
+        if (r.open && r.status != 'declined')
+          FlexButton(label: r.joined ? 'Batal ikut' : 'Tidak ikut', icon: LucideIcons.x, variant: ShadButtonVariant.outline, enabled: !_answering, onPressed: () => _answer(false)),
+      ],
+    ),
+  );
+
   Future<void> _excuse() async {
     final sent = await Navigator.of(context).push<bool>(
       MaterialPageRoute(
@@ -88,6 +129,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
               children: [_KeyValue('Mulai', fmtDateTime(e.startsAt)), if (e.endsAt != null) _KeyValue('Selesai', fmtDateTime(e.endsAt!)), if (e.location != null) _KeyValue('Lokasi', e.location!)],
             ),
           ),
+          if (e.rsvp != null) ...[const SizedBox(height: 16), _rsvpCard(e.rsvp!)],
           const SizedBox(height: 16),
           SectionCard(
             title: 'Check-in',

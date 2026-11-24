@@ -80,6 +80,9 @@ tidak bisa dipakai. Butuh koneksi internet.
   (mis. Hadir, Telat, "Izin menunggu", atau "Hadir 1/2 sesi" untuk kegiatan beberapa sesi).
 - Ketuk kegiatan untuk **detailnya**: jadwal, lokasi, garis waktu check-in (dibuka → telat setelah →
   ditutup), kehadiran per sesi, dan status/catatan izin.
+- Bila kegiatan membuka **RSVP**: halaman detail (app) atau kartu kegiatan (portal) → **Ikut** / **Tidak ikut**.
+  Kuota penuh → **daftar tunggu**; Anda naik otomatis dan diberi tahu bila ada tempat. RSVP bukan izin: untuk
+  kegiatan wajib tetap ajukan izin bila tidak hadir.
 - Tidak bisa hadir? Ketuk **Ajukan izin** (di kartu kegiatan, halaman detail, atau menu **Izin**) → pilih **Izin** atau **Sakit** → tulis alasan →
   lampirkan bukti bila ada (gambar JPG/PNG atau PDF, maks. 5 MB) → **Kirim pengajuan**.
 - Selama masih "menunggu", pengajuan bisa diubah (**Ubah izin**). Setelah pengurus menyetujui atau

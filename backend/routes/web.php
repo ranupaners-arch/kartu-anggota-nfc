@@ -32,6 +32,7 @@ Route::middleware('guest')->group(function () {
 Route::middleware(['auth:web', 'portal'])->prefix('saya')->name('portal.')->group(function () {
     Route::get('/', [PortalController::class, 'qr'])->name('qr');
     Route::get('kegiatan', [PortalController::class, 'events'])->name('events');
+    Route::post('kegiatan/{event}/rsvp', [PortalController::class, 'rsvp'])->middleware('throttle:20,1')->name('rsvp');
     Route::post('izin', [PortalController::class, 'storeExcuse'])->middleware('throttle:10,1')->name('excuse');
     Route::get('riwayat', [PortalController::class, 'history'])->name('history');
     Route::get('foto', [MeController::class, 'photo'])->name('photo');

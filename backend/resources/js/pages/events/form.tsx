@@ -15,6 +15,7 @@ import { usePage } from '@inertiajs/react';
 type Ev = {
     id?: number; title?: string; type?: string; location?: string | null; is_mandatory?: boolean;
     starts_at?: string; ends_at?: string; checkin_opens_at?: string; late_after?: string; checkin_closes_at?: string;
+    rsvp_enabled?: boolean; rsvp_deadline?: string | null; quota?: number | null;
 };
 
 export default function EventForm({ event, divisions, windowLocked }: { event: Ev; divisions: { id: number; name: string }[]; windowLocked: boolean }) {
@@ -25,6 +26,7 @@ export default function EventForm({ event, divisions, windowLocked }: { event: E
         starts_at: toLocalInput(event.starts_at), ends_at: toLocalInput(event.ends_at),
         checkin_opens_at: toLocalInput(event.checkin_opens_at), late_after: toLocalInput(event.late_after),
         checkin_closes_at: toLocalInput(event.checkin_closes_at), is_mandatory: event.is_mandatory ?? true,
+        rsvp_enabled: event.rsvp_enabled ?? false, rsvp_deadline: toLocalInput(event.rsvp_deadline), quota: event.quota?.toString() ?? '',
         division_id: '', target_division_ids: [] as number[], reason: '',
     });
     const submit = (e: FormEvent) => {
@@ -81,6 +83,22 @@ export default function EventForm({ event, divisions, windowLocked }: { event: E
                             <Checkbox checked={form.data.is_mandatory} onCheckedChange={(v) => form.setData('is_mandatory', v === true)} />
                             Wajib hadir (yang tidak hadir ditandai Alpa saat kegiatan ditutup)
                         </Label>
+                        <div className="grid gap-4">
+                            <Label className="flex items-center gap-2 font-normal">
+                                <Checkbox checked={form.data.rsvp_enabled} onCheckedChange={(v) => form.setData('rsvp_enabled', v === true)} />
+                                Buka RSVP (anggota menjawab ikut / tidak ikut; tidak memengaruhi absensi)
+                            </Label>
+                            {form.data.rsvp_enabled && (
+                                <div className="grid gap-4 sm:grid-cols-2">
+                                    <FormField label="Batas RSVP" hint="Kosongkan untuk menutup saat kegiatan mulai." error={form.errors.rsvp_deadline}>
+                                        <Input type="datetime-local" value={form.data.rsvp_deadline} onChange={(e) => form.setData('rsvp_deadline', e.target.value)} />
+                                    </FormField>
+                                    <FormField label="Kuota" hint="Kosongkan bila tanpa batas. Hanya untuk kegiatan yang tidak wajib hadir." error={form.errors.quota}>
+                                        <Input type="number" min={1} max={100000} value={form.data.quota} onChange={(e) => form.setData('quota', e.target.value)} />
+                                    </FormField>
+                                </div>
+                            )}
+                        </div>
                         {isEdit && windowLocked && (
                             <FormField label="Alasan perubahan" hint="Wajib bila jendela check-in diubah, karena kegiatan sudah berjalan." error={form.errors.reason}>
                                 <Input value={form.data.reason} onChange={(e) => form.setData('reason', e.target.value)} />

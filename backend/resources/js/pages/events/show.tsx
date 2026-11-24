@@ -21,13 +21,18 @@ import { fmtDateTime, fmtTime, toLocalInput } from '@/lib/format';
 type Ev = {
     id: number; title: string; location: string | null; starts_at: string; ends_at: string; checkin_opens_at: string;
     late_after: string; checkin_closes_at: string; closed_at: string | null;
+    rsvp_enabled: boolean; rsvp_deadline: string | null; quota: number | null;
 };
+type Rsvp = {
+    counts: { going: number; waitlist: number; declined: number; none: number };
+    rows: { member_id: number; member_no: string; name: string; status: string | null; responded_at: string | null }[];
+} | null;
 type Row = { member_id: number; attendance_id: number | null; member_no: string; name: string; division: string | null; status: string; scanned_at: string | null; source: string | null; needs_review: boolean };
 type Report = { session: { id: number; title: string }; summary: { total: number; by_status: Record<string, number>; present_rate: number | null }; rows: Row[] } | null;
 type Session = { id: number; title: string; starts_at: string | null; ends_at: string | null; checkin_opens_at: string; late_after: string; checkin_closes_at: string };
 
 interface Props {
-    event: Ev; tab: string; report: Report; canDelete: boolean;
+    event: Ev; tab: string; report: Report; rsvp: Rsvp; canDelete: boolean;
     sessions: Session[];
     divisions: { id: number; name: string }[]; targetDivisionIds: number[]; targetMemberNos: string[];
 }
@@ -250,6 +255,34 @@ function Targets({ event, divisions, targetDivisionIds, targetMemberNos }: Pick<
     );
 }
 
+const rsvpLabels: Record<string, [string, string]> = { going: ['Ikut', 'hadir'], waitlist: ['Daftar tunggu', 'pending'], declined: ['Tidak ikut', 'closed'], none: ['Belum menjawab', 'belum_absen'] };
+
+function RsvpList({ event, rsvp }: Pick<Props, 'event' | 'rsvp'>) {
+    if (!rsvp) return null;
+    return (
+        <>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                {Object.entries(rsvp.counts).map(([k, n]) => (
+                    <Card size="sm" key={k}><CardHeader><CardDescription>{rsvpLabels[k][0]}</CardDescription><CardTitle className="text-2xl tabular-nums">{n}{k === 'going' && event.quota ? ` / ${event.quota}` : ''}</CardTitle></CardHeader></Card>
+                ))}
+            </div>
+            <p className="text-sm text-muted-foreground">RSVP ditutup {fmtDateTime(event.rsvp_deadline ?? event.starts_at)}.</p>
+            <DataTable head={['No. Anggota', 'Nama', 'Jawaban', 'Waktu']} count={rsvp.rows.length} empty="Belum ada peserta.">
+                {rsvp.rows.map((m) => {
+                    const [label, tone] = rsvpLabels[m.status ?? 'none'];
+                    return (
+                        <TableRow key={m.member_id}>
+                            <TableCell className="tabular-nums">{m.member_no}</TableCell><TableCell>{m.name}</TableCell>
+                            <TableCell><StatusBadge status={tone} label={label} /></TableCell>
+                            <TableCell>{m.responded_at ? fmtDateTime(m.responded_at) : '—'}</TableCell>
+                        </TableRow>
+                    );
+                })}
+            </DataTable>
+        </>
+    );
+}
+
 export default function EventShow(props: Props) {
     const { event, tab, report } = props;
     return (
@@ -273,7 +306,7 @@ export default function EventShow(props: Props) {
                 {fmtDateTime(event.starts_at)}–{fmtTime(event.ends_at)} · {event.location ?? 'tanpa lokasi'} · check-in {fmtTime(event.checkin_opens_at)}–{fmtTime(event.checkin_closes_at)}, telat setelah {fmtTime(event.late_after)} ·{' '}
                 <StatusBadge status={event.closed_at ? 'closed' : 'open'} />
             </p>
-            <PageTabs tabs={{ ringkasan: 'Ringkasan', hadir: 'Daftar Hadir', sesi: 'Sesi', target: 'Target Peserta' }} current={tab} />
+            <PageTabs tabs={{ ringkasan: 'Ringkasan', hadir: 'Daftar Hadir', sesi: 'Sesi', target: 'Target Peserta', ...(event.rsvp_enabled ? { rsvp: 'RSVP' } : {}) }} current={tab} />
             {(tab === 'ringkasan' || tab === 'hadir') && report && <SessionPicker event={event} tab={tab} sessions={props.sessions} current={report.session.id} />}
             {tab === 'ringkasan' && <Summary {...props} />}
             {tab === 'hadir' && report && (
@@ -288,6 +321,7 @@ export default function EventShow(props: Props) {
                     ))}
                 </DataTable>
             )}
+            {tab === 'rsvp' && <RsvpList {...props} />}
             {tab === 'sesi' && <Sessions {...props} />}
             {tab === 'target' && <Targets {...props} />}
         </AppLayout>

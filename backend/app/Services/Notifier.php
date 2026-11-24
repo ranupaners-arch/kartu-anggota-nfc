@@ -6,6 +6,7 @@ use App\Jobs\SendNotice;
 use App\Mail\NoticeMail;
 use App\Models\CardRequest;
 use App\Models\Duty;
+use App\Models\EventRsvp;
 use App\Models\Member;
 use App\Models\ProfileChange;
 use App\Models\User;
@@ -22,7 +23,7 @@ class Notifier
 {
     public function __construct(private PushService $push) {}
 
-    public const EVENTS = ['membershipApproved', 'cardRequestDecided', 'newApplicant', 'newCardRequest', 'newProfileChange', 'profileChangeDecided', 'dutyGranted', 'dutyEnded'];
+    public const EVENTS = ['membershipApproved', 'cardRequestDecided', 'newApplicant', 'newCardRequest', 'newProfileChange', 'profileChangeDecided', 'dutyGranted', 'dutyEnded', 'rsvpPromoted'];
 
     /** Jadwalkan lewat antrean sesudah commit (data sudah tersimpan saat dikirim). */
     public static function later(string $event, int $id): void
@@ -106,6 +107,15 @@ class Notifier
         if ($d?->user && $d->end_reason !== 'Diganti tugas baru') {
             $what = DutyService::LABELS[$d->type] ?? $d->type;
             $this->send(collect([$d->user]), "Tugas {$what} berakhir", "Terima kasih atas tugas Anda. Akun Anda kembali sebagai anggota ({$d->end_reason}).", '/saya');
+        }
+    }
+
+    public function rsvpPromoted(int $rsvpId): void
+    {
+        $r = EventRsvp::withoutGlobalScopes()->with(['event' => fn ($q) => $q->withoutGlobalScopes()])->find($rsvpId);
+        if ($r?->event && $r->status === EventRsvp::GOING) {
+            $when = $r->event->starts_at->timezone(config('app.timezone'))->locale('id')->translatedFormat('j F Y H.i');
+            $this->send($this->memberUsers($r->member_id), 'Anda dapat tempat: '.$r->event->title, "Anda naik dari daftar tunggu ({$when}). Bila batal ikut, ubah RSVP agar tempatnya dipakai anggota lain.", '/saya/kegiatan');
         }
     }
 

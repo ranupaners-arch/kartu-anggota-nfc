@@ -134,6 +134,9 @@ Setelah dibuat, buka kegiatan:
   mengikuti jam mulainya. Tiap sesi dihitung sebagai satu kehadiran di rekap.
 - Mengubah jendela check-in kegiatan yang sudah berjalan wajib disertai **alasan** (tercatat).
 
+- **RSVP** (formulir kegiatan → *Buka RSVP*): batas waktu dan kuota opsional. Jawaban ada di halaman kegiatan →
+  tab **RSVP**. Kuota hanya untuk kegiatan yang tidak wajib hadir; tempat kosong diisi otomatis dari daftar tunggu,
+  dan menurunkan kuota tidak mengeluarkan yang sudah terdaftar. RSVP tidak memengaruhi scan atau Alpa.
 - **Duplikat** (halaman kegiatan): salin kegiatan ke tanggal baru — target, sesi, dan jendela
   check-in ikut. Bisa **berulang** tiap minggu / 2 minggu / bulan (maks. 12), cocok untuk rapat rutin.
 

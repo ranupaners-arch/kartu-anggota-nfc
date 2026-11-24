@@ -32,6 +32,7 @@ class EventService
             'checkin_opens_at' => "$req|date", 'late_after' => "$req|date|after_or_equal:checkin_opens_at",
             'checkin_closes_at' => "$req|date|after_or_equal:late_after",
             'is_mandatory' => 'sometimes|boolean',
+            'rsvp_enabled' => 'sometimes|boolean', 'rsvp_deadline' => 'nullable|date', 'quota' => 'nullable|integer|min:1|max:100000',
             'division_id' => 'nullable|integer',
             'target_division_ids' => 'array', 'target_division_ids.*' => 'integer',
             'target_member_ids' => 'array', 'target_member_ids.*' => 'integer',
@@ -57,6 +58,7 @@ class EventService
         $memberIds = array_values(array_unique($d['target_member_ids'] ?? []));
         $ownerDivision = $user->role === User::DIVISION_ADMIN ? $user->division_id : ($d['division_id'] ?? null);
         $this->assertOwned($divisionIds, $memberIds, $ownerDivision);
+        $this->assertRsvp(new Event(['is_mandatory' => $d['is_mandatory'] ?? true] + $d));
         $term = Term::where('is_current', true)->firstOr(fn () => abort(422, 'Belum ada periode aktif.'));
 
         $event = DB::transaction(function () use ($d, $user, $term, $ownerDivision, $divisionIds, $memberIds) {
@@ -109,6 +111,7 @@ class EventService
                     'is_mandatory' => $source->is_mandatory, 'starts_at' => $start, 'ends_at' => $shift($source->ends_at),
                     'checkin_opens_at' => $shift($source->checkin_opens_at), 'late_after' => $shift($source->late_after),
                     'checkin_closes_at' => $shift($source->checkin_closes_at),
+                    'rsvp_enabled' => $source->rsvp_enabled, 'rsvp_deadline' => $shift($source->rsvp_deadline), 'quota' => $source->quota,
                 ]);
                 foreach ($source->targets as $t) {
                     $event->targets()->create(['division_id' => $t->division_id, 'member_id' => $t->member_id]);
@@ -130,6 +133,7 @@ class EventService
     public function update(Event $event, array $d, ?string $reason = null): Event
     {
         $d = collect($d)->except(['division_id', 'target_division_ids', 'target_member_ids'])->all();
+        $this->assertRsvp((clone $event)->fill($d));
         $changesWindow = collect(self::WINDOW_KEYS)->contains(fn ($k) => isset($d[$k]));
         if ($changesWindow && $event->checkin_opens_at->lte(now())) {
             if (mb_strlen(trim((string) $reason)) < 5) {
@@ -140,6 +144,7 @@ class EventService
             ]);
         }
         $event->update($d);
+        app(RsvpService::class)->refill($event);
 
         return $event->fresh();
     }
@@ -148,6 +153,7 @@ class EventService
     {
         $this->assertOwned($divisionIds, $memberIds);
         DB::transaction(fn () => $this->syncTargets($event, $divisionIds, $memberIds));
+        app(RsvpService::class)->refill($event);
         AuditLogger::log('event.targets_changed', 'event', $event->id, ['divisions' => $divisionIds, 'members' => $memberIds]);
     }
 
@@ -214,6 +220,20 @@ class EventService
         }
         foreach ($memberIds as $id) {
             $event->targets()->create(['member_id' => $id]);
+        }
+    }
+
+    private function assertRsvp(Event $e): void
+    {
+        if (! $e->rsvp_enabled) {
+            return;
+        }
+        if ($e->rsvp_deadline && $e->rsvp_deadline->gt($e->starts_at)) {
+            throw ValidationException::withMessages(['rsvp_deadline' => 'Batas RSVP tidak boleh setelah kegiatan mulai.']);
+        }
+        // Wajib hadir + kuota: yang tidak kebagian tempat akan ditandai Alpa.
+        if ($e->quota && $e->is_mandatory) {
+            throw ValidationException::withMessages(['quota' => 'Kuota hanya untuk kegiatan yang tidak wajib hadir.']);
         }
     }
 

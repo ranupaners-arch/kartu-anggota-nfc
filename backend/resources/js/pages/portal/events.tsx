@@ -1,4 +1,4 @@
-import { Head, useForm } from '@inertiajs/react';
+import { Head, router, useForm } from '@inertiajs/react';
 import { BellRing, CalendarDays, MapPin, Pin } from 'lucide-react';
 import { type FormEvent, useState } from 'react';
 import { FormField } from '@/components/form-field';
@@ -14,9 +14,11 @@ import PortalLayout from '@/layouts/portal-layout';
 import { fmtDate, fmtDateTime, fmtTime } from '@/lib/format';
 
 type Excuse = { id: number; type: 'izin' | 'sakit'; reason: string; status: 'pending' | 'approved' | 'rejected'; review_note: string | null };
+type Rsvp = { status: 'going' | 'waitlist' | 'declined' | null; open: boolean; deadline: string; quota: number | null; going: number; position: number | null };
 export type MemberEvent = {
     id: number; title: string; location: string | null; starts_at: string; closed_at: string | null; is_mandatory: boolean;
     my_status: string | null; sessions: number; present_sessions: number; excuse: Excuse | null; can_request_excuse: boolean;
+    rsvp: Rsvp | null;
 };
 type Announcement = { id: number; title: string; body: string; pinned: boolean; created_at: string; division: string | null };
 
@@ -77,6 +79,25 @@ function ExcuseDialog({ event, onClose }: { event: MemberEvent; onClose: () => v
     );
 }
 
+function RsvpBox({ event, rsvp }: { event: MemberEvent; rsvp: Rsvp }) {
+    const [busy, setBusy] = useState(false);
+    const answer = (going: boolean) => router.post(`/saya/kegiatan/${event.id}/rsvp`, { going }, { preserveScroll: true, onStart: () => setBusy(true), onFinish: () => setBusy(false) });
+    const mine = { going: 'Anda ikut', waitlist: `Daftar tunggu nomor ${rsvp.position}`, declined: 'Anda tidak ikut' };
+    const joined = rsvp.status === 'going' || rsvp.status === 'waitlist';
+    return (
+        <div className="flex w-full flex-wrap items-center gap-2 border-t pt-3 text-sm">
+            <span className="min-w-0 flex-1">
+                {rsvp.status ? mine[rsvp.status] : rsvp.open ? 'Apakah Anda ikut?' : 'RSVP ditutup'}
+                <span className="block text-xs text-muted-foreground">
+                    {rsvp.going}{rsvp.quota ? ` dari ${rsvp.quota} tempat terisi` : ' ikut'}{rsvp.open && ` · sampai ${fmtDateTime(rsvp.deadline)}`}
+                </span>
+            </span>
+            {rsvp.open && !joined && <Button size="sm" disabled={busy} onClick={() => answer(true)}>{rsvp.quota && rsvp.going >= rsvp.quota ? 'Masuk daftar tunggu' : 'Ikut'}</Button>}
+            {rsvp.open && rsvp.status !== 'declined' && <Button size="sm" variant="outline" disabled={busy} onClick={() => answer(false)}>{joined ? 'Batal ikut' : 'Tidak ikut'}</Button>}
+        </div>
+    );
+}
+
 export default function PortalEvents({ events, announcements }: { events: MemberEvent[]; announcements: Announcement[] }) {
     const [excuseFor, setExcuseFor] = useState<MemberEvent | null>(null);
     const soon = reminders(events);
@@ -123,6 +144,7 @@ export default function PortalEvents({ events, announcements }: { events: Member
                                         {e.excuse?.status === 'pending' ? 'Ubah izin' : 'Ajukan izin'}
                                     </Button>
                                 )}
+                                {e.rsvp && <RsvpBox event={e} rsvp={e.rsvp} />}
                             </CardContent>
                         </Card>
                     </li>

@@ -45,6 +45,7 @@ Route::middleware(['auth:sanctum', 'password.changed'])->group(function () {
     Route::post('me/profile', [MeController::class, 'submitProfile'])->middleware('throttle:5,1');
     Route::get('me/photo', [MeController::class, 'photo'])->name('api.me.photo');
     Route::get('me/events', [MeController::class, 'events']);
+    Route::post('me/events/{event}/rsvp', [MeController::class, 'rsvp'])->middleware('throttle:20,1');
     Route::get('me/history', [MeController::class, 'history']);
     Route::get('me/achievements', [MeController::class, 'achievements']);
     Route::get('me/announcements', [MeController::class, 'announcements']);

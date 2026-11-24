@@ -12,6 +12,7 @@ use App\Services\AttendanceService;
 use App\Services\AuditLogger;
 use App\Services\EventService;
 use App\Services\ReportService;
+use App\Services\RsvpService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Validation\ValidationException;
@@ -86,12 +87,13 @@ class EventController extends Controller
     {
         $d = $r->validate($this->events->rules());
         $d['is_mandatory'] = $r->boolean('is_mandatory');
+        $d['rsvp_enabled'] = $r->boolean('rsvp_enabled');
         $event = $this->events->create($r->user(), $d);
 
         return redirect()->route('events.show', $event)->with('status', 'Kegiatan dibuat.');
     }
 
-    public function show(Request $r, Event $event, ReportService $reports)
+    public function show(Request $r, Event $event, ReportService $reports, RsvpService $rsvps)
     {
         $this->events->authorize($r->user(), $event);
         $tab = $r->query('tab', 'ringkasan');
@@ -100,7 +102,8 @@ class EventController extends Controller
         $session = $r->integer('sesi') ? $event->sessions()->findOrFail($r->integer('sesi')) : null;
 
         return Inertia::render('events/show', [
-            'event' => $event->only('id', 'title', 'location', 'starts_at', 'ends_at', 'checkin_opens_at', 'late_after', 'checkin_closes_at', 'closed_at'),
+            'event' => $event->only('id', 'title', 'location', 'starts_at', 'ends_at', 'checkin_opens_at', 'late_after', 'checkin_closes_at', 'closed_at', 'rsvp_enabled', 'rsvp_deadline', 'quota'),
+            'rsvp' => $tab === 'rsvp' && $event->rsvp_enabled ? $rsvps->report($event) : null,
             'tab' => $tab,
             'report' => in_array($tab, ['ringkasan', 'hadir'], true) ? $reports->event($event, $session) : null,
             'canDelete' => ! $event->attendances()->exists(),
@@ -116,7 +119,7 @@ class EventController extends Controller
         $this->events->authorize($r->user(), $event);
 
         return Inertia::render('events/form', [
-            'event' => $event->only('id', 'title', 'type', 'location', 'is_mandatory', 'starts_at', 'ends_at', 'checkin_opens_at', 'late_after', 'checkin_closes_at'),
+            'event' => $event->only('id', 'title', 'type', 'location', 'is_mandatory', 'starts_at', 'ends_at', 'checkin_opens_at', 'late_after', 'checkin_closes_at', 'rsvp_enabled', 'rsvp_deadline', 'quota'),
             'divisions' => Division::orderBy('name')->get(['id', 'name']),
             'windowLocked' => $event->checkin_opens_at->lte(now()),
         ]);
@@ -127,6 +130,7 @@ class EventController extends Controller
         $this->events->authorize($r->user(), $event);
         $d = $r->validate($this->events->rules(partial: true));
         $d['is_mandatory'] = $r->boolean('is_mandatory');
+        $d['rsvp_enabled'] = $r->boolean('rsvp_enabled');
         $this->events->update($event, $d, $r->input('reason'));
 
         return redirect()->route('events.show', $event)->with('status', 'Kegiatan diperbarui.');

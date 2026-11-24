@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\ExcuseController as ApiExcuse;
 use App\Http\Controllers\Api\MeController;
 use App\Http\Controllers\Api\MemberController as ApiMember;
 use App\Http\Controllers\Controller;
+use App\Models\Event;
 use App\Models\Membership;
 use App\Models\PushSubscription;
 use App\Models\Term;
@@ -14,6 +15,7 @@ use App\Services\MemberCardService;
 use App\Services\Push\PushService;
 use App\Services\RegistrationService;
 use App\Services\ReportCardService;
+use App\Services\RsvpService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rules\Password;
 use Inertia\Inertia;
@@ -80,6 +82,17 @@ class PortalController extends Controller
             'events' => $this->me->events($r)['data'],
             'announcements' => $this->me->announcements($r)['data'],
         ]);
+    }
+
+    public function rsvp(Request $r, Event $event, RsvpService $rsvps)
+    {
+        $result = $this->me->rsvp($r, $event, $rsvps);
+
+        return back()->with('status', match ($result['status']) {
+            'going' => 'Anda terdaftar ikut.',
+            'waitlist' => "Kuota penuh: Anda di daftar tunggu nomor {$result['position']}.",
+            default => 'Anda tercatat tidak ikut.',
+        });
     }
 
     public function storeExcuse(Request $r, ApiExcuse $excuses)
