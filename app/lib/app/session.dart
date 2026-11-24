@@ -1,6 +1,7 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../api/api_client.dart';
+import '../offline/offline_store.dart';
 
 /// Sesi login petugas yang disimpan di perangkat.
 /// Catatan: token disimpan di SharedPreferences; untuk rilis sebaiknya pakai penyimpanan terenkripsi.
@@ -46,5 +47,6 @@ class Session {
     await p.remove(_kName);
     await p.remove(_kRole);
     await p.remove(_kHasMember);
+    await p.remove(OfflineStore.eventsKey); // kegiatan akun lama tidak tampil untuk akun berikutnya
   }
 }
