@@ -187,6 +187,8 @@ untuk divisinya.
 - **Akses:** Super Admin memberi **Bendahara** (mencatat) atau **Sekretaris** (audit, hanya melihat) di **Pengguna &
   Peran → Ubah → Akses keuangan**. Ini tambahan di luar peran dan berakhir otomatis saat periode berganti. Mereka
   membuka `/iuran` di browser (anggota: portal → Akun → *Kelola iuran*).
+- **2FA wajib** bagi bendahara & sekretaris: saat pertama membuka `/iuran` mereka diminta mengaktifkannya (aplikasi
+  authenticator), lalu menyimpan kode cadangan. HP hilang → Super Admin: **Pengguna & Peran → Reset 2FA**.
 - **Buat tagihan:** judul, nominal (sama untuk semua anggota aktif), jatuh tempo opsional. Anggota yang disahkan
   kemudian: **Tambah anggota baru**.
 - **Lunas / Bebaskan / Belum lunas:** centang anggota → isi catatan. Membebaskan atau membatalkan tanda wajib beralasan.

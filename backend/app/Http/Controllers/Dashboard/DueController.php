@@ -8,6 +8,7 @@ use App\Models\DueItem;
 use App\Models\DueItemChange;
 use App\Models\Term;
 use App\Services\DuesService;
+use App\Services\TwoFactorService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -25,6 +26,15 @@ class DueController extends Controller
                 + ['due_date' => $d->due_on?->toDateString(), 'term' => $d->term?->name, 'summary' => $this->dues->summary($d)]),
             'term' => $term?->name,
             'canManage' => $r->user()->canManageDues(),
+        ]);
+    }
+
+    /** Aktifkan 2FA (wajib bagi bendahara & sekretaris). */
+    public function security(Request $r, TwoFactorService $twoFactor)
+    {
+        return Inertia::render('dues/security', [
+            'twoFactor' => $twoFactor->state($r->user(), $r->session()->get('2fa.recovery_codes')),
+            'required' => ! $r->user()->isSuperAdmin(),
         ]);
     }
 

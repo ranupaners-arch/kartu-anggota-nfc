@@ -23,6 +23,21 @@ class TwoFactorService
         return $user->two_factor_secret && $user->two_factor_confirmed_at;
     }
 
+    /** Keadaan 2FA untuk kartu pengaturan (Akun Saya & keamanan akses keuangan). */
+    public function state(User $user, ?array $recoveryCodes): array
+    {
+        $enrolling = $user->two_factor_secret && ! $user->two_factor_confirmed_at;
+
+        return [
+            'enabled' => $this->enabled($user),
+            'confirmedAt' => $user->two_factor_confirmed_at,
+            'recoveryRemaining' => $this->remainingRecoveryCodes($user),
+            // Hanya saat sedang mendaftar: QR & rahasia untuk aplikasi authenticator.
+            'setup' => $enrolling ? ['otpauthUrl' => $this->otpauthUrl($user), 'secret' => $user->two_factor_secret] : null,
+            'recoveryCodes' => $recoveryCodes, // tampil sekali setelah aktif
+        ];
+    }
+
     /** Mulai pendaftaran: buat rahasia baru (belum aktif sampai dikonfirmasi). Kembalikan URL otpauth untuk QR. */
     public function start(User $user): string
     {
