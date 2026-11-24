@@ -144,6 +144,43 @@ class _MyHistoryTabState extends State<MyHistoryTab> {
               );
               left.add(const SizedBox(height: 12));
             }
+            if (h.dues.isNotEmpty) {
+              const label = {'unpaid': 'Belum lunas', 'paid': 'Lunas', 'waived': 'Dibebaskan'};
+              left.add(
+                SectionCard(
+                  title: 'Iuran',
+                  icon: LucideIcons.wallet,
+                  description: h.duesUnpaid > 0 ? 'Belum lunas: ${rupiah(h.duesUnpaid)} — bayar ke bendahara.' : 'Semua iuran sudah beres.',
+                  child: Column(
+                    children: [
+                      for (final d in h.dues)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 4),
+                          child: Wrap(
+                            alignment: WrapAlignment.spaceBetween,
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            spacing: 8,
+                            runSpacing: 4,
+                            children: [
+                              Text('${d.title}${d.dueOn == null ? '' : ' · jatuh tempo ${fmtDate(d.dueOn!)}'}'),
+                              Wrap(
+                                crossAxisAlignment: WrapCrossAlignment.center,
+                                spacing: 8,
+                                runSpacing: 4,
+                                children: [
+                                  Text(rupiah(d.amount), style: theme.textTheme.small),
+                                  StatusBadge(status: d.status, label: label[d.status] ?? d.status),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              );
+              left.add(const SizedBox(height: 12));
+            }
             if (h.fines.isNotEmpty) {
               const label = {'unpaid': 'Belum lunas', 'paid': 'Lunas', 'waived': 'Dibebaskan'};
               left.add(
