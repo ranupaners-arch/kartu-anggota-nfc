@@ -2,7 +2,7 @@
 # Pasang satu versi image GHCR di server (dipanggil workflow Image; bisa juga manual).
 #   sh rilis.sh <sha>   → backup, sematkan SHA di .env, pull, jalankan, tunggu sehat
 # Versi lama disimpan di .env.sebelumnya. Migrasi database TIDAK ikut dibatalkan saat kembali ke SHA lama.
-# Berkas compose.yaml.baru & backup.sh.baru (bila ada) dipasang setelah backup berhasil.
+# Berkas compose.yaml.baru, backup.sh.baru & offsite.sh.baru (bila ada) dipasang setelah backup berhasil.
 set -eu
 sha="${1:?pakai: rilis.sh <sha>}"
 printf '%s' "$sha" | grep -Eq '^[0-9a-f]{40}$' || { echo "SHA tidak valid: $sha" >&2; exit 2; }
@@ -21,7 +21,7 @@ fi
 
 umask 077
 # mv (bukan menimpa): backup.sh yang sedang berjalan tetap membaca berkas lamanya.
-for f in compose.yaml backup.sh; do
+for f in compose.yaml backup.sh offsite.sh; do
   if [ -f "$f.baru" ]; then
     chmod 644 "$f.baru"
     mv "$f.baru" "$f"
@@ -36,4 +36,7 @@ compose pull app web
 compose up -d --no-build --wait --wait-timeout 600
 # backup.sh dipasang sebagai satu berkas: container perlu dibuat ulang agar memakai versi baru.
 compose up -d --no-build --no-deps --force-recreate backup
+if compose config --services | grep -qx offsite; then
+  compose up -d --no-build --no-deps --force-recreate offsite
+fi
 echo "rilis $sha selesai"
