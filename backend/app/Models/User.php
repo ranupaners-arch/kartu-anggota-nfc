@@ -24,6 +24,11 @@ class User extends Authenticatable
 
     public const MEMBER = 'member';
 
+    /** Akses keuangan tambahan (finance_role): bendahara mencatat iuran, sekretaris hanya audit. */
+    public const TREASURER = 'treasurer';
+
+    public const AUDITOR = 'auditor';
+
     protected $guarded = [];
 
     protected function casts(): array
@@ -68,5 +73,26 @@ class User extends Authenticatable
     public function isAdmin(): bool
     {
         return in_array($this->role, [self::SUPER_ADMIN, self::DIVISION_ADMIN], true);
+    }
+
+    public function financeTerm()
+    {
+        return $this->belongsTo(Term::class, 'finance_term_id');
+    }
+
+    /** Akses keuangan yang masih berlaku: otomatis berakhir saat periode berganti. */
+    public function activeFinanceRole(): ?string
+    {
+        return $this->finance_role && $this->financeTerm?->is_current ? $this->finance_role : null;
+    }
+
+    public function canManageDues(): bool
+    {
+        return $this->isSuperAdmin() || $this->activeFinanceRole() === self::TREASURER;
+    }
+
+    public function canViewDues(): bool
+    {
+        return $this->isSuperAdmin() || $this->activeFinanceRole() !== null;
     }
 }

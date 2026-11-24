@@ -1,11 +1,13 @@
-import { Link, router } from '@inertiajs/react';
-import { ArrowLeft, LogOut } from 'lucide-react';
+import { Link, router, usePage } from '@inertiajs/react';
+import { ArrowLeft, LogOut, Wallet } from 'lucide-react';
 import { type ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
 import { FlashToaster } from '@/layouts/app-layout';
+import type { SharedProps } from '@/types';
 
 /** Kerangka mode petugas di browser: satu kolom, untuk HP. */
 export default function ScannerLayout({ title, subtitle, back, children }: { title: string; subtitle?: string; back?: string; children: ReactNode }) {
+    const { auth } = usePage<SharedProps>().props;
     return (
         <div className="flex min-h-dvh flex-col bg-background">
             <header className="sticky top-0 z-10 border-b bg-background/95 backdrop-blur">
@@ -19,6 +21,7 @@ export default function ScannerLayout({ title, subtitle, back, children }: { tit
                         <h1 className="truncate text-base font-semibold">{title}</h1>
                         {subtitle && <p className="truncate text-xs text-muted-foreground">{subtitle}</p>}
                     </div>
+                    {auth?.canViewDues && <Button variant="ghost" size="icon" aria-label="Iuran" render={<Link href="/iuran" />}><Wallet /></Button>}
                     <Button variant="ghost" size="icon" aria-label="Keluar" onClick={() => router.post('/keluar')}><LogOut /></Button>
                 </div>
             </header>

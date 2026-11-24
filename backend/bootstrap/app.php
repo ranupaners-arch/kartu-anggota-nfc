@@ -2,6 +2,7 @@
 
 use App\Http\Middleware\AssignRequestId;
 use App\Http\Middleware\EnsureDashboardAccess;
+use App\Http\Middleware\EnsureFinanceAccess;
 use App\Http\Middleware\EnsureMemberPortal;
 use App\Http\Middleware\EnsurePasswordChanged;
 use App\Http\Middleware\EnsureRole;
@@ -31,6 +32,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'dashboard' => EnsureDashboardAccess::class,
             'scanner.web' => EnsureScannerWeb::class,
             'portal' => EnsureMemberPortal::class,
+            'finance' => EnsureFinanceAccess::class,
             'password.changed' => EnsurePasswordChanged::class,
         ]);
         // Di belakang Caddy (jaringan docker) dan opsional Nginx/Cloudflare: percayai X-Forwarded-*

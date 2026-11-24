@@ -18,10 +18,11 @@ class UserController extends Controller
 
     public function index(Request $r)
     {
-        $users = User::with(['division:id,name', 'member:id,member_no,name'])
+        $users = User::with(['division:id,name', 'member:id,member_no,name', 'financeTerm:id,is_current'])
             ->where('organization_id', $r->user()->organization_id)
             ->when($r->query('role'), fn ($q, $role) => $q->where('role', $role))
-            ->orderBy('name')->paginate(30)->withQueryString();
+            ->orderBy('name')->paginate(30)->withQueryString()
+            ->through(fn (User $u) => $u->setAttribute('finance_active', $u->activeFinanceRole()));
 
         return Inertia::render('users/index', ['users' => $users, 'filters' => ['role' => $r->query('role')]]);
     }
@@ -46,7 +47,7 @@ class UserController extends Controller
         $user->load('member:id,member_no');
 
         return Inertia::render('users/form', [
-            'user' => $user->only('id', 'name', 'email', 'role', 'division_id') + ['member_no' => $user->member?->member_no],
+            'user' => $user->only('id', 'name', 'email', 'role', 'division_id') + ['member_no' => $user->member?->member_no, 'finance_role' => $user->activeFinanceRole()],
             'divisions' => Division::orderBy('name')->get(['id', 'name']),
         ]);
     }

@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Division;
 use App\Models\Member;
+use App\Models\Term;
 use App\Models\User;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -24,6 +25,7 @@ class UserService
             'role' => "$req|in:".implode(',', self::ROLES),
             'division_id' => 'nullable|integer',
             'member_id' => 'nullable|integer',
+            'finance_role' => 'sometimes|nullable|in:'.User::TREASURER.','.User::AUDITOR,
         ];
     }
 
@@ -36,6 +38,7 @@ class UserService
             'organization_id' => $actor->organization_id, 'password' => $password, 'must_change_password' => true,
         ]);
         AuditLogger::log('user.created', 'user', $user->id, ['role' => $user->role]);
+        $this->applyFinanceRole($user, $d);
 
         return ['user' => $user, 'password' => $password];
     }
@@ -55,6 +58,7 @@ class UserService
         if ($accessChanged) {
             app(HeldScanService::class)->signOut($user);
         }
+        $this->applyFinanceRole($user, $d);
         AuditLogger::log('user.updated', 'user', $user->id, ['fields' => array_keys($d)] + ($accessChanged ? ['signed_out' => true] : []));
 
         return $user->fresh();
@@ -82,6 +86,22 @@ class UserService
         AuditLogger::log($disabled ? 'user.disabled' : 'user.enabled', 'user', $user->id);
 
         return $user->fresh();
+    }
+
+    /** Bendahara/sekretaris berlaku untuk periode berjalan. Tidak memengaruhi peran atau sesi app. */
+    private function applyFinanceRole(User $user, array $d): void
+    {
+        if (! array_key_exists('finance_role', $d) || $d['finance_role'] === $user->activeFinanceRole()) {
+            return;
+        }
+        $term = Term::where('is_current', true)->first();
+        if ($d['finance_role'] && ! $term) {
+            throw ValidationException::withMessages(['finance_role' => 'Belum ada periode berjalan.']);
+        }
+        $before = $user->activeFinanceRole();
+        $user->forceFill(['finance_role' => $d['finance_role'], 'finance_term_id' => $d['finance_role'] ? $term->id : null])->save();
+        $user->unsetRelation('financeTerm');
+        AuditLogger::log('user.finance_role', 'user', $user->id, ['from' => $before, 'to' => $d['finance_role']]);
     }
 
     private function assertSameOrg(User $actor, User $user): void

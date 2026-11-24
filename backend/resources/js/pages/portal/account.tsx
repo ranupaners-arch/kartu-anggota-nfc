@@ -1,5 +1,5 @@
-import { Head, router, useForm } from '@inertiajs/react';
-import { CalendarPlus, Check, Copy, KeyRound, LogOut } from 'lucide-react';
+import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
+import { CalendarPlus, Check, Copy, KeyRound, LogOut, Wallet } from 'lucide-react';
 import { type FormEvent, useState } from 'react';
 import { FormField } from '@/components/form-field';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import PortalLayout from '@/layouts/portal-layout';
 import { Copyright } from '@/components/copyright';
 import { PushCard } from '@/components/push-card';
+import type { SharedProps } from '@/types';
 
 type Profile = { name: string; member_no: string; division: string | null; organization: string | null; email: string };
 
@@ -43,6 +44,7 @@ function CalendarLink({ url }: { url: string | null }) {
 }
 
 export default function PortalAccount({ profile, mustChangePassword, calendarUrl, push }: { profile: Profile; mustChangePassword: boolean; calendarUrl: string | null; push: { publicKey: string | null; devices: number } }) {
+    const { auth } = usePage<SharedProps>().props;
     const form = useForm({ current_password: '', password: '', password_confirmation: '' });
     const submit = (e: FormEvent) => {
         e.preventDefault();
@@ -82,6 +84,7 @@ export default function PortalAccount({ profile, mustChangePassword, calendarUrl
                 </CardContent>
             </Card>
             {!mustChangePassword && <PushCard publicKey={push.publicKey} />}
+            {!mustChangePassword && auth?.canViewDues && <Button variant="outline" render={<Link href="/iuran" />}><Wallet /> Kelola iuran</Button>}
             {!mustChangePassword && <CalendarLink url={calendarUrl} />}
             <Button variant="outline" onClick={() => router.post('/keluar')}><LogOut /> Keluar</Button>
             <Copyright className="text-center" />
