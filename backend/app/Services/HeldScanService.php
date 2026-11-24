@@ -8,8 +8,8 @@ use App\Models\Event;
 use App\Models\HeldScan;
 use App\Models\User;
 use App\Support\CardPayload;
+use App\Support\LocalTime;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -76,7 +76,7 @@ class HeldScanService
                     'organization_id' => $orgId, 'device_id' => $device->id, 'user_id' => $device->user_id,
                     'access_ended_at' => $device->held_at, 'event_id' => $s['event_id'], 'member_id' => $card->member_id,
                     'session_id' => $s['session_id'] ?? null, 'client_uuid' => $uuid, 'payload' => $s['payload'],
-                    'scanned_at' => Carbon::parse($s['scanned_at'])->utc()->setTimezone(config('app.timezone')),
+                    'scanned_at' => LocalTime::parse($s['scanned_at']),
                 ]);
                 $known[$uuid] = true;
                 $added++;

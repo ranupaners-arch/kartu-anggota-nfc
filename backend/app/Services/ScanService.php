@@ -12,6 +12,7 @@ use App\Models\Member;
 use App\Models\MemberQr;
 use App\Models\User;
 use App\Support\CardPayload;
+use App\Support\LocalTime;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Carbon;
 
@@ -28,7 +29,7 @@ class ScanService
         $ctx ??= new ScanContext($event);
         $source = $in['source'] ?? 'nfc';
         $now = now();
-        $scannedAt = isset($in['scanned_at']) ? Carbon::parse($in['scanned_at']) : $now;
+        $scannedAt = isset($in['scanned_at']) ? LocalTime::parse($in['scanned_at']) : $now;
 
         // Idempotensi: client_uuid yang sama tidak membuat data ganda.
         if (! empty($in['client_uuid'])

@@ -41,6 +41,11 @@ class Attendance extends Model
         return $this->belongsTo(Event::class);
     }
 
+    public function session()
+    {
+        return $this->belongsTo(EventSession::class);
+    }
+
     public function changes()
     {
         return $this->hasMany(AttendanceChange::class);

@@ -145,6 +145,19 @@ cd deploy && docker compose up -d --build
 
 Migrasi database berjalan otomatis saat container `app` dimulai.
 
+### Perbaikan waktu scan lama (sekali)
+
+Versi sebelum perbaikan zona waktu menyimpan jam scan dari app 7 jam lebih awal (status Hadir/Telat tetap benar).
+Setelah memperbarui, backup dulu, lihat simulasinya, lalu terapkan:
+
+```bash
+docker compose exec -T backup /bin/sh /backup.sh now
+docker compose exec app php artisan scan:perbaiki-waktu              # simulasi
+docker compose exec app php artisan scan:perbaiki-waktu --terapkan
+```
+
+Hanya baris yang pasti bergeser yang diubah; kegiatan yang dibuat lewat API (bukan dashboard) perlu diperiksa manual.
+
 ## Backup & restore
 
 Backup otomatis tiap hari pukul `BACKUP_AT` (bawaan 02:00 WIB) ke `deploy/backups/`:
