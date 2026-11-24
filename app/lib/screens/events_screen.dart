@@ -152,7 +152,10 @@ class _EventsScreenState extends State<EventsScreen> with SessionWatch<EventsScr
   Future<OfflineStore> _openStore() => (widget.offlineStore ?? OfflineStore.open)();
 
   Future<void> _refresh() async {
-    setState(() => _events = _load());
+    final events = _load();
+    setState(() {
+      _events = events;
+    });
     _sync();
     await _events.catchError((_) => <EventSummary>[]);
   }
