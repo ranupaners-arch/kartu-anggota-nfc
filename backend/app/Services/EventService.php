@@ -9,6 +9,7 @@ use App\Models\EventSession;
 use App\Models\Member;
 use App\Models\Term;
 use App\Models\User;
+use App\Support\LocalTime;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -17,6 +18,8 @@ use Illuminate\Validation\ValidationException;
 /** Kelola kegiatan. Dipakai API dan dashboard. */
 class EventService
 {
+    private const TIME_KEYS = ['starts_at', 'ends_at', 'checkin_opens_at', 'late_after', 'checkin_closes_at', 'rsvp_deadline'];
+
     public const WINDOW_KEYS = ['checkin_opens_at', 'late_after', 'checkin_closes_at'];
 
     public function __construct(private CloseEvent $closer) {}
@@ -54,6 +57,7 @@ class EventService
 
     public function create(User $user, array $d): Event
     {
+        $d = LocalTime::normalize($d, self::TIME_KEYS);
         $divisionIds = array_values(array_unique($d['target_division_ids'] ?? []));
         $memberIds = array_values(array_unique($d['target_member_ids'] ?? []));
         $ownerDivision = $user->role === User::DIVISION_ADMIN ? $user->division_id : ($d['division_id'] ?? null);
@@ -132,7 +136,7 @@ class EventService
     /** Jendela waktu kegiatan yang sudah berjalan hanya boleh diubah dengan alasan tercatat. */
     public function update(Event $event, array $d, ?string $reason = null): Event
     {
-        $d = collect($d)->except(['division_id', 'target_division_ids', 'target_member_ids'])->all();
+        $d = LocalTime::normalize(collect($d)->except(['division_id', 'target_division_ids', 'target_member_ids'])->all(), self::TIME_KEYS);
         $this->assertRsvp((clone $event)->fill($d));
         $changesWindow = collect(self::WINDOW_KEYS)->contains(fn ($k) => isset($d[$k]));
         if ($changesWindow && $event->checkin_opens_at->lte(now())) {
@@ -165,10 +169,11 @@ class EventService
     {
         abort_unless($session->event_id === $event->id, 404);
         abort_if($event->closed_at, 422, 'Kegiatan sudah ditutup.');
+        $d = LocalTime::normalize($d, ['starts_at', 'ends_at']);
         $isDefault = $event->defaultSession()->is($session);
         $d = $isDefault ? ['title' => $d['title']] : $d;
 
-        $timeChanged = ! $isDefault && isset($d['starts_at']) && ! $session->starts_at?->equalTo(Carbon::parse($d['starts_at']));
+        $timeChanged = ! $isDefault && isset($d['starts_at']) && ! $session->starts_at?->equalTo($d['starts_at']);
         if ($timeChanged && $session->checkin_opens_at->lte(now())) {
             if (mb_strlen(trim((string) $reason)) < 5) {
                 throw ValidationException::withMessages(['reason' => 'Check-in sesi ini sudah dibuka: alasan perubahan jam wajib diisi (min. 5 karakter).']);

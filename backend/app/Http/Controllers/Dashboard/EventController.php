@@ -13,6 +13,7 @@ use App\Services\AuditLogger;
 use App\Services\EventService;
 use App\Services\ReportService;
 use App\Services\RsvpService;
+use App\Support\LocalTime;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Validation\ValidationException;
@@ -173,7 +174,7 @@ class EventController extends Controller
         // Jam mulai wajib: jendela check-in sesi dihitung darinya (selisih sama dengan kegiatan).
         $d = $r->validate(['title' => 'required|string|max:200', 'starts_at' => 'required|date', 'ends_at' => 'nullable|date|after_or_equal:starts_at']);
         $event->defaultSession(); // pastikan sesi utama ada lebih dulu
-        $session = $event->sessions()->create($d);
+        $session = $event->sessions()->create(LocalTime::normalize($d, ['starts_at', 'ends_at']));
         AuditLogger::log('event.session_added', 'event', $event->id, ['session_id' => $session->id, 'title' => $session->title]);
 
         return back()->with('status', 'Sesi ditambahkan. Check-in dibuka '.$session->checkin_opens_at->timezone(config('app.timezone'))->format('d/m H:i').'.');
@@ -187,7 +188,7 @@ class EventController extends Controller
             'repeat' => 'required|in:'.implode(',', EventService::REPEATS),
             'count' => 'required_unless:repeat,none|integer|min:1|max:'.EventService::MAX_REPEAT,
         ]);
-        $created = $this->events->duplicate($r->user(), $event, Carbon::parse($d['starts_at']), $d['repeat'], (int) ($d['count'] ?? 1));
+        $created = $this->events->duplicate($r->user(), $event, LocalTime::parse($d['starts_at']), $d['repeat'], (int) ($d['count'] ?? 1));
         $first = $created->first();
 
         return redirect()->route('events.show', $first)->with('status', $created->count() > 1
