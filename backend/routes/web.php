@@ -59,6 +59,12 @@ Route::middleware(['auth:web', 'scanner.web'])->prefix('pindai')->name('scanner.
 });
 
 // Iuran: Super Admin, bendahara, sekretaris (audit). Hak mengubah dicek di DuesService.
+Route::middleware(['auth:web', 'finance:setup'])->prefix('iuran')->name('dues.')->group(function () {
+    Route::get('keamanan', [Dashboard\DueController::class, 'security'])->name('security');
+    Route::post('2fa', [Dashboard\AccountController::class, 'startTwoFactor'])->name('2fa.start');
+    Route::post('2fa/konfirmasi', [Dashboard\AccountController::class, 'confirmTwoFactor'])->middleware('throttle:10,1')->name('2fa.confirm');
+    Route::delete('2fa', [Dashboard\AccountController::class, 'disableTwoFactor'])->middleware('throttle:10,1')->name('2fa.disable');
+});
 Route::middleware(['auth:web', 'finance'])->prefix('iuran')->name('dues.')->group(function () {
     Route::get('/', [Dashboard\DueController::class, 'index'])->name('index');
     Route::post('/', [Dashboard\DueController::class, 'store'])->middleware('throttle:20,1')->name('store');

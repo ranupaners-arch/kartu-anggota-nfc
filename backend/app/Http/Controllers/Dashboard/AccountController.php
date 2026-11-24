@@ -19,7 +19,6 @@ class AccountController extends Controller
     {
         $user = $r->user()->load('member:id,member_no,name');
         $twoFactor = app(TwoFactorService::class);
-        $enrolling = $user->two_factor_secret && ! $user->two_factor_confirmed_at;
 
         return Inertia::render('account/edit', [
             'user' => $user->only('name', 'email', 'role') + ['member' => $user->member?->only('member_no', 'name')],
@@ -27,14 +26,7 @@ class AccountController extends Controller
             'pushKey' => PushService::enabled() ? config('services.webpush.public_key') : null,
             'weeklySummary' => ['enabled' => (bool) ($user->weekly_summary ?? true), 'mailEnabled' => MailStatus::enabled()],
             'calendarUrl' => $user->calendar_token ? route('calendar.feed', ['token' => $user->calendar_token]) : null,
-            'twoFactor' => [
-                'enabled' => $twoFactor->enabled($user),
-                'confirmedAt' => $user->two_factor_confirmed_at,
-                'recoveryRemaining' => $twoFactor->remainingRecoveryCodes($user),
-                // Hanya saat sedang mendaftar: QR & rahasia untuk aplikasi authenticator.
-                'setup' => $enrolling ? ['otpauthUrl' => $twoFactor->otpauthUrl($user), 'secret' => $user->two_factor_secret] : null,
-                'recoveryCodes' => $r->session()->get('2fa.recovery_codes'), // tampil sekali setelah aktif
-            ],
+            'twoFactor' => $twoFactor->state($user, $r->session()->get('2fa.recovery_codes')),
         ]);
     }
 

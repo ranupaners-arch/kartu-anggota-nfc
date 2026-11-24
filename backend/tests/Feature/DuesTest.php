@@ -13,6 +13,7 @@ use App\Models\User;
 use App\Services\DuesService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use LogicException;
+use PragmaRX\Google2FA\Google2FA;
 use Tests\TestCase;
 
 class DuesTest extends TestCase
@@ -52,7 +53,8 @@ class DuesTest extends TestCase
         Membership::create(['member_id' => $m->id, 'term_id' => $this->term->id, 'status' => 'active']);
 
         return User::factory()->create(['organization_id' => $this->org->id, 'role' => 'member', 'member_id' => $m->id,
-            'finance_role' => $finance, 'finance_term_id' => $finance ? $this->term->id : null]);
+            'finance_role' => $finance, 'finance_term_id' => $finance ? $this->term->id : null]
+            + ($finance ? ['two_factor_secret' => 'JBSWY3DPEHPK3PXP', 'two_factor_confirmed_at' => now()] : []));
     }
 
     private function web(User $u): static
@@ -243,5 +245,45 @@ class DuesTest extends TestCase
         $this->term->update(['is_current' => false]);
         $this->newTerm('2027', true);
         $this->web($this->admin)->delete("/pengaturan/periode/{$due->term_id}")->assertStatus(422);
+    }
+
+    public function test_treasurer_and_auditor_must_enable_two_factor_first(): void
+    {
+        $due = $this->bill();
+        foreach ([$this->treasurer, $this->auditor] as $u) {
+            $u->fresh()->forceFill(['two_factor_secret' => null, 'two_factor_confirmed_at' => null])->save();
+            $this->web($u)->get('/iuran')->assertRedirect('/iuran/keamanan');
+            $this->web($u)->get("/iuran/{$due->id}/ekspor")->assertRedirect('/iuran/keamanan');
+        }
+        $this->mark($this->treasurer, $due, ['Ani'], 'paid')->assertRedirect('/iuran/keamanan');
+        $this->assertSame('unpaid', $this->item($due, 'Ani')->status);
+
+        $this->web($this->treasurer)->get('/iuran/keamanan')->assertOk()->assertInertia(fn ($p) => $p->where('required', true)->where('twoFactor.enabled', false)->where('twoFactor.setup', null));
+        $this->web($this->treasurer)->post('/iuran/2fa')->assertRedirect();
+        $this->web($this->treasurer)->get('/iuran')->assertRedirect('/iuran/keamanan'); // belum dikonfirmasi
+        $this->web($this->treasurer)->post('/iuran/2fa/konfirmasi', ['code' => '000000'])->assertSessionHasErrors('code');
+        $g = new Google2FA;
+        $code = $g->oathTotp($this->treasurer->fresh()->two_factor_secret, $g->getTimestamp());
+        $this->web($this->treasurer)->post('/iuran/2fa/konfirmasi', ['code' => $code])->assertSessionHasNoErrors();
+        $this->web($this->treasurer)->get('/iuran')->assertOk();
+
+        $this->web($this->admin)->get('/iuran')->assertOk(); // Super Admin: aturan 2FA lama
+    }
+
+    public function test_members_without_finance_access_cannot_use_the_setup_page(): void
+    {
+        $plain = User::where('role', 'member')->whereNull('finance_role')->firstOrFail();
+        $this->web($plain)->get('/iuran/keamanan')->assertForbidden();
+        $this->web($plain)->post('/iuran/2fa')->assertForbidden();
+        $this->assertNull($plain->fresh()->two_factor_secret);
+    }
+
+    public function test_disabling_two_factor_needs_password_and_closes_access(): void
+    {
+        $this->treasurer->update(['password' => 'rahasia12345']);
+        $this->web($this->treasurer)->delete('/iuran/2fa', ['password' => 'salah'])->assertSessionHasErrors('password');
+        $this->web($this->treasurer)->get('/iuran')->assertOk();
+        $this->web($this->treasurer)->delete('/iuran/2fa', ['password' => 'rahasia12345'])->assertSessionHasNoErrors();
+        $this->web($this->treasurer)->get('/iuran')->assertRedirect('/iuran/keamanan');
     }
 }
