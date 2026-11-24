@@ -17,6 +17,7 @@ Cetak atau buka di HP penanggung jawab. Centang tiap butir.
 - [ ] Setiap HP petugas: NFC aktif, baterai penuh, **jam otomatis** aktif, app versi terbaru.
 - [ ] Setiap petugas membuka layar **Scan** kegiatan saat online (daftar peserta & foto tersimpan
       untuk mode offline) — atau lakukan di awal acara.
+- [ ] Scan tertunda di semua HP petugas sudah terkirim (Beranda tidak menampilkan scan tertunda).
 - [ ] Siapkan **HP cadangan** yang sudah login sebagai petugas, dan powerbank.
 - [ ] Dashboard → Pengaturan → *Sistem*: semua **Normal**.
 - [ ] Setujui pengajuan izin yang sudah masuk.
