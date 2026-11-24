@@ -154,6 +154,24 @@ class ScanFlowTest extends TestCase
         $this->assertDatabaseHas('attendances', ['member_id' => $m->id, 'needs_review' => true]);
     }
 
+    public function test_offline_scan_sent_after_event_closed_replaces_alpa(): void
+    {
+        $m = $this->member();
+        $payload = $this->issueCard($m);
+        $at = now()->toIso8601String();
+
+        $this->travel(3)->hours();
+        app(\App\Services\CloseEvent::class)->handle($this->event->fresh());
+        $this->assertDatabaseHas('attendances', ['member_id' => $m->id, 'status' => 'alpa']);
+
+        $this->actingAs($this->scanner, 'sanctum')->postJson("/api/events/{$this->event->id}/scan/batch", ['scans' => [
+            ['payload' => $payload, 'source' => 'nfc', 'client_uuid' => (string) Str::uuid(), 'scanned_at' => $at],
+        ]])->assertOk()->assertJsonPath('results.0.status', 'ok');
+
+        $this->assertDatabaseCount('attendances', 1);
+        $this->assertDatabaseHas('attendances', ['member_id' => $m->id, 'status' => 'hadir', 'source' => 'nfc']);
+    }
+
     public function test_closing_event_marks_alpa_and_excused(): void
     {
         $present = $this->member('1');
