@@ -52,7 +52,7 @@ Workflow **Image (GHCR)** membangun `deploy/Dockerfile` (target `app` dan `web`)
 dengan tag SHA commit. Tag `latest` baru dipindah setelah uji stack lulus (dan deploy berhasil, bila
 VPS diatur). Server tidak perlu source repo dan **tidak pernah build**.
 
-Folder server (mis. `/srv/kartu-anggota`) cukup berisi `compose.yaml`, `backup.sh`, dan `.env`
+Folder server (mis. `/srv/kartu-anggota`) cukup berisi `compose.yaml`, `backup.sh`, `offsite.sh`, dan `.env`
 (salin dari `deploy/`, isi `.env` seperti di atas, `chmod 600 .env`):
 
 ```bash
@@ -68,7 +68,7 @@ Pin ke versi tertentu dengan `APP_IMAGE=ghcr.io/ranupaners-arch/kartu-anggota-ap
 
 Deploy otomatis (opsional): isi secret repo `VPS_HOST`, `VPS_USER`, `VPS_SSH_KEY`,
 `VPS_KNOWN_HOSTS` (hasil `ssh-keyscan` yang sudah diverifikasi), dan opsional `VPS_PORT`. Job
-`deploy` mengirim `compose.yaml`, `backup.sh`, dan `rilis.sh` ke `/srv/kartu-anggota`, lalu menjalankan
+`deploy` mengirim `compose.yaml`, `backup.sh`, `offsite.sh`, dan `rilis.sh` ke `/srv/kartu-anggota`, lalu menjalankan
 `rilis.sh <sha>`: backup, sematkan SHA di `.env`, pull, jalankan, tunggu sehat. Bila backup gagal, rilis
 berhenti sebelum ada yang diubah. Tanpa secret itu, langkah deploy dilewati dan dilakukan manual.
 
@@ -156,8 +156,36 @@ docker compose exec backup /bin/sh /backup.sh now          # backup sekarang
 ls deploy/backups/                                         # daftar backup
 ```
 
-**Salin backup ke luar VPS secara rutin** (mis. `rsync`/`rclone` ke penyimpanan lain); backup yang
-hanya ada di VPS ikut hilang bila VPS rusak.
+Backup yang hanya ada di VPS ikut hilang bila VPS rusak. Aktifkan salinan luar:
+
+### Salinan terenkripsi ke S3
+
+Layanan `offsite` mengunggah backup baru tiap jam ke penyimpanan S3-compatible. Isi dan nama berkas
+dienkripsi di server sebelum dikirim, lalu dicocokkan. Isi di `.env`:
+
+```env
+COMPOSE_PROFILES=offsite
+OFFSITE_ENDPOINT=https://s3.contoh.id
+OFFSITE_REGION=auto
+OFFSITE_BUCKET=nama-bucket              # buat dulu bucketnya, privat
+OFFSITE_ACCESS_KEY=...
+OFFSITE_SECRET_KEY=...
+OFFSITE_PASSWORD=...                    # openssl rand -hex 32
+OFFSITE_PING_URL=https://...            # opsional: pemantau bergaya healthchecks.io
+```
+
+```bash
+docker compose up -d offsite
+docker compose exec offsite /bin/sh /offsite.sh now    # unggah & periksa sekarang
+docker compose exec offsite /bin/sh /offsite.sh list   # daftar salinan luar
+```
+
+- **Simpan `OFFSITE_PASSWORD` di luar VPS.** Tanpa itu salinan tidak bisa dibuka oleh siapa pun.
+- Salinan luar disimpan `OFFSITE_KEEP_DAYS` hari (bawaan 90); yang lama dihapus hanya setelah yang baru cocok.
+- Alarm: bila `OFFSITE_PING_URL` diisi, pemantau diberi tahu saat unggahan gagal **atau** backup harian tidak
+  ada yang lebih baru dari 26 jam. Atur jadwal pemantau 1 jam dengan toleransi 1 jam.
+- Ambil kembali: `docker compose exec offsite /bin/sh /offsite.sh pull db-....dump`, lalu restore seperti di bawah.
+- Agar penyerang di VPS tidak bisa menghapus salinan, aktifkan versi/penguncian objek di penyedia S3.
 
 Restore (menimpa database! hentikan akses dulu):
 
