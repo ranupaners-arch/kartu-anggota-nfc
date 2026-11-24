@@ -113,7 +113,7 @@ class PortalController extends Controller
     {
         $result = $this->me->setLeaderboard($r, $board);
 
-        return back()->with('status', $result['opted_in'] ? 'Nama Anda tampil di papan peringkat.' : 'Nama Anda tidak lagi tampil di papan peringkat.');
+        return back()->with('status', $result['opted_in'] ? (($result['me']['points'] ?? 0) > 0 ? 'Nama Anda tampil di papan peringkat.' : 'Tersimpan. Nama Anda tampil setelah mendapat poin pertama.') : 'Nama Anda tidak lagi tampil di papan peringkat.');
     }
 
     public function reportCard(Request $r, ReportCardService $cards)

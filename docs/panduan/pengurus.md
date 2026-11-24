@@ -191,7 +191,8 @@ untuk divisinya.
   authenticator), lalu menyimpan kode cadangan. HP hilang → Super Admin: **Pengguna & Peran → Reset 2FA**.
 - **Buat tagihan:** judul, nominal (sama untuk semua anggota aktif), jatuh tempo opsional. Anggota yang disahkan
   kemudian: **Tambah anggota baru**.
-- **Lunas / Bebaskan / Belum lunas:** centang anggota → isi catatan. Membebaskan atau membatalkan tanda wajib beralasan.
+- **Lunas / Bebaskan / Belum lunas:** centang anggota → isi catatan. Membebaskan atau membatalkan tanda wajib beralasan. Yang sudah
+  lunas harus dikembalikan dulu sebelum dibebaskan.
   Bendahara tidak bisa mencatat iurannya sendiri.
 - **Riwayat Perubahan** mencatat siapa, kapan, dan alasannya; tidak bisa diubah dari aplikasi. **CSV** untuk arsip.
 - Tagihan salah: **Batalkan** (hanya bila belum ada yang lunas), lalu buat lagi.

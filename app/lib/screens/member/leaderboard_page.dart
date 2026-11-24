@@ -70,7 +70,7 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
               title: 'Peringkat Anda',
               icon: LucideIcons.award,
               description: 'Hanya Anda yang melihat ini.',
-              child: Text('${me.rank} dari ${me.total} anggota aktif · ${me.points} poin', style: theme.textTheme.large),
+              child: Text(me.points > 0 ? '${me.rank} dari ${me.total} anggota aktif · ${me.points} poin' : 'Anda belum punya poin periode ini.', style: theme.textTheme.large),
             ),
             const SizedBox(height: 12),
             SectionCard(
@@ -79,7 +79,8 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  if (b.top.isEmpty) Text('Belum ada anggota yang memilih tampil.', style: theme.textTheme.muted),
+                  if (b.top.isEmpty) Text('Belum ada nama yang tampil.', style: theme.textTheme.muted),
+                  if (b.optedIn && me.points == 0) Text('Nama Anda akan tampil setelah mendapat poin pertama.', style: theme.textTheme.muted),
                   for (final t in b.top)
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 8),

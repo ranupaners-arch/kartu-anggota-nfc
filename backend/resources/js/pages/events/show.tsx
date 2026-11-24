@@ -261,7 +261,7 @@ function RsvpList({ event, rsvp }: Pick<Props, 'event' | 'rsvp'>) {
     if (!rsvp) return null;
     return (
         <>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
                 {Object.entries(rsvp.counts).map(([k, n]) => (
                     <Card size="sm" key={k}><CardHeader><CardDescription>{rsvpLabels[k][0]}</CardDescription><CardTitle className="text-2xl tabular-nums">{n}{k === 'going' && event.quota ? ` / ${event.quota}` : ''}</CardTitle></CardHeader></Card>
                 ))}
