@@ -21,9 +21,9 @@ use App\Services\MemberNotificationService;
 use App\Services\ProfileChangeService;
 use App\Services\RegistrationService;
 use App\Services\ReportCardService;
+use App\Services\RsvpService;
 use App\Services\SelfCardService;
 use App\Services\StatsService;
-use App\Services\RsvpService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
