@@ -16,6 +16,7 @@ use App\Models\User;
 use App\Services\AchievementService;
 use App\Services\CardPrintService;
 use App\Services\FineService;
+use App\Services\LeaderboardService;
 use App\Services\MemberCardService;
 use App\Services\MemberNotificationService;
 use App\Services\ProfileChangeService;
@@ -99,6 +100,19 @@ class MeController extends Controller
     public function achievements(Request $r, AchievementService $achievements)
     {
         return $achievements->forMember($this->memberId($r));
+    }
+
+    public function leaderboard(Request $r, LeaderboardService $board)
+    {
+        return $board->forMember($this->member($r));
+    }
+
+    public function setLeaderboard(Request $r, LeaderboardService $board)
+    {
+        $d = $r->validate(['opt_in' => 'required|boolean']);
+        $board->setOptIn($member = $this->member($r), (bool) $d['opt_in']);
+
+        return $board->forMember($member->fresh());
     }
 
     /** Tampilan kartu anggota (status e-profil/pengesahan + data kartu). */

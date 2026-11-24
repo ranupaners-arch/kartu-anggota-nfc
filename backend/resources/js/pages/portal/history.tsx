@@ -1,4 +1,4 @@
-import { Head } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 import { FileDown, TriangleAlert } from 'lucide-react';
 import { StatusBadge } from '@/components/status-badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -15,9 +15,42 @@ type History = {
     fines?: { unpaid_total: number; items: { id: number; amount: number; status: string; event: string | null; date: string | null }[] };
 };
 
+type Board = {
+    opted_in: boolean; me: { points: number; rank: number; total: number } | null;
+    top: { rank: number; name: string; division: string | null; points: number; is_me: boolean }[];
+};
+
 const statusLabel: Record<string, string> = { hadir: 'Hadir', telat: 'Telat', izin: 'Izin', sakit: 'Sakit', alpa: 'Alpa' };
 
-export default function PortalHistory({ history: h }: { history: History }) {
+function Leaderboard({ board }: { board: Board }) {
+    if (!board.me) return null;
+    return (
+        <Card className="gap-3">
+            <CardHeader>
+                <CardTitle className="text-base">Papan peringkat</CardTitle>
+                <CardDescription>Anda peringkat {board.me.rank} dari {board.me.total} anggota aktif ({board.me.points} poin) — hanya Anda yang melihat ini.</CardDescription>
+            </CardHeader>
+            <CardContent className="grid gap-3">
+                {board.top.length === 0 && <p className="text-sm text-muted-foreground">Belum ada anggota yang memilih tampil.</p>}
+                <ol className="divide-y">
+                    {board.top.map((t, i) => (
+                        <li key={i} className={`flex items-center gap-3 py-2 text-sm ${t.is_me ? 'font-semibold' : ''}`}>
+                            <span className="w-6 text-right tabular-nums text-muted-foreground">{t.rank}</span>
+                            <span className="min-w-0 flex-1 truncate">{t.name}{t.is_me && ' (Anda)'}<span className="block text-xs font-normal text-muted-foreground">{t.division}</span></span>
+                            <span className="tabular-nums">{t.points} poin</span>
+                        </li>
+                    ))}
+                </ol>
+                <p className="text-xs text-muted-foreground">Hanya anggota yang memilih tampil yang terlihat: nama, divisi, dan poin. Bisa diubah kapan saja.</p>
+                <Button variant="outline" onClick={() => router.put('/saya/peringkat', { opt_in: !board.opted_in }, { preserveScroll: true })}>
+                    {board.opted_in ? 'Sembunyikan nama saya' : 'Tampilkan nama saya'}
+                </Button>
+            </CardContent>
+        </Card>
+    );
+}
+
+export default function PortalHistory({ history: h, leaderboard }: { history: History; leaderboard: Board }) {
     const pct = h.attendance_rate === null ? '–' : `${h.attendance_rate.toLocaleString('id-ID', { maximumFractionDigits: 1 })}%`;
     return (
         <PortalLayout title="Riwayat">
@@ -68,6 +101,7 @@ export default function PortalHistory({ history: h }: { history: History }) {
                     </CardContent>
                 </Card>
             )}
+            <Leaderboard board={leaderboard} />
             <Card className="gap-2">
                 <CardHeader><CardTitle className="text-base">Riwayat terbaru</CardTitle></CardHeader>
                 <CardContent>
