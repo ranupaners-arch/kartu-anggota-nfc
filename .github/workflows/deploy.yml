@@ -2,24 +2,22 @@ name: Deploy (uji stack Docker)
 
 # Menjalankan stack produksi (deploy/compose.yaml) seperti di VPS, tanpa domain (HTTP :80),
 # lalu menguji setup, halaman, login, queue, scheduler, uji beban scan, serta backup + restore.
-# Jalan di setiap merge ke main (satu-satunya pemeriksaan main setelah gabungan beberapa PR), plus
+# Dipanggil workflow Image (GHCR) di setiap merge ke main sebelum image diterbitkan, plus
 # cadangan mingguan (Minggu 02.00 WIB) dan manual (Actions → Deploy → Run workflow).
 on:
-  push:
-    branches: [main]
-    paths: ['backend/**', 'deploy/**', '.dockerignore', '.github/workflows/deploy.yml', '.github/scripts/**']
+  workflow_call:
   schedule:
     - cron: '0 19 * * 6'
   workflow_dispatch:
 
-# Merge beruntun: run yang lebih lama dibatalkan, cukup menguji isi main terbaru.
 # Token GitHub hanya boleh membaca isi repo (tidak ada job yang menulis ke repo).
 permissions:
   contents: read
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  # Nama tetap: saat dipanggil, github.workflow berisi nama pemanggil (grupnya akan bentrok).
+  group: uji-stack-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: false # bisa jadi bagian dari rilis: jangan dipotong
 
 defaults:
   run:
