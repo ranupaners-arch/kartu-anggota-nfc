@@ -20,7 +20,7 @@ class DuesService
         $this->assertManage($by);
         $term = Term::where('is_current', true)->first() ?? throw ValidationException::withMessages(['title' => 'Belum ada periode berjalan.']);
 
-        return DB::transaction(function () use ($by, $d, $term) {
+        $due = DB::transaction(function () use ($by, $d, $term) {
             // Kunci periode: dua permintaan bersamaan tidak membuat tagihan berjudul sama.
             Term::whereKey($term->id)->lockForUpdate()->first();
             if (Due::where('term_id', $term->id)->whereNull('cancelled_at')->whereRaw('lower(title) = ?', [mb_strtolower($d['title'])])->exists()) {
@@ -33,6 +33,9 @@ class DuesService
 
             return $due;
         });
+        Notifier::later('dueCreated', $due->id);
+
+        return $due;
     }
 
     /** Tambahkan anggota aktif yang belum punya tagihan ini (mis. baru disahkan). */
