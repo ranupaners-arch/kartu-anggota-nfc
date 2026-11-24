@@ -19,7 +19,7 @@ class ReviewController extends Controller
     {
         $tab = $r->query('tab', 'offline');
         if ($tab === 'tertahan') {
-            $items = $this->held->pending($r->user())->with(['member:id,member_no,name', 'event:id,title', 'device:id,name,user_id,revoked_at', 'device.user:id,name'])
+            $items = $this->held->pending($r->user())->with(['member:id,member_no,name', 'event:id,title', 'device:id,name', 'user:id,name'])
                 ->orderBy('scanned_at')->orderBy('id')->paginate(30)->withQueryString();
 
             return Inertia::render('reviews/index', ['tab' => $tab, 'items' => $items]);

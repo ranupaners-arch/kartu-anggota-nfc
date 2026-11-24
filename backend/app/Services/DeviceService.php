@@ -15,6 +15,7 @@ class DeviceService
             'revoked_at' => $device->revoked_at ?? now(),
             // Disimpan agar scan offline yang belum terkirim bisa ditahan untuk ditinjau (HeldScanService).
             'held_token_hash' => $token?->token ?? $device->held_token_hash,
+            'held_at' => $token ? now() : $device->held_at,
         ]);
         $token?->delete();
         AuditLogger::log('device.revoked', 'device', $device->id);

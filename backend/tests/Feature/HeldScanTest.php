@@ -185,4 +185,44 @@ class HeldScanTest extends TestCase
         $this->web($foreign)->post("/tinjauan/tertahan/{$held->id}/terima", ['reason' => 'coba'])->assertNotFound();
         $this->assertSame('pending', HeldScan::withoutGlobalScopes()->find($held->id)->status);
     }
+
+    public function test_role_change_and_disable_hold_scans_too(): void
+    {
+        $users = app(\App\Services\UserService::class);
+        $cases = [
+            fn () => app(\App\Services\UserService::class)->update($this->admin, $this->scanner->fresh(), ['role' => 'member']),
+            fn () => $users->setDisabled($this->admin, $this->scanner->fresh(), true),
+        ];
+        foreach ($cases as $i => $end) {
+            $this->app['auth']->forgetGuards();
+            $this->scanner->fresh()->update(['role' => 'scanner', 'disabled_at' => null]);
+            $login = $this->withoutToken()->postJson('/api/auth/login', ['email' => $this->scanner->email, 'password' => 'secret123', 'device_uuid' => "hp-$i", 'device_name' => 'HP'])->assertOk();
+            $this->actingAs($this->admin);
+            $end();
+            $this->upload([$this->item()], $login['token'])->assertOk()->assertJsonPath('results.0.status', 'held');
+            $this->assertDatabaseHas('held_scans', ['device_id' => $login['device_id'], 'user_id' => $this->scanner->id]);
+        }
+        $this->assertDatabaseCount('attendances', 0);
+    }
+
+    public function test_next_login_on_the_device_closes_the_old_token_and_owner_stays_on_the_scan(): void
+    {
+        app(\App\Services\HeldScanService::class)->signOut($this->scanner);
+        $this->upload([$this->item()])->assertOk();
+        $other = User::factory()->create(['organization_id' => $this->org->id, 'role' => 'scanner', 'password' => 'secret123']);
+        $this->app['auth']->forgetGuards();
+        $this->withoutToken()->postJson('/api/auth/login', ['email' => $other->email, 'password' => 'secret123', 'device_uuid' => 'dev-1', 'device_name' => 'HP'])->assertOk();
+        $this->upload([$this->item()])->assertForbidden();
+
+        $held = HeldScan::withoutGlobalScopes()->sole();
+        $this->web($this->admin)->post("/tinjauan/tertahan/{$held->id}/terima", ['reason' => 'sah'])->assertSessionHasNoErrors();
+        $this->assertDatabaseHas('attendances', ['member_id' => $this->member->id, 'scanned_by' => $this->scanner->id]);
+    }
+
+    public function test_password_reset_does_not_open_the_upload_path(): void
+    {
+        $this->actingAs($this->admin);
+        app(\App\Services\UserService::class)->resetPassword($this->admin, $this->scanner->fresh());
+        $this->upload([$this->item()])->assertForbidden();
+    }
 }

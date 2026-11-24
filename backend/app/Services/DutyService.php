@@ -121,7 +121,7 @@ class DutyService
         $user->forceFill(['role' => $role, 'division_id' => $role === User::DIVISION_ADMIN ? $divisionId : null]);
         if ($user->isDirty(['role', 'division_id'])) {
             $user->save();
-            $user->tokens()->delete();
+            app(HeldScanService::class)->signOut($user);
         }
     }
 }

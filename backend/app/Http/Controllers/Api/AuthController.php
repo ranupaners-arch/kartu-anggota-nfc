@@ -70,7 +70,7 @@ class AuthController extends Controller
             $user->tokens()->whereKey($device->token_id)->delete();
         }
         $token = $user->createToken("device:{$device->id}");
-        $device->update(['token_id' => $token->accessToken->id]);
+        $device->update(['token_id' => $token->accessToken->id, 'held_token_hash' => null, 'held_at' => null]);
 
         AuditLogger::log('auth.login', 'device', $device->id, [], $user->id);
 

@@ -12,7 +12,7 @@ import { fmtDateTime } from '@/lib/format';
 import type { Paginated } from '@/types';
 
 type Att = { id: number; status: string; scanned_at: string | null; review_reason: string | null; member: { member_no: string; name: string } | null; event: { title: string } | null };
-type Held = { id: number; scanned_at: string; member: Att['member']; event: Att['event']; device: { name: string; revoked_at: string; user: { name: string } | null } | null };
+type Held = { id: number; scanned_at: string; member: Att['member']; event: Att['event']; access_ended_at: string | null; device: { name: string } | null; user: { name: string } | null };
 type Log = { id: number; created_at: string; entity_id: number; payload: { event_id?: number; device_id?: number } | null };
 
 const reasons: Record<string, string> = { card_blocked_after_scan: 'Kartu diblokir setelah scan offline' };
@@ -34,14 +34,14 @@ function Actions({ path, canAccept }: { path: string; canAccept: boolean }) {
 export default function Reviews({ tab, items }: { tab: string; items: Paginated<Att | Log | Held> }) {
     const help: Record<string, string> = {
         offline: 'Scan offline yang bermasalah saat disinkron, mis. kartu diblokir setelah scan. Terima bila sah, batalkan bila tidak.',
-        tertahan: 'Scan offline dari HP petugas yang aksesnya dicabut. Belum tercatat; terima hanya bila Anda yakin kartunya benar ditempel saat kegiatan.',
+        tertahan: 'Scan offline dari petugas yang aksesnya berakhir (perangkat dicabut, peran diubah, atau akun dinonaktifkan). Belum tercatat; terima hanya bila Anda yakin kartunya benar ditempel saat kegiatan.',
         override: 'Scan di luar jendela check-in yang di-override petugas dengan alasan.',
         anomali: 'Kartu yang sama di-tap di kegiatan/perangkat berbeda dalam < 60 detik. Periksa kemungkinan kartu digandakan.',
     };
     return (
         <AppLayout title="Perlu Ditinjau">
             <Head title="Perlu Ditinjau" />
-            <PageTabs tabs={{ offline: 'Konflik Offline', tertahan: 'Perangkat Dicabut', override: 'Override', anomali: 'Anomali' }} current={tab} />
+            <PageTabs tabs={{ offline: 'Konflik Offline', tertahan: 'Akses Berakhir', override: 'Override', anomali: 'Anomali' }} current={tab} />
             <p className="text-sm text-muted-foreground">{help[tab]}</p>
             {tab === 'tertahan' ? (
                 <DataTable head={['Anggota', 'Kegiatan', 'Perangkat', 'Waktu scan', 'Tindakan']} count={items.data.length} empty="Tidak ada scan tertahan.">
@@ -49,10 +49,10 @@ export default function Reviews({ tab, items }: { tab: string; items: Paginated<
                         <TableRow key={h.id}>
                             <TableCell>{h.member?.name ?? '—'}<div className="text-xs text-muted-foreground">{h.member?.member_no}</div></TableCell>
                             <TableCell>{h.event?.title}</TableCell>
-                            <TableCell>{h.device?.name}<div className="text-xs text-muted-foreground">{h.device?.user?.name}</div></TableCell>
+                            <TableCell>{h.device?.name}<div className="text-xs text-muted-foreground">{h.user?.name}</div></TableCell>
                             <TableCell>
                                 {fmtDateTime(h.scanned_at)}
-                                {h.device && new Date(h.scanned_at) > new Date(h.device.revoked_at) && <div className="text-xs text-destructive">Setelah akses dicabut</div>}
+                                {h.access_ended_at && new Date(h.scanned_at) > new Date(h.access_ended_at) && <div className="text-xs text-destructive">Setelah akses berakhir</div>}
                             </TableCell>
                             <TableCell><Actions path={`/tinjauan/tertahan/${h.id}`} canAccept /></TableCell>
                         </TableRow>
