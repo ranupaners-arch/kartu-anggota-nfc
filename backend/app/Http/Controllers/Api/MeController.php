@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Announcement;
 use App\Models\Attendance;
 use App\Models\Card;
+use App\Models\Certificate;
 use App\Models\Event;
 use App\Models\ExcuseRequest;
 use App\Models\Member;
@@ -15,6 +16,7 @@ use App\Models\Term;
 use App\Models\User;
 use App\Services\AchievementService;
 use App\Services\CardPrintService;
+use App\Services\CertificateService;
 use App\Services\DuesService;
 use App\Services\FineService;
 use App\Services\LeaderboardService;
@@ -101,6 +103,22 @@ class MeController extends Controller
     public function achievements(Request $r, AchievementService $achievements)
     {
         return $achievements->forMember($this->memberId($r));
+    }
+
+    /** Sertifikat milik sendiri yang masih berlaku. */
+    public function certificates(Request $r, CertificateService $certificates)
+    {
+        return ['data' => Certificate::with('event')->where('member_id', $this->memberId($r))->whereNull('revoked_at')->latest('issued_at')->latest('id')->get()
+            ->map(fn (Certificate $c) => ['id' => $c->id, 'event' => $c->event->title, 'date' => $c->event->starts_at, 'number' => $certificates->number($c, $c->event),
+                'code' => $c->displayCode(), 'issued_at' => $c->issued_at])];
+    }
+
+    public function certificatePdf(Request $r, Certificate $certificate, CertificateService $certificates)
+    {
+        abort_unless($certificate->member_id === $this->memberId($r), 404);
+        [$pdf, $name] = $certificates->pdf($certificate);
+
+        return response($pdf, 200, ['Content-Type' => 'application/pdf', 'Content-Disposition' => 'attachment; filename="'.$name.'"']);
     }
 
     public function leaderboard(Request $r, LeaderboardService $board)

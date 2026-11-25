@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Dashboard;
 
 use App\Http\Controllers\Controller;
 use App\Models\Attendance;
+use App\Models\Certificate;
+use App\Models\CertificateBatch;
 use App\Models\Division;
 use App\Models\Event;
 use App\Models\EventSession;
@@ -11,6 +13,7 @@ use App\Models\EventType;
 use App\Models\Member;
 use App\Services\AttendanceService;
 use App\Services\AuditLogger;
+use App\Services\CertificateService;
 use App\Services\EventService;
 use App\Services\ReportService;
 use App\Services\RsvpService;
@@ -95,7 +98,7 @@ class EventController extends Controller
         return redirect()->route('events.show', $event)->with('status', 'Kegiatan dibuat.');
     }
 
-    public function show(Request $r, Event $event, ReportService $reports, RsvpService $rsvps)
+    public function show(Request $r, Event $event, ReportService $reports, RsvpService $rsvps, CertificateService $certificates)
     {
         $this->events->authorize($r->user(), $event);
         $tab = $r->query('tab', 'ringkasan');
@@ -105,6 +108,7 @@ class EventController extends Controller
 
         return Inertia::render('events/show', [
             'event' => $event->only('id', 'title', 'location', 'starts_at', 'ends_at', 'checkin_opens_at', 'late_after', 'checkin_closes_at', 'closed_at', 'rsvp_enabled', 'rsvp_deadline', 'quota'),
+            'certificate' => $tab === 'sertifikat' ? $this->certificateTab($r, $event, $certificates) : null,
             'rsvp' => $tab === 'rsvp' && $event->rsvp_enabled ? $rsvps->report($event) : null,
             'tab' => $tab,
             'report' => in_array($tab, ['ringkasan', 'hadir'], true) ? $reports->event($event, $session) : null,
@@ -114,6 +118,24 @@ class EventController extends Controller
             'targetDivisionIds' => $event->targets->pluck('division_id')->filter()->values(),
             'targetMemberNos' => Member::whereIn('id', $event->targets->pluck('member_id')->filter())->pluck('member_no'),
         ]);
+    }
+
+    private function certificateTab(Request $r, Event $event, CertificateService $certificates): array
+    {
+        $batch = CertificateBatch::where('event_id', $event->id)->first();
+        // Kegiatan pertama: isi penanda tangan dari sertifikat terakhir organisasi.
+        $last = $batch ?? CertificateBatch::latest('updated_at')->first();
+        $plan = $event->closed_at ? $certificates->plan($event, $batch->min_sessions ?? 1) : null;
+
+        return [
+            'issued' => (bool) $batch,
+            'form' => ['title' => $batch->title ?? 'Sertifikat', 'role' => $batch->role ?? 'Peserta', 'min_sessions' => $batch->min_sessions ?? 1]
+                + collect(['signer1_name', 'signer1_title', 'signer2_name', 'signer2_title'])->mapWithKeys(fn ($k) => [$k => $last?->{$k} ?? ''])->all(),
+            'plan' => $plan ? ['eligible' => $plan['eligible'], 'add' => count($plan['add']), 'revoke' => count($plan['revoke']), 'restore' => count($plan['restore'])] : null,
+            'items' => Certificate::with('member:id,member_no')->where('event_id', $event->id)->orderBy('seq')->paginate(50)->withQueryString()
+                ->through(fn (Certificate $c) => ['id' => $c->id, 'number' => $certificates->number($c, $event), 'name' => $c->member_name, 'member_no' => $c->member?->member_no,
+                    'revoked_at' => $c->revoked_at, 'reason' => $c->revoke_reason, 'auto' => $c->auto_revoked]),
+        ];
     }
 
     public function edit(Request $r, Event $event)

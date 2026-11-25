@@ -417,6 +417,13 @@ class ApiClient {
     return [for (final r in j['results'] as List) r as Map<String, dynamic>];
   }
 
+  Future<List<MemberCertificate>> certificates() async {
+    final j = await _send('GET', '/api/me/certificates');
+    return [for (final c in j['data'] as List) MemberCertificate.fromJson(c as Map<String, dynamic>)];
+  }
+
+  Future<List<int>> certificatePdf(int id) => downloadBytes('$baseUrl/api/me/certificates/$id/pdf');
+
   Future<Leaderboard> leaderboard() async => Leaderboard.fromJson(await _send('GET', '/api/me/leaderboard'));
 
   Future<Leaderboard> setLeaderboard({required bool optIn}) async => Leaderboard.fromJson(await _send('PUT', '/api/me/leaderboard', {'opt_in': optIn}));
@@ -831,6 +838,18 @@ class ProfileChangeStatus {
 
   /// Keputusan terakhir (30 hari): status approved/rejected + catatan pengurus.
   final ({String? name, String? phone, bool photo, String status, String? note, DateTime? at})? lastDecision;
+}
+
+/// Sertifikat milik sendiri yang masih berlaku.
+class MemberCertificate {
+  const MemberCertificate({required this.id, required this.event, required this.number, required this.date});
+
+  factory MemberCertificate.fromJson(Map<String, dynamic> j) =>
+      MemberCertificate(id: j['id'] as int, event: j['event'] as String, number: j['number'] as String, date: DateTime.parse(j['date'] as String).toLocal());
+
+  final int id;
+  final String event, number;
+  final DateTime date;
 }
 
 /// Papan peringkat poin (GET /api/me/leaderboard).

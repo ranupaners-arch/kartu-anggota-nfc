@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Card;
+use App\Models\Certificate;
 use App\Models\ExcuseRequest;
 use App\Models\Export;
 use App\Models\Member;
@@ -64,6 +65,9 @@ class PrivacyService
                     'two_factor_secret' => null, 'two_factor_recovery_codes' => null, 'two_factor_confirmed_at' => null,
                 ])->save();
             });
+
+            Certificate::withoutGlobalScopes()->where('member_id', $member->id)->update(['member_name' => self::ANON_NAME, 'auto_revoked' => false,
+                'revoked_at' => now(), 'revoke_reason' => 'Data pribadi dihapus.']);
 
             $member->forceFill([
                 'name' => self::ANON_NAME, 'member_no' => "HAPUS-{$member->id}", 'email' => null, 'phone' => null, 'cohort' => null,

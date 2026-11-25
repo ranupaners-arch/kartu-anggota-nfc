@@ -184,6 +184,14 @@ untuk divisinya.
   yang perangkatnya dicabut, perannya diubah, atau akunnya dinonaktifkan; dikirim paling lambat 7 hari; belum tercatat sampai diterima), *Override*, *Anomali* (kartu sama
   di dua tempat dalam satu menit). **Terima** atau **Batalkan**.
 
+## Sertifikat kegiatan
+
+Halaman kegiatan yang sudah **ditutup** → tab **Sertifikat**: isi judul, peran, penanda tangan, lalu **Terbitkan**. Yang
+mendapat: status Hadir/Telat (kegiatan multi-sesi: di jumlah sesi minimal).
+- Absensi dikoreksi setelah terbit → muncul pemberitahuan; **Terbitkan ulang** menambah atau mencabut sesuai absensi.
+- **Cabut** perorangan wajib beralasan dan tidak pulih oleh terbit ulang; gunakan **Pulihkan**.
+- QR di sertifikat membuka halaman cek keaslian (tanpa login). Sertifikat yang dicabut tampil tidak berlaku, tanpa nama.
+
 ## Iuran
 
 - **Akses:** Super Admin memberi **Bendahara** (mencatat) atau **Sekretaris** (audit, hanya melihat) di **Pengguna &

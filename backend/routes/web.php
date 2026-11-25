@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\MeController;
 use App\Http\Controllers\CalendarFeedController;
 use App\Http\Controllers\Dashboard;
 use App\Http\Controllers\Portal\PortalController;
+use App\Http\Controllers\Publik\CertificateController as PublikCertificateController;
 use App\Http\Controllers\Publik\RegistrationController;
 use App\Http\Controllers\Scanner\ScannerController;
 use Illuminate\Support\Facades\Route;
@@ -28,6 +29,9 @@ Route::middleware('guest')->group(function () {
     Route::post('atur-password', [Dashboard\PasswordResetController::class, 'update'])->middleware('throttle:10,1')->name('password.update');
 });
 
+// Cek keaslian sertifikat (publik, dari QR).
+Route::get('sertifikat/{code}', [PublikCertificateController::class, 'verify'])->where('code', '[A-Za-z0-9-]{16,25}')->middleware('throttle:30,1')->name('certificates.verify');
+
 // Portal anggota (web, untuk yang tidak memakai app Android).
 Route::middleware(['auth:web', 'portal'])->prefix('saya')->name('portal.')->group(function () {
     Route::get('/', [PortalController::class, 'qr'])->name('qr');
@@ -35,6 +39,7 @@ Route::middleware(['auth:web', 'portal'])->prefix('saya')->name('portal.')->grou
     Route::post('kegiatan/{event}/rsvp', [PortalController::class, 'rsvp'])->middleware('throttle:20,1')->name('rsvp');
     Route::post('izin', [PortalController::class, 'storeExcuse'])->middleware('throttle:10,1')->name('excuse');
     Route::get('riwayat', [PortalController::class, 'history'])->name('history');
+    Route::get('sertifikat/{certificate}.pdf', [MeController::class, 'certificatePdf'])->whereNumber('certificate')->middleware('throttle:20,1')->name('certificate');
     Route::put('peringkat', [PortalController::class, 'leaderboard'])->middleware('throttle:20,1')->name('leaderboard');
     Route::get('foto', [MeController::class, 'photo'])->name('photo');
     Route::get('kartu.pdf', [MeController::class, 'cardPdf'])->middleware('throttle:10,1')->name('card-pdf');
@@ -103,6 +108,10 @@ Route::middleware(['auth:web', 'dashboard'])->group(function () {
     Route::post('kegiatan/{event}/sesi', [Dashboard\EventController::class, 'storeSession'])->name('events.sessions.store');
     Route::put('kegiatan/{event}/sesi/{session}', [Dashboard\EventController::class, 'updateSession'])->name('events.sessions.update');
     Route::delete('kegiatan/{event}/sesi/{session}', [Dashboard\EventController::class, 'destroySession'])->name('events.sessions.destroy');
+    Route::put('kegiatan/{event}/sertifikat', [Dashboard\CertificateController::class, 'issue'])->name('certificates.issue');
+    Route::post('kegiatan-sertifikat/{certificate}/cabut', [Dashboard\CertificateController::class, 'revoke'])->name('certificates.revoke');
+    Route::post('kegiatan-sertifikat/{certificate}/pulihkan', [Dashboard\CertificateController::class, 'restore'])->name('certificates.restore');
+    Route::get('kegiatan-sertifikat/{certificate}.pdf', [Dashboard\CertificateController::class, 'pdf'])->whereNumber('certificate')->middleware('throttle:60,1')->name('certificates.pdf');
     Route::patch('absensi/{attendance}', [Dashboard\EventController::class, 'correct'])->name('attendances.correct');
     Route::get('izin', [Dashboard\ExcuseController::class, 'index'])->name('excuses.index');
     Route::post('izin', [Dashboard\ExcuseController::class, 'store'])->name('excuses.store');
