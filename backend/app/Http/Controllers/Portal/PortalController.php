@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\MeController;
 use App\Http\Controllers\Api\MemberController as ApiMember;
 use App\Http\Controllers\Controller;
 use App\Models\Event;
+use App\Models\EventSurvey;
 use App\Models\Membership;
 use App\Models\PushSubscription;
 use App\Models\Term;
@@ -19,6 +20,7 @@ use App\Services\Push\PushService;
 use App\Services\RegistrationService;
 use App\Services\ReportCardService;
 use App\Services\RsvpService;
+use App\Services\SurveyService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rules\Password;
 use Inertia\Inertia;
@@ -79,11 +81,12 @@ class PortalController extends Controller
         return redirect()->route('portal.qr')->with('status', 'E-profil terkirim. Menunggu pengesahan pengurus pusat.');
     }
 
-    public function events(Request $r)
+    public function events(Request $r, SurveyService $surveys)
     {
         return Inertia::render('portal/events', [
             'events' => $this->me->events($r)['data'],
             'announcements' => $this->me->announcements($r)['data'],
+            'surveys' => $this->me->surveys($r, $surveys)['data'],
         ]);
     }
 
@@ -109,6 +112,13 @@ class PortalController extends Controller
     public function history(Request $r, LeaderboardService $board, CertificateService $certificates)
     {
         return Inertia::render('portal/history', ['history' => $this->me->history($r), 'leaderboard' => $this->me->leaderboard($r, $board), 'certificates' => $this->me->certificates($r, $certificates)['data']]);
+    }
+
+    public function answerSurvey(Request $r, EventSurvey $survey, SurveyService $surveys)
+    {
+        $this->me->answerSurvey($r, $survey, $surveys);
+
+        return back()->with('status', 'Terima kasih. Jawaban Anda tersimpan tanpa nama.');
     }
 
     public function minutes(Request $r, MinutesService $minutes)

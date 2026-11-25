@@ -10,6 +10,7 @@ use App\Models\DueItem;
 use App\Models\Event;
 use App\Models\EventMinutes;
 use App\Models\EventRsvp;
+use App\Models\EventSurvey;
 use App\Models\ExcuseRequest;
 use App\Models\Fine;
 use App\Models\Membership;
@@ -45,6 +46,7 @@ class MemberNotificationService
             ->merge($this->fines($memberId, $since))
             ->merge($this->rsvps($memberId, $since))
             ->merge($this->certificates($memberId, $since))
+            ->merge($this->surveys($memberId, $since))
             ->merge($this->minutes($memberId, $since))
             ->merge($this->dues($memberId, $since))
             ->merge($this->reminders($memberId, $term));
@@ -127,6 +129,13 @@ class MemberNotificationService
     {
         return Certificate::with('event:id,title')->where('member_id', $memberId)->whereNull('revoked_at')->where('issued_at', '>=', $since)->get()
             ->map(fn (Certificate $c) => ['id' => "certificate:{$c->id}", 'type' => 'certificate', 'title' => 'Sertifikat terbit: '.$c->event?->title, 'body' => 'Unduh di Riwayat → Sertifikat.', 'at' => $c->issued_at]);
+    }
+
+    private function surveys(int $memberId, Carbon $since): Collection
+    {
+        return app(SurveyService::class)->pendingFor($memberId)->where('created_at', '>=', $since)
+            ->map(fn (EventSurvey $s) => ['id' => "survey:{$s->id}", 'type' => 'survey', 'title' => 'Isi survei: '.$s->event->title,
+                'body' => 'Tanpa nama, sampai '.SurveyService::dueText($s->closes_at).'.', 'at' => $s->created_at])->values();
     }
 
     private function minutes(int $memberId, Carbon $since): Collection

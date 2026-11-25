@@ -9,6 +9,7 @@ use App\Models\Card;
 use App\Models\Certificate;
 use App\Models\Event;
 use App\Models\EventDocument;
+use App\Models\EventSurvey;
 use App\Models\ExcuseRequest;
 use App\Models\Member;
 use App\Models\Membership;
@@ -30,6 +31,7 @@ use App\Services\ReportCardService;
 use App\Services\RsvpService;
 use App\Services\SelfCardService;
 use App\Services\StatsService;
+use App\Services\SurveyService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -108,6 +110,21 @@ class MeController extends Controller
     }
 
     /** Sertifikat milik sendiri yang masih berlaku. */
+    /** Survei terbuka yang belum ia isi. */
+    public function surveys(Request $r, SurveyService $surveys)
+    {
+        return ['data' => $surveys->pendingFor($this->memberId($r))->map(fn (EventSurvey $s) => ['id' => $s->id, 'event' => $s->event->title, 'date' => $s->event->starts_at,
+            'closes_at' => $s->closes_at, 'questions' => $s->questions])->values()];
+    }
+
+    public function answerSurvey(Request $r, EventSurvey $survey, SurveyService $surveys)
+    {
+        $d = $r->validate(['rating' => 'required|integer|between:1,5', 'answers' => 'present|array|max:'.SurveyService::MAX_QUESTIONS, 'answers.*' => 'required|integer|between:1,5', 'comment' => 'nullable|string|max:1000']);
+        $surveys->respond($survey, $this->memberId($r), (int) $d['rating'], array_map('intval', $d['answers']), $d['comment'] ?? null);
+
+        return ['ok' => true];
+    }
+
     /** Notulen terbit & dokumen kegiatan yang ia ikuti. */
     public function minutes(Request $r, MinutesService $minutes)
     {

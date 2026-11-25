@@ -21,6 +21,7 @@ import 'minutes_page.dart';
 import 'my_events_tab.dart';
 import 'my_history_tab.dart';
 import 'notifications_page.dart';
+import 'surveys_page.dart';
 import 'profile_change_page.dart';
 
 /// Layar utama anggota ala aplikasi bank: Beranda (kartu + menu cepat), Kegiatan, Riwayat, Akun.
@@ -103,6 +104,8 @@ class _MemberHomeScreenState extends State<MemberHomeScreen> with SessionWatch<M
         await pushMemberPage<void>(context, 'Ubah data diri', ProfileChangePage(api: _api));
       case 'rsvp':
         await pushMemberPage<void>(context, 'Kegiatan', MyEventsTab(api: _api));
+      case 'survey':
+        await pushMemberPage<void>(context, 'Survei kegiatan', SurveysPage(api: _api));
       case 'minutes':
         await pushMemberPage<void>(context, 'Notulen & dokumen', MinutesPage(api: _api));
       case 'certificate':

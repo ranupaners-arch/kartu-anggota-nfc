@@ -19,6 +19,7 @@ use App\Services\EventService;
 use App\Services\MinutesService;
 use App\Services\ReportService;
 use App\Services\RsvpService;
+use App\Services\SurveyService;
 use App\Support\LocalTime;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -100,7 +101,7 @@ class EventController extends Controller
         return redirect()->route('events.show', $event)->with('status', 'Kegiatan dibuat.');
     }
 
-    public function show(Request $r, Event $event, ReportService $reports, RsvpService $rsvps, CertificateService $certificates, MinutesService $minutes)
+    public function show(Request $r, Event $event, ReportService $reports, RsvpService $rsvps, CertificateService $certificates, MinutesService $minutes, SurveyService $surveys)
     {
         $this->events->authorize($r->user(), $event);
         $tab = $r->query('tab', 'ringkasan');
@@ -112,6 +113,7 @@ class EventController extends Controller
             'event' => $event->only('id', 'title', 'location', 'starts_at', 'ends_at', 'checkin_opens_at', 'late_after', 'checkin_closes_at', 'closed_at', 'rsvp_enabled', 'rsvp_deadline', 'quota'),
             'certificate' => $tab === 'sertifikat' ? $this->certificateTab($r, $event, $certificates) : null,
             'minutes' => $tab === 'notulen' ? $minutes->tab($event) : null,
+            'survey' => $tab === 'survei' ? $surveys->tab($event) : null,
             'rsvp' => $tab === 'rsvp' && $event->rsvp_enabled ? $rsvps->report($event) : null,
             'tab' => $tab,
             'report' => in_array($tab, ['ringkasan', 'hadir'], true) ? $reports->event($event, $session) : null,
