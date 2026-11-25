@@ -128,6 +128,10 @@ ketuk lencana untuk melihat syarat & progresnya. Poin & lencana hanya Anda yang 
 lain kecuali Anda memilih **Tampilkan nama saya** (yang terlihat: nama, divisi, poin); bisa disembunyikan lagi
 kapan saja.
 
+## Sertifikat
+
+Sertifikat kegiatan yang Anda hadiri: app **Akun → Sertifikat**, portal **Riwayat → Sertifikat**.
+
 ## Iuran
 
 Bila organisasi menagih iuran, status Anda ada di **Riwayat → Iuran** (app & portal). Bayar langsung ke
