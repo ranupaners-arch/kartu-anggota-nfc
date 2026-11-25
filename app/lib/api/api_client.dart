@@ -406,8 +406,8 @@ class ApiClient {
 
   /// Kirim antrean offline; hasil per item memuat client_uuid.
   /// Unduh berkas ber-auth (mis. foto anggota) sebagai bytes.
-  Future<List<int>> downloadBytes(String url) async {
-    final res = await _http.get(Uri.parse(url), headers: {if (token != null) 'Authorization': 'Bearer $token'}).timeout(const Duration(seconds: 15));
+  Future<List<int>> downloadBytes(String url, {Duration timeout = const Duration(seconds: 15)}) async {
+    final res = await _http.get(Uri.parse(url), headers: {if (token != null) 'Authorization': 'Bearer $token'}).timeout(timeout);
     if (res.statusCode != 200) throw ApiException(res.statusCode, errorMessage(res.statusCode, null));
     return res.bodyBytes;
   }
@@ -416,6 +416,13 @@ class ApiClient {
     final j = await _send('POST', '/api/events/$eventId/scan/batch', {'scans': scans});
     return [for (final r in j['results'] as List) r as Map<String, dynamic>];
   }
+
+  Future<List<MemberMinutes>> minutes() async {
+    final j = await _send('GET', '/api/me/minutes');
+    return [for (final m in j['data'] as List) MemberMinutes.fromJson(m as Map<String, dynamic>)];
+  }
+
+  Future<List<int>> document(int id) => downloadBytes('$baseUrl/api/me/documents/$id', timeout: const Duration(seconds: 60));
 
   Future<List<MemberCertificate>> certificates() async {
     final j = await _send('GET', '/api/me/certificates');
@@ -838,6 +845,25 @@ class ProfileChangeStatus {
 
   /// Keputusan terakhir (30 hari): status approved/rejected + catatan pengurus.
   final ({String? name, String? phone, bool photo, String status, String? note, DateTime? at})? lastDecision;
+}
+
+/// Notulen terbit & dokumen dari satu kegiatan yang diikuti.
+class MemberMinutes {
+  const MemberMinutes({required this.eventId, required this.title, required this.date, this.content, this.documents = const []});
+
+  factory MemberMinutes.fromJson(Map<String, dynamic> j) => MemberMinutes(
+    eventId: j['event_id'] as int,
+    title: j['title'] as String,
+    date: DateTime.parse(j['date'] as String).toLocal(),
+    content: j['content'] as String?,
+    documents: [for (final d in j['documents'] as List) (id: d['id'] as int, title: d['title'] as String, size: d['size'] as int, fileName: d['file_name'] as String)],
+  );
+
+  final int eventId;
+  final String title;
+  final DateTime date;
+  final String? content;
+  final List<({int id, String title, int size, String fileName})> documents;
 }
 
 /// Sertifikat milik sendiri yang masih berlaku.

@@ -8,6 +8,7 @@ use App\Models\CardRequest;
 use App\Models\Certificate;
 use App\Models\DueItem;
 use App\Models\Event;
+use App\Models\EventMinutes;
 use App\Models\EventRsvp;
 use App\Models\ExcuseRequest;
 use App\Models\Fine;
@@ -44,6 +45,7 @@ class MemberNotificationService
             ->merge($this->fines($memberId, $since))
             ->merge($this->rsvps($memberId, $since))
             ->merge($this->certificates($memberId, $since))
+            ->merge($this->minutes($memberId, $since))
             ->merge($this->dues($memberId, $since))
             ->merge($this->reminders($memberId, $term));
 
@@ -125,6 +127,13 @@ class MemberNotificationService
     {
         return Certificate::with('event:id,title')->where('member_id', $memberId)->whereNull('revoked_at')->where('issued_at', '>=', $since)->get()
             ->map(fn (Certificate $c) => ['id' => "certificate:{$c->id}", 'type' => 'certificate', 'title' => 'Sertifikat terbit: '.$c->event?->title, 'body' => 'Unduh di Riwayat → Sertifikat.', 'at' => $c->issued_at]);
+    }
+
+    private function minutes(int $memberId, Carbon $since): Collection
+    {
+        return EventMinutes::with('event')->where('published_at', '>=', $since)->latest('published_at')->limit(20)->get()
+            ->filter(fn (EventMinutes $m) => app(MinutesService::class)->canRead($m->event, $memberId))
+            ->map(fn (EventMinutes $m) => ['id' => "minutes:{$m->id}", 'type' => 'minutes', 'title' => 'Notulen terbit: '.$m->event->title, 'body' => 'Baca di Notulen & dokumen.', 'at' => $m->published_at])->values();
     }
 
     /** Tagihan iuran yang belum lunas; hilang dari kotak setelah lunas, dibebaskan, atau dibatalkan. */

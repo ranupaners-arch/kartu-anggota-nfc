@@ -47,6 +47,8 @@ Route::middleware(['auth:sanctum', 'password.changed'])->group(function () {
     Route::get('me/events', [MeController::class, 'events']);
     Route::post('me/events/{event}/rsvp', [MeController::class, 'rsvp'])->middleware('throttle:20,1');
     Route::get('me/history', [MeController::class, 'history']);
+    Route::get('me/minutes', [MeController::class, 'minutes']);
+    Route::get('me/documents/{document}', [MeController::class, 'document'])->whereNumber('document')->middleware('throttle:30,1');
     Route::get('me/certificates', [MeController::class, 'certificates']);
     Route::get('me/certificates/{certificate}/pdf', [MeController::class, 'certificatePdf'])->whereNumber('certificate')->middleware('throttle:20,1');
     Route::get('me/achievements', [MeController::class, 'achievements']);

@@ -5,6 +5,8 @@ namespace App\Services;
 use App\Models\Attendance;
 use App\Models\Division;
 use App\Models\Event;
+use App\Models\EventDocument;
+use App\Models\EventMinutes;
 use App\Models\EventSession;
 use App\Models\EventType;
 use App\Models\Member;
@@ -215,6 +217,9 @@ class EventService
     {
         if ($event->attendances()->exists()) {
             throw ValidationException::withMessages(['event' => 'Kegiatan sudah memiliki absensi; tutup kegiatan, jangan dihapus.']);
+        }
+        if (EventDocument::where('event_id', $event->id)->exists() || EventMinutes::where('event_id', $event->id)->exists()) {
+            throw ValidationException::withMessages(['event' => 'Kegiatan punya notulen atau dokumen; tutup kegiatan, jangan dihapus.']);
         }
         $event->delete();
         AuditLogger::log('event.deleted', 'event', $event->id, ['title' => $event->title]);

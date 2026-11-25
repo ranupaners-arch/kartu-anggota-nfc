@@ -8,6 +8,7 @@ use App\Models\Attendance;
 use App\Models\Card;
 use App\Models\Certificate;
 use App\Models\Event;
+use App\Models\EventDocument;
 use App\Models\ExcuseRequest;
 use App\Models\Member;
 use App\Models\Membership;
@@ -22,6 +23,7 @@ use App\Services\FineService;
 use App\Services\LeaderboardService;
 use App\Services\MemberCardService;
 use App\Services\MemberNotificationService;
+use App\Services\MinutesService;
 use App\Services\ProfileChangeService;
 use App\Services\RegistrationService;
 use App\Services\ReportCardService;
@@ -106,6 +108,17 @@ class MeController extends Controller
     }
 
     /** Sertifikat milik sendiri yang masih berlaku. */
+    /** Notulen terbit & dokumen kegiatan yang ia ikuti. */
+    public function minutes(Request $r, MinutesService $minutes)
+    {
+        return ['data' => $minutes->listFor($this->memberId($r))];
+    }
+
+    public function document(Request $r, EventDocument $document, MinutesService $minutes)
+    {
+        return $minutes->memberDownload($document, $this->memberId($r));
+    }
+
     public function certificates(Request $r, CertificateService $certificates)
     {
         return ['data' => Certificate::with('event')->where('member_id', $this->memberId($r))->whereNull('revoked_at')->latest('issued_at')->latest('id')->get()

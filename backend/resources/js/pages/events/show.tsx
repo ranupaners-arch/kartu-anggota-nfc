@@ -5,6 +5,7 @@ import { type FormEvent, useState } from 'react';
 import { ConfirmAction } from '@/components/confirm-action';
 import { DataTable } from '@/components/data-table';
 import { FormField } from '@/components/form-field';
+import { MinutesTab, type MinutesData } from '@/components/minutes-tab';
 import { PageTabs } from '@/components/page-tabs';
 import { StatusBadge } from '@/components/status-badge';
 import { Button } from '@/components/ui/button';
@@ -33,7 +34,7 @@ type Report = { session: { id: number; title: string }; summary: { total: number
 type Session = { id: number; title: string; starts_at: string | null; ends_at: string | null; checkin_opens_at: string; late_after: string; checkin_closes_at: string };
 
 interface Props {
-    event: Ev; tab: string; report: Report; rsvp: Rsvp; certificate: CertificateData | null; canDelete: boolean;
+    event: Ev; tab: string; report: Report; rsvp: Rsvp; certificate: CertificateData | null; minutes: MinutesData | null; canDelete: boolean;
     sessions: Session[];
     divisions: { id: number; name: string }[]; targetDivisionIds: number[]; targetMemberNos: string[];
 }
@@ -307,7 +308,7 @@ export default function EventShow(props: Props) {
                 {fmtDateTime(event.starts_at)}–{fmtTime(event.ends_at)} · {event.location ?? 'tanpa lokasi'} · check-in {fmtTime(event.checkin_opens_at)}–{fmtTime(event.checkin_closes_at)}, telat setelah {fmtTime(event.late_after)} ·{' '}
                 <StatusBadge status={event.closed_at ? 'closed' : 'open'} />
             </p>
-            <PageTabs tabs={{ ringkasan: 'Ringkasan', hadir: 'Daftar Hadir', sesi: 'Sesi', target: 'Target Peserta', ...(event.rsvp_enabled ? { rsvp: 'RSVP' } : {}), sertifikat: 'Sertifikat' }} current={tab} />
+            <PageTabs tabs={{ ringkasan: 'Ringkasan', hadir: 'Daftar Hadir', sesi: 'Sesi', target: 'Target Peserta', ...(event.rsvp_enabled ? { rsvp: 'RSVP' } : {}), notulen: 'Notulen & Dokumen', sertifikat: 'Sertifikat' }} current={tab} />
             {(tab === 'ringkasan' || tab === 'hadir') && report && <SessionPicker event={event} tab={tab} sessions={props.sessions} current={report.session.id} />}
             {tab === 'ringkasan' && <Summary {...props} />}
             {tab === 'hadir' && report && (
@@ -322,6 +323,7 @@ export default function EventShow(props: Props) {
                     ))}
                 </DataTable>
             )}
+            {tab === 'notulen' && props.minutes && <MinutesTab eventId={event.id} data={props.minutes} />}
             {tab === 'sertifikat' && props.certificate && <CertificateTab eventId={event.id} closed={Boolean(event.closed_at)} sessions={props.sessions.length} data={props.certificate} />}
             {tab === 'rsvp' && <RsvpList {...props} />}
             {tab === 'sesi' && <Sessions {...props} />}
