@@ -75,7 +75,9 @@ class DuesService
             }
             foreach ($items as $i) {
                 $i->changes()->create(['from_status' => $i->status, 'to_status' => $status, 'note' => $note, 'changed_by' => $by->id]);
+                $from = $i->status;
                 $i->update(['status' => $status]);
+                app(CashService::class)->onDueItem($i->setRelation('due', $due), $from, $status, $by, $note);
             }
             if ($items->isNotEmpty()) {
                 AuditLogger::log("due.$status", 'due', $due->id, ['item_ids' => $items->pluck('id')->all(), 'note' => $note], $by->id);

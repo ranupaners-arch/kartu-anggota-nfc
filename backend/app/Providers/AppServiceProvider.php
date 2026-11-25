@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Models\CashCategory;
+use App\Models\Organization;
 use App\Services\AttendanceService;
 use App\Services\ExcuseService;
 use App\Services\Push\PushTransport;
@@ -36,6 +38,7 @@ class AppServiceProvider extends ServiceProvider
                 'reviews' => app(AttendanceService::class)->pendingReviewCount($user),
             ]);
         });
+        Organization::created(fn (Organization $o) => CashCategory::seedFor($o->id));
         Paginator::useBootstrapFive();
     }
 }

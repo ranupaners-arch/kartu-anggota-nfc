@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Dashboard;
 
 use App\Http\Controllers\Controller;
+use App\Models\CashEntry;
 use App\Models\Division;
 use App\Models\Due;
 use App\Models\Event;
@@ -158,7 +159,7 @@ class SettingsController extends Controller
     public function destroyTerm(Term $term)
     {
         abort_if($term->is_current, 422, 'Periode berjalan tidak bisa dihapus.');
-        $used = ['keanggotaan' => Membership::where('term_id', $term->id)->count(), 'kegiatan' => Event::where('term_id', $term->id)->count(), 'tagihan iuran' => Due::where('term_id', $term->id)->count()];
+        $used = ['keanggotaan' => Membership::where('term_id', $term->id)->count(), 'kegiatan' => Event::where('term_id', $term->id)->count(), 'tagihan iuran' => Due::where('term_id', $term->id)->count(), 'transaksi kas' => CashEntry::where('term_id', $term->id)->count()];
         abort_if(array_sum($used) > 0, 422, 'Periode masih dipakai ('.self::usage($used).'); tidak bisa dihapus.');
         $term->delete();
         AuditLogger::log('term.deleted', 'term', $term->id, ['name' => $term->name]);

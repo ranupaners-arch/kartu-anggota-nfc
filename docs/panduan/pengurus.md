@@ -207,6 +207,15 @@ mendapat: status Hadir/Telat (kegiatan multi-sesi: di jumlah sesi minimal).
 - **Riwayat Perubahan** mencatat siapa, kapan, dan alasannya; tidak bisa diubah dari aplikasi. **CSV** untuk arsip.
 - Tagihan salah: **Batalkan** (hanya bila belum ada yang lunas), lalu buat lagi.
 
+## Kas
+
+Menu **Kas** (`/kas`), hak sama dengan Iuran: Super Admin & bendahara mencatat, sekretaris melihat dan mengunduh.
+- **Iuran yang ditandai lunas masuk kas otomatis**; mengembalikannya ke belum lunas membatalkan catatannya.
+- **Uang keluar tidak boleh melebihi saldo.** Saldo pertama kali: catat uang masuk kategori *Saldo awal*.
+- Transaksi tidak bisa diubah atau dihapus. Salah → **Batalkan** dengan alasan, lalu catat lagi.
+- **Bukti** (foto/PDF, maks. 5 MB) hanya bisa dibuka yang punya akses kas. **Laporan** per rentang tanggal, **CSV**, dan
+  **Kategori** yang bisa ditambah sendiri. Denda belum otomatis masuk kas.
+
 ## Statistik & peringatan
 
 **Beranda** menampilkan tren % hadir per kegiatan, % hadir per divisi, dan **Perlu perhatian**:
