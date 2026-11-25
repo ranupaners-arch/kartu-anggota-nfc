@@ -1,6 +1,6 @@
 import { Link, usePage } from '@inertiajs/react';
 import {
-    Banknote, BarChart3, CalendarDays, ClipboardCheck, CreditCard, House, Megaphone, ScrollText, Settings, ShieldAlert, ShieldCheck, Smartphone, UserCog, UserPen, Users, Wallet,
+    Banknote, BarChart3, CalendarDays, ClipboardCheck, CreditCard, House, Landmark, Megaphone, ScrollText, Settings, ShieldAlert, ShieldCheck, Smartphone, UserCog, UserPen, Users, Wallet,
     type LucideIcon,
 } from 'lucide-react';
 import {
@@ -37,7 +37,7 @@ export function useNavigation(): Group[] {
                 ...(superAdmin ? [{ label: 'Perubahan Data', href: '/perubahan-data', icon: UserPen, badge: navBadges?.profileChanges }] : []),
                 { label: 'Rekap & Ekspor', href: '/rekap', icon: BarChart3 },
                 ...(superAdmin ? [{ label: 'Denda', href: '/denda', icon: Banknote }] : []),
-                ...(auth?.canViewDues ? [{ label: 'Iuran', href: '/iuran', icon: Wallet }] : []),
+                ...(auth?.canViewDues ? [{ label: 'Iuran', href: '/iuran', icon: Wallet }, { label: 'Kas', href: '/kas', icon: Landmark }] : []),
             ],
         },
         ...(superAdmin

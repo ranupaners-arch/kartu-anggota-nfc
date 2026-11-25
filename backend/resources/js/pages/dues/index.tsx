@@ -21,7 +21,7 @@ export default function Dues({ dues, term, canManage }: { dues: Paginated<Row>; 
     const form = useForm({ title: '', amount: '', due_on: '' });
     const submit = (e: FormEvent) => { e.preventDefault(); form.post('/iuran'); };
     return (
-        <FinanceLayout title="Iuran">
+        <FinanceLayout title="Iuran" actions={<Button variant="outline" render={<Link href="/kas" />}>Kas</Button>}>
             <Head title="Iuran" />
             {canManage ? (
                 <Card className="max-w-4xl">

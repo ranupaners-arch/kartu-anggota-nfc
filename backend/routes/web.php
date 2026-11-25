@@ -76,6 +76,18 @@ Route::middleware(['auth:web', 'finance'])->prefix('iuran')->name('dues.')->grou
     Route::post('{due}/batal', [Dashboard\DueController::class, 'cancel'])->whereNumber('due')->name('cancel');
 });
 
+// Kas: hak sama dengan iuran (hak mencatat dicek di CashService).
+Route::middleware(['auth:web', 'finance'])->prefix('kas')->name('cash.')->group(function () {
+    Route::get('/', [Dashboard\CashController::class, 'index'])->name('index');
+    Route::post('/', [Dashboard\CashController::class, 'store'])->middleware('throttle:60,1')->name('store');
+    Route::get('ekspor', [Dashboard\CashController::class, 'export'])->middleware('throttle:20,1')->name('export');
+    Route::post('kategori', [Dashboard\CashController::class, 'storeCategory'])->name('categories.store');
+    Route::put('kategori/{category}', [Dashboard\CashController::class, 'updateCategory'])->name('categories.update');
+    Route::delete('kategori/{category}', [Dashboard\CashController::class, 'destroyCategory'])->name('categories.destroy');
+    Route::post('{entry}/batal', [Dashboard\CashController::class, 'void'])->whereNumber('entry')->name('void');
+    Route::get('{entry}/bukti', [Dashboard\CashController::class, 'receipt'])->whereNumber('entry')->name('receipt');
+});
+
 Route::middleware(['auth:web', 'dashboard'])->group(function () {
     Route::post('keluar', [Dashboard\AuthController::class, 'logout'])->name('logout');
     Route::get('/', Dashboard\HomeController::class)->name('home');
