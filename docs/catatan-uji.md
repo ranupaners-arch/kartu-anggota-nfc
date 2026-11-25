@@ -187,5 +187,20 @@ Versi APK dan rincian langkah tidak dicatat.
 
 ## Perlu diuji ulang
 
-Ikuti [daftar uji HP](uji-hp.md): pembaruan dari APK lama, scan offline, scan ditolak, ganti akun, akses
-berakhir. Belum ada yang diuji di HP sejak perbaikan offline (PR #70 dan sesudahnya).
+Ikuti [daftar uji HP](uji-hp.md): pembaruan dari APK lama, scan ditolak, ganti akun, akses berakhir.
+
+## 2026-11-25 · Uji di HP fisik (Samsung A36, Android 17)
+
+Build debug lokal dari `main` + #97 + #98 + #99, dipasang terpisah dari app rilis; server uji lewat kabel USB.
+
+| Yang diuji | Hasil | Status |
+|---|---|---|
+| Tetap masuk setelah dipaksa berhenti | Ya | OK |
+| NFC dibaca di mode pesawat | Ya | OK |
+| Scan offline → antre → tersinkron sendiri (30 detik) | Tepat satu baris di server | OK |
+| Jam scan (zona waktu) | Benar, WIB | OK |
+| Notifikasi: izin diminta sendiri, muncul, diketuk | Berhasil | OK |
+| Notifikasi dari jadwal asli, proses app mati, layar menyala | Muncul 15.19 | OK |
+| Notifikasi saat layar terkunci | Belum terbukti (dua uji paksa gagal, tidak sah) | Uji ulang |
+| HMAC kartu | Server uji dipatch agar mengenali kartu | Belum diuji |
+| NFC pulih setelah dimatikan, sertifikat di app, scan QR tamu, fitur 4/5/7 di app | – | Belum diuji |

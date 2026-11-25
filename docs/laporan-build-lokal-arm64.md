@@ -2,7 +2,13 @@
 
 Tanggal: 2026-11-16 · Mesin: Arch Linux ARM (aarch64) · Flutter 3.50.0 · JDK 17
 
-## Kesimpulan
+## Pembaruan 2026-11-25
+
+**Build debug lokal sekarang berhasil** (Gradle 76 detik) karena `aapt2` x86-64 berjalan lewat qemu, dan terpasang di
+HP fisik. Isi di bawah adalah keadaan 2026-11-16. APK rilis tetap dibuat lewat GitHub Actions. Bila `adb` gagal
+(*read failed*), jalankan dengan `ADB_LIBUSB=1`.
+
+## Kesimpulan (2026-11-16)
 
 **APK tidak bisa dibuild di mesin ini.** Build APK memakai GitHub Actions
 (`.github/workflows/app.yml`), dan itu sudah terbukti berhasil (APK debug dan release).
