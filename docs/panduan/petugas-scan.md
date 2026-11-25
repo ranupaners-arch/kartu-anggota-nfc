@@ -65,8 +65,9 @@ ke QR itu. QR berganti tiap menit, jadi tangkapan layar tidak bisa dipakai. **QR
 
 ### Internet putus (mode offline)
 
-- Buka layar Scan kegiatan **sekali saat masih online** sebelum acara/di awal acara — app menyimpan
-  daftar peserta dan foto mereka di HP.
+- Buka **Beranda petugas** (akun yang juga anggota: tab **Tugas**) sekali saat online, tunggu sampai kegiatannya
+  bertuliskan **Siap offline · N peserta**. Kegiatan yang dibuka dalam 48 jam ke depan ikut disiapkan. Foto peserta
+  tersimpan bila layar Scan-nya dibuka saat online.
 - Saat offline, scan kartu tetap jalan. Hasil berlabel **Offline** dan muncul
   "**N scan belum tersinkron**".
 - Saat internet kembali, data terkirim otomatis (≤ 30 detik) atau ketuk **Sinkron**.

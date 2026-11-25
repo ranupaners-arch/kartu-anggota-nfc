@@ -17,8 +17,9 @@ opsional, tetapi berguna bila kartu tertinggal, untuk mengajukan izin, dan melih
 
 - **Beranda**: kartu anggota Anda (ketuk kartu → QR), menu cepat **QR Saya · Izin · Rapor · Kartu ·
   Denda · Jadwal · Data Diri · Panduan**, ringkasan kehadiran, kegiatan terdekat, dan pengumuman.
-- **Notifikasi HP** (Akun → *Notifikasi HP* → **Nyalakan**): isi lonceng muncul di bilah status walau app ditutup.
-  App memeriksa sekitar tiap 30 menit, jadi bisa terlambat. Tidak memakai layanan Google.
+- **Notifikasi HP** menyala sendiri: isi lonceng muncul di bilah status walau app ditutup (bisa terlambat ±30 menit).
+  Izinnya diminta sekali; mengubahnya lewat setelan notifikasi Android.
+- **Tanpa internet**, data terakhir tetap bisa dilihat (label *Mode offline*); QR Saya dan pengajuan izin butuh internet.
 - **Lonceng** di kanan atas: pengumuman, keputusan izin & laporan kartu, denda, dan pengingat kegiatan.
   Angka merah = belum dibaca; ketuk notifikasi untuk membuka halamannya.
 - Menu bawah: **Beranda · Kegiatan · Riwayat · Akun**. Di tablet/laptop menu pindah ke samping.

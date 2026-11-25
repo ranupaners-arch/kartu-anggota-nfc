@@ -15,8 +15,10 @@ Sinkronkan semua scan tertunda di APK lama **sebelum** memperbarui.
 
 ## 2. Offline
 
-- [ ] 2.1 Online: buka **Beranda**, tunggu ±10 detik, **jangan** buka layar Scan. Mode pesawat (nyalakan lagi NFC),
-      tutup paksa, buka app → kegiatan tampil dengan label **Mode offline**.
+- [ ] 2.1 Online: buka **Beranda petugas** (akun yang juga anggota: tab **Tugas**), tunggu tulisan **Siap offline ·
+      N peserta**. Mode pesawat (nyalakan lagi NFC), tutup paksa, buka app → kegiatan tampil dengan **Mode offline**.
+- [ ] 2.1b Ulangi untuk kegiatan yang check-in-nya **belum** dibuka saat online.
+- [ ] 2.1c Layar Scan terbuka → mode pesawat → nyalakan lagi NFC tanpa menutup app → kartu tetap terbaca.
 - [ ] 2.2 Mulai scan → tempel kartu 1 → hasil **Offline**, antrean 1. Tempel lagi → *Sudah absen*.
 - [ ] 2.3 Sambungkan internet, tetap di layar Scan → antrean terkirim ±30 detik; dashboard: Hadir/Telat benar.
 - [ ] 2.4 Internet menyala, **server/Tailscale mati** → tempel kartu → hasil offline paling lama ±4 detik.
@@ -60,7 +62,7 @@ HP A tetap dicabut setelah 5.1: pakai HP B atau HP lain untuk uji berikutnya.
 
 ## 7. Notifikasi HP
 
-- [ ] 7.1 Akun → **Notifikasi HP → Nyalakan** → izin diminta; tolak → petunjuk; izinkan → menyala.
+- [ ] 7.1 Masuk sebagai anggota → izin notifikasi diminta sekali, tanpa pengaturan di app.
 - [ ] 7.2 Tutup app (bukan paksa berhenti), terbitkan pengumuman → notifikasi muncul (tunggu sampai ±45 menit).
 - [ ] 7.3 Ketuk → halaman Notifikasi terbuka. Layar terkunci → isi tersembunyi.
 - [ ] 7.4 Nyalakan ulang HP, jangan buka app → pengumuman berikutnya tetap muncul.
