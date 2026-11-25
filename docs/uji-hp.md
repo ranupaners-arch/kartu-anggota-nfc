@@ -21,7 +21,7 @@ Sinkronkan semua scan tertunda di APK lama **sebelum** memperbarui.
 - [ ] 2.1c Layar Scan terbuka → mode pesawat → nyalakan lagi NFC tanpa menutup app → kartu tetap terbaca.
 - [ ] 2.2 Mulai scan → tempel kartu 1 → hasil **Offline**, antrean 1. Tempel lagi → *Sudah absen*.
 - [ ] 2.3 Sambungkan internet, tetap di layar Scan → antrean terkirim ±30 detik; dashboard: Hadir/Telat benar.
-- [ ] 2.4 Internet menyala, **server/Tailscale mati** → tempel kartu → hasil offline paling lama ±4 detik.
+- [ ] 2.4 Internet menyala, **server mati** → tempel kartu → hasil offline paling lama ±4 detik.
 - [ ] 2.5 Scan offline, tunggu check-in **tutup**, baru sambungkan dan buka Beranda → antrean terkirim;
       Alpa di dashboard berubah jadi Hadir/Telat.
 - [ ] 2.6 Scan offline lalu tutup paksa app dan nyalakan ulang HP → jumlah antrean tetap.

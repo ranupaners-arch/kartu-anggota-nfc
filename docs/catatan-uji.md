@@ -3,7 +3,7 @@
 Temuan dari uji di perangkat dicatat di sini dulu, lalu dikumpulkan dan dibuild
 sekaligus. APK baru hanya dibuat bila diminta.
 
-## 2026-11-16 · Uji pertama (HP Android, server lewat Tailscale)
+## 2026-11-16 · Uji pertama (HP Android, server uji)
 
 APK terpasang: debug dari run `43815488268` (commit sebelum perbaikan di bawah).
 
@@ -36,7 +36,7 @@ app lama di-uninstall sekali; APK berikutnya cukup "Perbarui".
 
 | # | Yang diuji | Hasil | Status |
 |---|---|---|---|
-| 8 | Sambung ke server | Awalnya gagal: Tailscale di HP mati ("offline, last seen 22h ago"). Setelah Tailscale aktif: tersambung | OK (bukan bug app). Saran: aktifkan "Always-on VPN" untuk Tailscale |
+| 8 | Sambung ke server | Awalnya gagal: jalur jaringan dari HP ke server uji mati. Setelah tersambung: berhasil | OK (bukan bug app) |
 | 9 | Layar Hubungkan | Pengguna bertanya "nama organisasi apa?": contoh `absen.organisasi.id` di kolom alamat disangka tempat isi nama organisasi | Bukan masalah: salah baca pengguna, layar sudah jelas |
 | 10 | Daftar kegiatan (mode gelap HP) | Kegiatan RAKERNAS (dibuat dari dashboard) tampil rapi. Judul "Kegiatan Berlangsung" dan teks "Masuk sebagai Petugas Scan" hampir tak terbaca (gelap di atas gelap) | **Diperbaiki di kode** (belum dibuild): warna teks kini mengikuti skema terang/gelap di semua layar; tes kontras ≥ 4,5:1 di kedua mode |
 

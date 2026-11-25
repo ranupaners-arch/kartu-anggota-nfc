@@ -19,7 +19,7 @@ opsional, tetapi berguna bila kartu tertinggal, untuk mengajukan izin, dan melih
   Denda · Jadwal · Data Diri · Panduan**, ringkasan kehadiran, kegiatan terdekat, dan pengumuman.
 - **Notifikasi HP** menyala sendiri: isi lonceng muncul di bilah status walau app ditutup (bisa terlambat ±30 menit).
   Izinnya diminta sekali; mengubahnya lewat setelan notifikasi Android.
-- **Tanpa internet**, data terakhir tetap bisa dilihat (label *Mode offline*); QR Saya dan pengajuan izin butuh internet.
+- App anggota **butuh internet**; mode offline hanya untuk petugas scan.
 - **Lonceng** di kanan atas: pengumuman, keputusan izin & laporan kartu, denda, dan pengingat kegiatan.
   Angka merah = belum dibaca; ketuk notifikasi untuk membuka halamannya.
 - Menu bawah: **Beranda · Kegiatan · Riwayat · Akun**. Di tablet/laptop menu pindah ke samping.
