@@ -39,10 +39,10 @@ class ReportCardService
             'counts' => $counts, 'total' => $total,
             'rate' => $total ? round(($counts['hadir'] + $counts['telat']) / $total * 100, 1) : null,
             'rows' => $rows->map(fn ($r) => [
-                'event' => $r->title.(($multi[$r->title] ?? 1) > 1 && $r->session_title !== $r->title ? " — {$r->session_title}" : ''),
+                'event' => $r->title.(($multi[$r->title] ?? 1) > 1 && $r->session_title !== $r->title ? " ({$r->session_title})" : ''),
                 'date' => Carbon::parse($r->starts_at)->timezone(config('app.timezone')),
                 'status' => self::STATUSES[$r->status] ?? $r->status,
-                'time' => $r->scanned_at ? Carbon::parse($r->scanned_at)->timezone(config('app.timezone'))->format('H.i') : '—',
+                'time' => $r->scanned_at ? Carbon::parse($r->scanned_at)->timezone(config('app.timezone'))->format('H.i') : '-',
             ])->all(),
             'statusLabels' => self::STATUSES,
         ];

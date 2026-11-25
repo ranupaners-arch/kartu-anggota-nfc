@@ -67,7 +67,7 @@ class _NfcToolsScreenState extends State<NfcToolsScreen> with WidgetsBindingObse
 
   Future<void> _run(String label, Future<String> Function() op) async {
     setState(() => _busy = true);
-    _add(true, '$label — tempelkan kartu ke belakang HP…');
+    _add(true, '$label: tempelkan kartu ke belakang HP…');
     try {
       _add(true, await op());
     } catch (e) {
@@ -111,7 +111,7 @@ class _NfcToolsScreenState extends State<NfcToolsScreen> with WidgetsBindingObse
                     onPressed: () => _run('Baca kartu', () async {
                       final r = await _nfc.read();
                       final p = r.payload;
-                      return p == null ? 'Isi: ${r.text ?? '(kosong)'} — bukan format kartu anggota' : 'Kartu valid (format). key=${p.keyId} id=${p.publicId}';
+                      return p == null ? 'Isi: ${r.text ?? '(kosong)'}, bukan format kartu anggota' : 'Kartu valid (format). key=${p.keyId} id=${p.publicId}';
                     }),
                   ),
                 ],

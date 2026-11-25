@@ -102,7 +102,7 @@ class _MyHistoryTabState extends State<MyHistoryTab> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Text('Kehadiran${h.term != null ? ' periode ${h.term}' : ''}', style: theme.textTheme.muted),
-                    Text(h.rate == null ? '–' : '${h.rate!.toStringAsFixed(h.rate! % 1 == 0 ? 0 : 1)}%', style: theme.textTheme.h2),
+                    Text(h.rate == null ? '-' : '${h.rate!.toStringAsFixed(h.rate! % 1 == 0 ? 0 : 1)}%', style: theme.textTheme.h2),
                     const SizedBox(height: 12),
                     Row(
                       spacing: 6,
@@ -152,7 +152,7 @@ class _MyHistoryTabState extends State<MyHistoryTab> {
                 SectionCard(
                   title: 'Iuran',
                   icon: LucideIcons.wallet,
-                  description: h.duesUnpaid > 0 ? 'Belum lunas: ${rupiah(h.duesUnpaid)} — bayar ke bendahara.' : 'Semua iuran sudah beres.',
+                  description: h.duesUnpaid > 0 ? 'Belum lunas: ${rupiah(h.duesUnpaid)}. Bayar ke bendahara.' : 'Semua iuran sudah beres.',
                   child: Column(
                     children: [
                       for (final d in h.dues)
@@ -188,7 +188,7 @@ class _MyHistoryTabState extends State<MyHistoryTab> {
               left.add(
                 SectionCard(
                   title: 'Denda absen pakai QR',
-                  description: 'Belum lunas: ${rupiah(h.finesUnpaid)} — bayar ke pengurus. Bawa kartu agar tidak didenda.',
+                  description: 'Belum lunas: ${rupiah(h.finesUnpaid)}. Bayar ke pengurus.',
                   child: Padding(
                     padding: EdgeInsets.zero,
                     child: Column(

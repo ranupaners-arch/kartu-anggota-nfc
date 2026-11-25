@@ -59,11 +59,11 @@ export function DutyCard({ memberId, memberName, duty }: { memberId: number; mem
         <Card>
             <CardHeader>
                 <CardTitle className="flex items-center gap-2"><ShieldCheck className="size-4" /> Tugas</CardTitle>
-                <CardDescription>Petugas Scan / Admin Divisi berlaku per periode; berakhir otomatis saat periode berganti atau pada tanggal yang dipilih.</CardDescription>
+                <CardDescription>Berakhir saat periode berganti atau pada tanggal yang dipilih.</CardDescription>
             </CardHeader>
             <CardContent className="grid gap-3 text-sm">
                 {duty.isSuperAdmin ? (
-                    <p className="text-muted-foreground">Akun ini Super Admin — tidak perlu tugas.</p>
+                    <p className="text-muted-foreground">Super Admin tidak perlu tugas.</p>
                 ) : !duty.hasAccount ? (
                     <Alert><AlertTitle>Belum punya akun app</AlertTitle><AlertDescription>Buat akun app untuk anggota ini dulu (Anggota → centang → Buat akun app), lalu beri tugas.</AlertDescription></Alert>
                 ) : duty.current ? (

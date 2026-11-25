@@ -29,7 +29,7 @@ function Leaderboard({ board }: { board: Board }) {
         <Card className="gap-3">
             <CardHeader>
                 <CardTitle className="text-base">Papan peringkat</CardTitle>
-                <CardDescription>{board.me.points > 0 ? <>Anda peringkat {board.me.rank} dari {board.me.total} anggota aktif ({board.me.points} poin) — hanya Anda yang melihat ini.</> : 'Anda belum punya poin periode ini.'}</CardDescription>
+                <CardDescription>{board.me.points > 0 ? <>Anda peringkat {board.me.rank} dari {board.me.total} anggota aktif ({board.me.points} poin).</> : 'Anda belum punya poin periode ini.'}</CardDescription>
             </CardHeader>
             <CardContent className="grid gap-3">
                 {board.top.length === 0 && <p className="text-sm text-muted-foreground">Belum ada nama yang tampil.</p>}
@@ -43,7 +43,7 @@ function Leaderboard({ board }: { board: Board }) {
                         </li>
                     ))}
                 </ol>
-                <p className="text-xs text-muted-foreground">Hanya anggota yang memilih tampil yang terlihat: nama, divisi, dan poin. Bisa diubah kapan saja.</p>
+                <p className="text-xs text-muted-foreground">Yang terlihat: nama, divisi, dan poin. Bisa diubah kapan saja.</p>
                 <Button variant="outline" onClick={() => router.put('/saya/peringkat', { opt_in: !board.opted_in }, { preserveScroll: true })}>
                     {board.opted_in ? 'Sembunyikan nama saya' : 'Tampilkan nama saya'}
                 </Button>
@@ -53,7 +53,7 @@ function Leaderboard({ board }: { board: Board }) {
 }
 
 export default function PortalHistory({ history: h, leaderboard, certificates, loans }: { history: History; leaderboard: Board; certificates: { id: number; event: string; date: string; number: string }[]; loans: { id: number; item: string; quantity: number; due_on: string; overdue: boolean }[] }) {
-    const pct = h.attendance_rate === null ? '–' : `${h.attendance_rate.toLocaleString('id-ID', { maximumFractionDigits: 1 })}%`;
+    const pct = h.attendance_rate === null ? '-' : `${h.attendance_rate.toLocaleString('id-ID', { maximumFractionDigits: 1 })}%`;
     return (
         <PortalLayout title="Riwayat">
             <Head title="Riwayat" />
@@ -88,7 +88,7 @@ export default function PortalHistory({ history: h, leaderboard, certificates, l
                 <Card className="gap-2">
                     <CardHeader>
                         <CardTitle className="text-base">Iuran</CardTitle>
-                        <CardDescription>Belum lunas: <b className="text-foreground">Rp{h.dues.unpaid_total.toLocaleString('id-ID')}</b> — bayar ke bendahara.</CardDescription>
+                        <CardDescription>Belum lunas: <b className="text-foreground">Rp{h.dues.unpaid_total.toLocaleString('id-ID')}</b>. Bayar ke bendahara.</CardDescription>
                     </CardHeader>
                     <CardContent>
                         <ul className="divide-y">
@@ -107,13 +107,13 @@ export default function PortalHistory({ history: h, leaderboard, certificates, l
                 <Card className="gap-2">
                     <CardHeader>
                         <CardTitle className="text-base">Denda absen pakai QR</CardTitle>
-                        <CardDescription>Belum lunas: <b className="text-foreground">Rp{h.fines.unpaid_total.toLocaleString('id-ID')}</b> — bayar ke pengurus. Bawa kartu agar tidak didenda.</CardDescription>
+                        <CardDescription>Belum lunas: <b className="text-foreground">Rp{h.fines.unpaid_total.toLocaleString('id-ID')}</b>. Bayar ke pengurus.</CardDescription>
                     </CardHeader>
                     <CardContent>
                         <ul className="divide-y">
                             {h.fines.items.map((f) => (
                                 <li key={f.id} className="flex items-center gap-3 py-2 text-sm">
-                                    <span className="min-w-0 flex-1 truncate">{f.event ?? '—'}<span className="block text-xs text-muted-foreground">{fmtDate(f.date)}</span></span>
+                                    <span className="min-w-0 flex-1 truncate">{f.event ?? '-'}<span className="block text-xs text-muted-foreground">{fmtDate(f.date)}</span></span>
                                     <span className="tabular-nums">Rp{f.amount.toLocaleString('id-ID')}</span>
                                     <StatusBadge status={f.status === 'unpaid' ? 'pending' : f.status === 'paid' ? 'approved' : 'closed'} label={{ unpaid: 'Belum lunas', paid: 'Lunas', waived: 'Dibebaskan' }[f.status] ?? f.status} />
                                 </li>
@@ -161,7 +161,7 @@ export default function PortalHistory({ history: h, leaderboard, certificates, l
                         {h.recent.map((r, i) => (
                             <li key={i} className="flex items-center gap-3 py-2.5">
                                 <div className="min-w-0 flex-1">
-                                    <div className="truncate text-sm font-medium">{r.event ?? '—'}</div>
+                                    <div className="truncate text-sm font-medium">{r.event ?? '-'}</div>
                                     <div className="text-xs text-muted-foreground">{fmtDate(r.date)}{r.source === 'qr' ? ' · QR' : r.source === 'nfc' ? ' · Kartu' : ''}</div>
                                 </div>
                                 <StatusBadge status={r.status} label={statusLabel[r.status] ?? r.status} />

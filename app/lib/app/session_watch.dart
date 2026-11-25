@@ -85,9 +85,7 @@ mixin SessionWatch<T extends StatefulWidget> on State<T> {
     if (!mounted) return;
     Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute<void>(
-        builder: (_) => server == null
-            ? const ConnectScreen()
-            : LoginScreen(server: server, notice: heldNotice(r.held) ?? 'Sesi Anda berakhir — peran atau akses akun mungkin diubah pengurus. Silakan masuk lagi.'),
+        builder: (_) => server == null ? const ConnectScreen() : LoginScreen(server: server, notice: heldNotice(r.held) ?? 'Sesi Anda berakhir. Silakan masuk lagi.'),
       ),
       (_) => false,
     );

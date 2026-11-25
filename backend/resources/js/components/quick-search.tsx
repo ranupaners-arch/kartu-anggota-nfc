@@ -102,7 +102,7 @@ export function QuickSearch() {
             <Dialog open={open} onOpenChange={changeOpen}>
                 <DialogContent showCloseButton={false} className="top-[15%] translate-y-0 gap-0 overflow-hidden p-0 sm:max-w-lg">
                     <DialogTitle className="sr-only">Pencarian cepat</DialogTitle>
-                    <DialogDescription className="sr-only">Cari halaman, anggota, atau kegiatan. Panah atas/bawah untuk memilih, Enter untuk membuka.</DialogDescription>
+                    <DialogDescription className="sr-only">Cari halaman, anggota, atau kegiatan. Panah untuk memilih, Enter untuk membuka.</DialogDescription>
                     <div className="flex items-center gap-2 border-b px-3">
                         <Search className="size-4 shrink-0 text-muted-foreground" />
                         <input autoFocus value={q} onChange={(e) => setQ(e.target.value)} onKeyDown={onKeyDown}

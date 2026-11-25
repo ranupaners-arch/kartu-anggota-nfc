@@ -58,7 +58,7 @@ function MemberBulkActions({ sel, divisions, tab }: { sel: Selection; divisions:
                 <Button variant="outline" size="sm" render={<a href={`/anggota/kartu-cetak?${new URLSearchParams([...sel.ids.map((id) => ['ids[]', String(id)]), ['format', printFormat]])}`} target="_blank" rel="noreferrer" />}>Cetak kartu</Button>
             </div>
             <ConfirmAction size="sm" title={`Buat akun app untuk ${n} anggota?`}
-                description="Akun dibuat memakai email anggota, dengan password sementara yang wajib diganti saat pertama masuk. Anggota tanpa email atau yang sudah punya akun dilewati. Password hanya ditampilkan sekali di halaman berikutnya — siapkan untuk dicetak."
+                description="Akun dibuat memakai email anggota, dengan password sementara yang wajib diganti saat pertama masuk. Yang tanpa email atau sudah punya akun dilewati. Password hanya tampil sekali."
                 href="/anggota/akun-app" data={{ ids: sel.ids }} onSuccess={sel.clear} confirmLabel="Buat akun">Buat akun app</ConfirmAction>
             <ConfirmAction size="sm" destructive title={`Arsipkan ${n} anggota?`} description="Anggota pindah ke tab Arsip dan kartu aktifnya diblokir. Bisa dipulihkan satu per satu dari Arsip."
                 href="/anggota/massal" data={{ ids: sel.ids, action: 'archive' }} onSuccess={sel.clear} confirmLabel="Arsipkan">Arsipkan</ConfirmAction>
@@ -118,7 +118,7 @@ export default function Members({ tab, members, divisions, term, filters, canMan
                     {members.data.map((m) => (
                         <TableRow key={m.id}>
                             <TableCell className="tabular-nums">{m.member_no}</TableCell><TableCell className="font-medium">{m.name}</TableCell>
-                            <TableCell>{m.cohort ?? '—'}</TableCell><TableCell>{fmtDateTime(m.deleted_at)}</TableCell>
+                            <TableCell>{m.cohort ?? '-'}</TableCell><TableCell>{fmtDateTime(m.deleted_at)}</TableCell>
                             <TableCell className="text-right">
                                 <ConfirmAction size="sm" title={`Pulihkan ${m.name}?`} description="Anggota kembali ke daftar. Kartu lamanya tetap diblokir; terbitkan kartu baru bila perlu." href={`/anggota/${m.id}/pulihkan`} confirmLabel="Pulihkan">Pulihkan</ConfirmAction>
                             </TableCell>
@@ -133,8 +133,8 @@ export default function Members({ tab, members, divisions, term, filters, canMan
                         {bulk && <TableCell className="w-8"><SelectRow sel={sel} id={m.id} label={m.name} /></TableCell>}
                         <TableCell className="tabular-nums">{m.member_no}</TableCell>
                         <TableCell><Link href={`/anggota/${m.id}`} className="font-medium hover:underline">{m.name}</Link></TableCell>
-                        <TableCell>{m.division ?? '—'}</TableCell>
-                        <TableCell>{m.cohort ?? '—'}</TableCell>
+                        <TableCell>{m.division ?? '-'}</TableCell>
+                        <TableCell>{m.cohort ?? '-'}</TableCell>
                         <TableCell>{m.status ? <StatusBadge status={m.status} /> : <span className="text-xs text-muted-foreground">Bukan anggota periode ini</span>}</TableCell>
                         <TableCell>{m.has_card ? <StatusBadge status="active" /> : <span className="text-xs text-muted-foreground">Belum ada</span>}</TableCell>
                         {canManage && <TableCell>{m.has_account ? <StatusBadge status="active" label="Ada" /> : <span className="text-xs text-muted-foreground">Belum ada</span>}</TableCell>}

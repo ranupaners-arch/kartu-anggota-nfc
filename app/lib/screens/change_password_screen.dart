@@ -89,7 +89,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
               child: AuthLayout(
                 child: ShadCard(
                   title: const Text('Buat password baru'),
-                  description: Text('Halo ${widget.session.userName}. Akun Anda memakai password sementara dari pengurus — ganti dulu sebelum lanjut.'),
+                  description: Text('Halo ${widget.session.userName}. Ganti password sementara Anda dulu.'),
                   child: Padding(
                     padding: const EdgeInsets.only(top: 16),
                     child: Column(

@@ -53,7 +53,7 @@ class StatsService
         $names = Division::whereIn('id', array_column($rows, 'division_id'))->pluck('name', 'id');
 
         return collect($rows)->map(fn ($r) => [
-            'division' => $names[$r['division_id']] ?? '—', 'total' => $r['total'], 'present' => $r['present'],
+            'division' => $names[$r['division_id']] ?? '-', 'total' => $r['total'], 'present' => $r['present'],
             'rate' => $r['total'] ? round($r['present'] / $r['total'] * 100, 1) : null,
         ])->sortBy('rate')->values()->all();
     }

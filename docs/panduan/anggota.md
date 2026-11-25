@@ -29,7 +29,7 @@ opsional, tetapi berguna bila kartu tertinggal, untuk mengajukan izin, dan melih
 ## Tanpa app (iPhone / HP lain): portal web
 
 App hanya ada untuk Android. Pengguna iPhone atau yang tidak memasang app bisa memakai **portal
-anggota** di browser — isinya sama dengan app:
+anggota** di browser, isinya sama dengan app:
 
 1. Buka alamat server organisasi (tertulis di lembar akun) lalu **Masuk** dengan email & password
    yang sama. Anggota otomatis diarahkan ke portal (`/saya`).
@@ -38,10 +38,10 @@ anggota** di browser — isinya sama dengan app:
    peringatan, **Unduh rapor PDF**), **Akun** (ganti password, langganan jadwal, keluar).
 3. Agar seperti app: iPhone Safari → **Bagikan → Tambahkan ke Layar Utama**; Android Chrome →
    menu ⋮ → **Tambahkan ke layar utama**.
-4. **Notifikasi** (bila organisasi mengaktifkannya): **Akun → Aktifkan notifikasi** — pengingat ±1 jam
+4. **Notifikasi** (bila organisasi mengaktifkannya): **Akun → Aktifkan notifikasi**: pengingat ±1 jam
    sebelum kegiatan dan pengumuman baru. Di iPhone, buka portal dari ikon Layar Utama dulu (iOS 16.4+).
 
-Kartu NFC tetap dipakai seperti biasa — portal hanya cadangan QR dan pengganti fitur app lainnya.
+Kartu NFC tetap dipakai seperti biasa, portal hanya cadangan QR dan pengganti fitur app lainnya.
 
 ## Kartu Saya & e-profil (anggota baru)
 
@@ -53,7 +53,7 @@ Kartu NFC tetap dipakai seperti biasa — portal hanya cadangan QR dan pengganti
   **aktif** otomatis (tarik layar untuk memperbarui); ketuk kartu untuk menampilkan QR cadangan.
 - Di portal web sama: masuk → kartu kosong → **e-profil**.
 - **Cetak kartu sendiri** (setelah disahkan): menu **Kartu** → **Unduh kartu (PDF) untuk dicetak** (portal:
-  tombol yang sama di halaman Kartu). Ukuran kartu CR80 (85,6 × 54 mm), depan & belakang — cetak di
+  tombol yang sama di halaman Kartu). Ukuran kartu CR80 (85,6 × 54 mm), depan & belakang, cetak di
   kertas tebal/PVC, lalu daftarkan kartu NFC-nya lewat *Daftarkan kartu NFC saya*.
 - **Daftarkan kartu NFC sendiri** (setelah disahkan): siapkan kartu NTAG215 kosong (mis. hasil cetak
   sendiri) → **Daftarkan kartu NFC saya** → tempelkan kartu ke HP. Hanya **1 kali**. App memeriksa NFC HP:
@@ -65,13 +65,13 @@ Kartu NFC tetap dipakai seperti biasa — portal hanya cadangan QR dan pengganti
   Cek NFC · Lapor**, serta menu **Detail kartu** (status, nomor kartu …4 karakter terakhir, tanggal &
   cara terbit, sisa jatah daftar sendiri) dan **Riwayat kartu** (kartu lama & laporan beserta keputusan).
 - **Cek NFC**: tempelkan kartu fisik ke HP Anda untuk memastikan kartu terbaca, asli, aktif, dan milik
-  Anda (mis. setelah cetak sendiri atau sebelum kegiatan). Hanya membaca — tidak mencatat kehadiran.
+  Anda (mis. setelah cetak sendiri atau sebelum kegiatan). Hanya membaca, tidak mencatat kehadiran.
 - **Lapor kartu hilang/rusak** (menu **Kartu**): pilih *Kartu hilang* (kartu lama langsung diblokir), *Kartu
-  rusak*, atau *HP tanpa NFC*. Keputusan pengurus tampil di menu Kartu (dan di lonceng) — mis. boleh mendaftarkan kartu
+  rusak*, atau *HP tanpa NFC*. Keputusan pengurus tampil di menu Kartu (dan di lonceng), mis. boleh mendaftarkan kartu
   baru sendiri, atau kartu diterbitkan pengurus beserta catatan tempat/waktu pengambilan. Sementara itu
   absen pakai QR.
 
-## QR Saya — saat kartu tertinggal
+## QR Saya saat kartu tertinggal
 
 Ketuk kartu di **Beranda** (atau menu **QR Saya**) dan tunjukkan ke petugas. Selama QR tampil, layar
 dibuat paling terang dan tidak mati sendiri. QR berganti otomatis tiap menit, sehingga tangkapan layar
@@ -105,7 +105,7 @@ mengajukan izin).
   **Dari URL** → tempel. Kegiatan Anda lalu muncul di Google Calendar HP juga dan diperbarui
   otomatis (bisa tertunda beberapa jam).
 - iPhone: **Setelan → Kalender → Akun → Tambah akun → Lainnya → Tambah kalender langganan**.
-- Rahasiakan tautannya. Bila tersebar, tekan **Buat tautan baru** — tautan lama langsung mati.
+- Rahasiakan tautannya. Bila tersebar, tekan **Buat tautan baru**. Tautan lama langsung mati.
 
 ## Riwayat
 
@@ -154,7 +154,7 @@ bendahara; statusnya diperbarui bendahara.
 
 Bila organisasi mengaktifkan denda: absen memakai **QR padahal Anda punya kartu NFC aktif** (kartu
 tidak dibawa) dikenai denda sesuai kebijakan (bisa ada jatah gratis per periode). Lihat di menu
-**Denda** (atau **Riwayat**); bayar ke pengurus. Kartu hilang? **Lapor** dulu di menu Kartu — kartu diblokir
+**Denda** (atau **Riwayat**); bayar ke pengurus. Kartu hilang? **Lapor** dulu di menu Kartu. Kartu diblokir
 dan absen QR Anda tidak didenda.
 
 ## Ubah data diri
@@ -167,4 +167,4 @@ pengajuan baru akan menggantikan yang lama. NIM, divisi, dan status keanggotaan 
 ## Data pribadi
 
 Data Anda (termasuk foto) hanya dipakai untuk absensi organisasi. Anda berhak meminta data pribadi
-dihapus setelah tidak aktif lagi — hubungi pengurus.
+dihapus setelah tidak aktif lagi. Hubungi pengurus.

@@ -49,7 +49,7 @@ export default function EventsIndex({ tab, events, calendar, allDivisions = [], 
                 {!isCalendar && (
                     <>
                         <Input type="date" className="w-auto" aria-label="Dari tanggal" value={f.from} onChange={(e) => setF({ ...f, from: e.target.value })} />
-                        <span className="text-muted-foreground">–</span>
+                        <span className="text-muted-foreground">-</span>
                         <Input type="date" className="w-auto" aria-label="Sampai tanggal" value={f.to} onChange={(e) => setF({ ...f, to: e.target.value })} />
                     </>
                 )}
@@ -67,10 +67,10 @@ export default function EventsIndex({ tab, events, calendar, allDivisions = [], 
                         </TableCell>
                         <TableCell>{fmtDateTime(e.starts_at)}</TableCell>
                         <TableCell>
-                            {fmtTime(e.checkin_opens_at)}–{fmtTime(e.checkin_closes_at)}
+                            {fmtTime(e.checkin_opens_at)}-{fmtTime(e.checkin_closes_at)}
                             <div className="text-xs text-muted-foreground">telat setelah {fmtTime(e.late_after)}</div>
                         </TableCell>
-                        <TableCell>{e.location ?? '—'}</TableCell>
+                        <TableCell>{e.location ?? '-'}</TableCell>
                         <TableCell className="tabular-nums">{e.present_count}</TableCell>
                         <TableCell><StatusBadge status={e.closed_at ? 'closed' : 'open'} /></TableCell>
                     </TableRow>

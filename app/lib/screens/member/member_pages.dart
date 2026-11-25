@@ -108,21 +108,21 @@ class _MembershipPageState extends State<MembershipPage> {
             ErrorBanner(_apiError(snap.error, 'Tidak bisa memuat data. Tarik untuk mencoba lagi.'))
           else ...[
             _group(context, [
-              InfoRow('Nama lengkap', snap.data!.name ?? '—'),
-              InfoRow('Nomor anggota (NIM)', snap.data!.memberNo ?? '—'),
-              InfoRow('Divisi', snap.data!.division ?? '—'),
-              InfoRow('Angkatan', snap.data!.cohort ?? '—'),
+              InfoRow('Nama lengkap', snap.data!.name ?? '-'),
+              InfoRow('Nomor anggota (NIM)', snap.data!.memberNo ?? '-'),
+              InfoRow('Divisi', snap.data!.division ?? '-'),
+              InfoRow('Angkatan', snap.data!.cohort ?? '-'),
             ]),
             const SizedBox(height: 12),
             _group(context, [
-              InfoRow('Organisasi', snap.data!.organization ?? '—'),
-              InfoRow('Periode', snap.data!.term ?? '—'),
-              InfoRow('Status keanggotaan', _status[snap.data!.status] ?? (snap.data!.state == CardState.pending ? 'Menunggu pengesahan' : '—')),
-              InfoRow('Berlaku sampai', snap.data!.validUntil == null ? '—' : fmtDate(snap.data!.validUntil!)),
+              InfoRow('Organisasi', snap.data!.organization ?? '-'),
+              InfoRow('Periode', snap.data!.term ?? '-'),
+              InfoRow('Status keanggotaan', _status[snap.data!.status] ?? (snap.data!.state == CardState.pending ? 'Menunggu pengesahan' : '-')),
+              InfoRow('Berlaku sampai', snap.data!.validUntil == null ? '-' : fmtDate(snap.data!.validUntil!)),
               InfoRow('Kartu NFC', snap.data!.cardLast4 == null ? 'Belum terdaftar' : 'Aktif (…${snap.data!.cardLast4})'),
             ]),
             const SizedBox(height: 12),
-            Text('Ada data yang keliru? Ajukan perubahan nama, no. HP, atau foto — berlaku setelah disetujui pengurus.', style: theme.textTheme.muted),
+            Text('Perubahan data berlaku setelah disetujui pengurus.', style: theme.textTheme.muted),
             const SizedBox(height: 12),
             FlexButton(
               label: 'Ajukan perubahan data',
@@ -195,7 +195,7 @@ class _ReportPageState extends State<ReportPage> {
             else ...[
               Text('Periode ${h!.term ?? 'berjalan'}', style: theme.textTheme.muted),
               const SizedBox(height: 4),
-              Text(h.rate == null ? '–' : '${h.rate!.toStringAsFixed(h.rate! % 1 == 0 ? 0 : 1)}%', style: theme.textTheme.h1),
+              Text(h.rate == null ? '-' : '${h.rate!.toStringAsFixed(h.rate! % 1 == 0 ? 0 : 1)}%', style: theme.textTheme.h1),
               Text('tingkat kehadiran dari ${h.total} kegiatan', style: theme.textTheme.muted),
               const SizedBox(height: 16),
               _group(context, [
@@ -271,7 +271,7 @@ class _FinesPageState extends State<FinesPage> {
             Text('Belum lunas', style: theme.textTheme.muted),
             Text(rupiah(snap.data!.finesUnpaid), style: theme.textTheme.h1),
             const SizedBox(height: 4),
-            Text('Denda dikenakan saat absen memakai QR karena kartu tidak dibawa. Bayar ke pengurus; status diperbarui oleh pengurus.', style: theme.textTheme.muted),
+            Text('Dikenakan saat absen pakai QR. Bayar ke pengurus.', style: theme.textTheme.muted),
             const SizedBox(height: 16),
             if (snap.data!.fines.isEmpty)
               const ShadAlert(icon: Icon(LucideIcons.circleCheck), title: Text('Tidak ada denda'), description: Text('Terus bawa kartu anggota saat kegiatan.'))
@@ -352,7 +352,7 @@ class _ExcuseListPageState extends State<ExcuseListPage> {
             else if (snap.hasError)
               ErrorBanner(_apiError(snap.error, 'Tidak bisa memuat kegiatan. Tarik untuk mencoba lagi.'))
             else ...[
-              Text('Berhalangan hadir? Ajukan izin atau sakit sebelum kegiatan ditutup, sertakan bukti bila ada.', style: theme.textTheme.muted),
+              Text('Ajukan izin atau sakit sebelum kegiatan ditutup.', style: theme.textTheme.muted),
               const SizedBox(height: 12),
               if (open.isEmpty) const ShadAlert(icon: Icon(LucideIcons.calendarCheck), title: Text('Tidak ada kegiatan yang bisa diajukan izin')),
               for (final e in open)
@@ -459,7 +459,7 @@ class _ChangeOwnPasswordPageState extends State<ChangeOwnPasswordPage> {
   Widget build(BuildContext context) {
     final theme = ShadTheme.of(context);
     final fields = <Widget>[
-      Text('Minimal 10 karakter, berisi huruf dan angka. Jangan pakai password yang sama dengan akun lain.', style: theme.textTheme.muted),
+      Text('Minimal 10 karakter, berisi huruf dan angka.', style: theme.textTheme.muted),
       const SizedBox(height: 16),
       if (_error != null) ...[ErrorBanner(_error!), const SizedBox(height: 12)],
       ShadInputFormField(controller: _current, label: const Text('Password saat ini'), obscureText: true, autofillHints: const [AutofillHints.password]),
@@ -480,15 +480,15 @@ class HelpPage extends StatelessWidget {
   const HelpPage({super.key});
 
   static const _faq = [
-    ('Bagaimana cara absen?', 'Tempelkan kartu anggota NFC ke HP petugas scan saat kegiatan. Status Hadir/Telat dihitung dari jam scan.'),
+    ('Bagaimana cara absen?', 'Tempelkan kartu ke HP petugas. Hadir atau Telat dihitung dari jam scan.'),
     (
       'Kartu tertinggal?',
-      'Buka Beranda → ketuk kartu atau menu QR Saya, lalu tunjukkan QR ke petugas. QR berganti tiap menit, jadi tangkapan layar tidak berlaku. Absen dengan QR bisa dikenai denda sesuai kebijakan organisasi.',
+      'Ketuk kartu di Beranda atau buka QR Saya, lalu tunjukkan ke petugas. Absen dengan QR bisa dikenai denda.',
     ),
-    ('Berhalangan hadir?', 'Menu Izin → pilih kegiatan → ajukan izin/sakit beserta bukti. Pengurus menyetujui atau menolak; hasilnya tampil di sini.'),
-    ('Kartu hilang atau rusak?', 'Menu Kartu → Lapor kartu. Kartu hilang langsung diblokir agar tidak disalahgunakan; pengurus menindaklanjuti penggantinya.'),
-    ('HP tanpa NFC?', 'Tidak masalah — absen tetap bisa dengan kartu fisik ditempel ke HP petugas. Untuk mendaftarkan kartu sendiri, minta pengurus lewat menu Kartu.'),
-    ('Kehadiran saya rendah?', 'Lihat menu Rapor. Bila tercatat Alpa padahal hadir/izin, hubungi pengurus untuk koreksi.'),
+    ('Berhalangan hadir?', 'Buka menu Izin, pilih kegiatan, lalu ajukan.'),
+    ('Kartu hilang atau rusak?', 'Buka menu Kartu, Lapor kartu. Kartu hilang langsung diblokir.'),
+    ('HP tanpa NFC?', 'Tempelkan kartu ke HP petugas seperti biasa. Untuk mendaftarkan kartu, minta pengurus lewat menu Kartu.'),
+    ('Kehadiran saya rendah?', 'Lihat menu Rapor. Hubungi pengurus bila ada yang keliru.'),
   ];
 
   @override

@@ -27,9 +27,9 @@ export default function Users({ users, filters }: { users: Paginated<U>; filters
                     <TableRow key={u.id}>
                         <TableCell><Link href={`/pengguna/${u.id}/edit`} className="font-medium hover:underline">{u.name}</Link></TableCell>
                         <TableCell>{u.email}</TableCell><TableCell>{roleLabel[u.role]}{u.finance_active && <div className="text-xs text-muted-foreground">{u.finance_active === 'treasurer' ? 'Bendahara' : 'Sekretaris'}</div>}</TableCell>
-                        <TableCell>{u.division?.name ?? '—'}</TableCell><TableCell className="tabular-nums">{u.member?.member_no ?? '—'}</TableCell>
+                        <TableCell>{u.division?.name ?? '-'}</TableCell><TableCell className="tabular-nums">{u.member?.member_no ?? '-'}</TableCell>
                         <TableCell><StatusBadge status={u.disabled_at ? 'disabled' : 'active'} /></TableCell>
-                        <TableCell>{u.two_factor_confirmed_at ? <StatusBadge status="active" label="Aktif" /> : <span className="text-xs text-muted-foreground">—</span>}</TableCell>
+                        <TableCell>{u.two_factor_confirmed_at ? <StatusBadge status="active" label="Aktif" /> : <span className="text-xs text-muted-foreground">-</span>}</TableCell>
                         <TableCell className="space-x-1.5">
                             {u.id !== me && (
                                 <>

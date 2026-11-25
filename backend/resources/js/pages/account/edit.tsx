@@ -24,7 +24,7 @@ function WeeklySummaryCard({ ws }: { ws: { enabled: boolean; mailEnabled: boolea
         <Card>
             <CardHeader>
                 <CardTitle className="flex items-center gap-2"><Mail className="size-4" /> Ringkasan mingguan</CardTitle>
-                <CardDescription>Tiap Senin 07.00: kehadiran 7 hari terakhir, izin & tinjauan yang menunggu, anggota yang perlu perhatian, dan kegiatan pekan ini.</CardDescription>
+                <CardDescription>Tiap Senin 07.00: kehadiran sepekan, hal yang menunggu, dan kegiatan pekan ini.</CardDescription>
             </CardHeader>
             <CardContent className="grid gap-3 text-sm">
                 <Label className="flex items-center gap-2 font-normal">
@@ -52,7 +52,7 @@ function CalendarCard({ url }: { url: string | null }) {
         <Card>
             <CardHeader>
                 <CardTitle className="flex items-center gap-2"><CalendarPlus className="size-4" /> Langganan jadwal</CardTitle>
-                <CardDescription>Tampilkan kegiatan yang bisa Anda kelola di Google Calendar atau kalender HP, diperbarui otomatis.</CardDescription>
+                <CardDescription>Kegiatan yang Anda kelola, di Google Calendar atau kalender HP.</CardDescription>
             </CardHeader>
             <CardContent className="grid gap-3 text-sm">
                 {url ? (
@@ -62,7 +62,7 @@ function CalendarCard({ url }: { url: string | null }) {
                             <Button variant="outline" onClick={copy} aria-live="polite">{copied ? <><Check /> Tersalin</> : <><Copy /> Salin</>}</Button>
                         </div>
                         <p className="text-muted-foreground">Google Calendar (komputer): <b>Setelan → Tambahkan kalender → Dari URL</b>, tempel tautan ini. Kalender Apple: <b>Tambah langganan kalender</b>. Pembaruan bisa tertunda beberapa jam (diatur aplikasi kalendernya).</p>
-                        <p className="text-muted-foreground">Rahasiakan tautan ini — siapa pun yang memilikinya bisa melihat jadwal Anda.</p>
+                        <p className="text-muted-foreground">Rahasiakan tautan ini. Siapa pun yang punya bisa melihat jadwal Anda.</p>
                         <div>
                             <ConfirmAction size="sm" title="Ganti tautan langganan?" description="Tautan lama langsung tidak berlaku; kalender yang memakai tautan lama perlu ditambahkan ulang." href="/akun/kalender" confirmLabel="Ganti tautan">Ganti tautan</ConfirmAction>
                         </div>
@@ -90,7 +90,7 @@ export default function Account({ user, twoFactor, calendarUrl, weeklySummary, p
                 {mustChange && (
                     <Alert>
                         <AlertTitle>Ganti password sementara Anda</AlertTitle>
-                        <AlertDescription>Akun ini memakai password yang dibuat pengurus. Ganti dulu di bawah sebelum memakai menu lain.</AlertDescription>
+                        <AlertDescription>Ganti password sementara Anda dulu.</AlertDescription>
                     </Alert>
                 )}
                 <Card>
