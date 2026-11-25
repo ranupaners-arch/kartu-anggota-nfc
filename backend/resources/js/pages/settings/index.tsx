@@ -20,6 +20,7 @@ import { fmtDate, fmtDateTime } from '@/lib/format';
 
 type Term = { id: number; name: string; starts_on: string; ends_on: string; is_current: boolean };
 type Div = { id: number; name: string; memberships_count: number };
+type EvType = { id: number; name: string; events_count: number };
 type Connect = { server: string; name: string; payload: string; https: boolean };
 
 /** QR untuk menghubungkan app petugas ke server organisasi ini (model self-hosted). */
@@ -237,6 +238,43 @@ function Divisions({ divisions }: { divisions: Div[] }) {
     );
 }
 
+function EventTypeRow({ t }: { t: EvType }) {
+    const [name, setName] = useState(t.name);
+    return (
+        <TableRow>
+            <TableCell><Input className="h-8 max-w-xs" aria-label={`Nama tipe ${t.name}`} maxLength={50} value={name} onChange={(e) => setName(e.target.value)} /></TableCell>
+            <TableCell className="tabular-nums">{t.events_count}</TableCell>
+            <TableCell className="text-right">
+                <div className="flex flex-wrap justify-end gap-1.5">
+                    <Button size="sm" variant="outline" disabled={name === t.name || !name.trim()} onClick={() => router.put(`/pengaturan/tipe/${t.id}`, { name }, { preserveScroll: true })}>Simpan nama</Button>
+                    <ConfirmAction size="sm" destructive title={`Hapus tipe ${t.name}?`} description="Hanya tipe yang tidak dipakai kegiatan yang bisa dihapus." href={`/pengaturan/tipe/${t.id}`} method="delete" confirmLabel="Hapus">Hapus</ConfirmAction>
+                </div>
+            </TableCell>
+        </TableRow>
+    );
+}
+
+function EventTypes({ types }: { types: EvType[] }) {
+    const form = useForm({ name: '' });
+    return (
+        <>
+            <p className="text-sm text-muted-foreground">Pilihan tipe di formulir kegiatan. Mengganti nama ikut mengubah kegiatan yang memakainya.</p>
+            <DataTable head={['Tipe kegiatan', 'Kegiatan', '']} count={types.length}>
+                {types.map((t) => <EventTypeRow key={`${t.id}-${t.name}`} t={t} />)}
+            </DataTable>
+            <Card className="max-w-xl">
+                <CardHeader><CardTitle>Tambah tipe kegiatan</CardTitle></CardHeader>
+                <CardContent>
+                    <form onSubmit={(e) => { e.preventDefault(); form.post('/pengaturan/tipe', { preserveScroll: true, onSuccess: () => form.reset() }); }} className="flex items-end gap-2">
+                        <div className="flex-1"><FormField label="Nama tipe" error={form.errors.name}><Input required maxLength={50} value={form.data.name} onChange={(e) => form.setData('name', e.target.value)} /></FormField></div>
+                        <Button type="submit" disabled={form.processing}>Tambah</Button>
+                    </form>
+                </CardContent>
+            </Card>
+        </>
+    );
+}
+
 type Privacy = { excuseDays: number; memberMonths: number | null; exportDays: number; pending: { excuses: number; members: number; exports: number } };
 
 /** Retensi data (PRD §13): dijalankan otomatis tiap hari pukul 02.30. */
@@ -358,14 +396,15 @@ function SystemHealth({ health }: { health: Health }) {
     );
 }
 
-export default function Settings({ tab, org, finePolicy, terms, divisions, connect, registration, privacy, health }: { tab: string; org: { name: string; slug: string }; finePolicy: FinePolicy; terms: Term[]; divisions: Div[]; connect: Connect; registration: { url: string } | null; privacy: Privacy | null; health: Health | null }) {
+export default function Settings({ tab, org, finePolicy, terms, divisions, eventTypes, connect, registration, privacy, health }: { eventTypes: EvType[]; tab: string; org: { name: string; slug: string }; finePolicy: FinePolicy; terms: Term[]; divisions: Div[]; connect: Connect; registration: { url: string } | null; privacy: Privacy | null; health: Health | null }) {
     return (
         <AppLayout title="Pengaturan">
             <Head title="Pengaturan" />
-            <PageTabs tabs={{ organisasi: 'Organisasi', periode: 'Periode', divisi: 'Divisi', aplikasi: 'Aplikasi', privasi: 'Privasi', sistem: 'Sistem' }} current={tab} />
+            <PageTabs tabs={{ organisasi: 'Organisasi', periode: 'Periode', divisi: 'Divisi', tipe: 'Tipe Kegiatan', aplikasi: 'Aplikasi', privasi: 'Privasi', sistem: 'Sistem' }} current={tab} />
             {tab === 'organisasi' && <><Organization org={org} /><FinePolicyCard policy={finePolicy} /></>}
             {tab === 'periode' && <Terms terms={terms} />}
             {tab === 'divisi' && <Divisions divisions={divisions} />}
+            {tab === 'tipe' && <EventTypes types={eventTypes} />}
             {tab === 'aplikasi' && <AppConnect connect={connect} registration={registration} />}
             {tab === 'privasi' && privacy && <PrivacySettings privacy={privacy} />}
             {tab === 'sistem' && health && <SystemHealth health={health} />}

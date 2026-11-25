@@ -6,6 +6,7 @@ use App\Models\Attendance;
 use App\Models\Division;
 use App\Models\Event;
 use App\Models\EventSession;
+use App\Models\EventType;
 use App\Models\Member;
 use App\Models\Term;
 use App\Models\User;
@@ -63,6 +64,7 @@ class EventService
         $ownerDivision = $user->role === User::DIVISION_ADMIN ? $user->division_id : ($d['division_id'] ?? null);
         $this->assertOwned($divisionIds, $memberIds, $ownerDivision);
         $this->assertRsvp(new Event(['is_mandatory' => $d['is_mandatory'] ?? true] + $d));
+        $d = $this->withKnownType($d);
         $term = Term::where('is_current', true)->firstOr(fn () => abort(422, 'Belum ada periode aktif.'));
 
         $event = DB::transaction(function () use ($d, $user, $term, $ownerDivision, $divisionIds, $memberIds) {
@@ -138,6 +140,7 @@ class EventService
     {
         $d = LocalTime::normalize(collect($d)->except(['division_id', 'target_division_ids', 'target_member_ids'])->all(), self::TIME_KEYS);
         $this->assertRsvp((clone $event)->fill($d));
+        $d = $this->withKnownType($d, $event);
         $changesWindow = collect(self::WINDOW_KEYS)->contains(fn ($k) => isset($d[$k]));
         if ($changesWindow && $event->checkin_opens_at->lte(now())) {
             if (mb_strlen(trim((string) $reason)) < 5) {
@@ -226,6 +229,18 @@ class EventService
         foreach ($memberIds as $id) {
             $event->targets()->create(['member_id' => $id]);
         }
+    }
+
+    /** Tipe harus salah satu pilihan organisasi (tanpa beda huruf besar/kecil); nilai lama kegiatan boleh tetap. */
+    private function withKnownType(array $d, ?Event $event = null): array
+    {
+        if (! isset($d['type']) || $d['type'] === $event?->type) {
+            return $d;
+        }
+        $name = EventType::whereRaw('lower(name) = ?', [mb_strtolower(trim($d['type']))])->value('name')
+            ?? throw ValidationException::withMessages(['type' => 'Tipe kegiatan tidak dikenal. Tambahkan dulu di Pengaturan → Tipe Kegiatan.']);
+
+        return ['type' => $name] + $d;
     }
 
     private function assertRsvp(Event $e): void

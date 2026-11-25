@@ -7,6 +7,7 @@ use App\Models\Division;
 use App\Models\Due;
 use App\Models\Event;
 use App\Models\EventTarget;
+use App\Models\EventType;
 use App\Models\Membership;
 use App\Models\PushSubscription;
 use App\Models\Term;
@@ -34,6 +35,7 @@ class SettingsController extends Controller
             'finePolicy' => $r->user()->organization->only('fine_enabled', 'fine_amount', 'fine_free_per_term'),
             'terms' => Term::orderByDesc('starts_on')->get(),
             'divisions' => Division::withCount('memberships')->orderBy('name')->get(),
+            'eventTypes' => EventType::orderBy('name')->get(['id', 'name'])->map(fn (EventType $t) => $t->only('id', 'name') + ['events_count' => Event::where('type', $t->name)->count()]),
             'connect' => self::connectInfo(),
             'registration' => ($t = $r->user()->organization->registration_token) ? ['url' => route('register.show', $t)] : null,
             'privacy' => fn () => $r->query('tab') === 'privasi' ? [
@@ -215,6 +217,50 @@ class SettingsController extends Controller
     private static function usage(array $used): string
     {
         return collect($used)->filter()->map(fn ($n, $what) => "$n $what")->implode(', ');
+    }
+
+    public function storeEventType(Request $r)
+    {
+        $type = EventType::create($this->eventTypeInput($r));
+        AuditLogger::log('event_type.created', 'event_type', $type->id, ['name' => $type->name]);
+
+        return back()->with('status', 'Tipe kegiatan ditambahkan.');
+    }
+
+    /** Ganti nama: kegiatan lama ikut, supaya filter & rekap tetap satu kelompok. */
+    public function updateEventType(Request $r, EventType $type)
+    {
+        $d = $this->eventTypeInput($r, $type);
+        $old = $type->name;
+        DB::transaction(function () use ($type, $d, $old) {
+            Event::where('type', $old)->update(['type' => $d['name']]);
+            $type->update($d);
+        });
+        AuditLogger::log('event_type.updated', 'event_type', $type->id, ['from' => $old, 'to' => $type->name]);
+
+        return back()->with('status', 'Tipe kegiatan diganti nama.');
+    }
+
+    public function destroyEventType(EventType $type)
+    {
+        $n = Event::where('type', $type->name)->count();
+        abort_if($n > 0, 422, "Tipe {$type->name} masih dipakai $n kegiatan; ganti namanya atau ubah kegiatannya dulu.");
+        abort_if(EventType::count() <= 1, 422, 'Minimal satu tipe kegiatan harus ada.');
+        $type->delete();
+        AuditLogger::log('event_type.deleted', 'event_type', $type->id, ['name' => $type->name]);
+
+        return back()->with('status', "Tipe {$type->name} dihapus.");
+    }
+
+    private function eventTypeInput(Request $r, ?EventType $type = null): array
+    {
+        $r->merge(['name' => trim((string) $r->input('name'))]);
+
+        return $r->validate(['name' => ['required', 'string', 'max:50', function ($attribute, $value, $fail) use ($type) {
+            if (EventType::whereRaw('lower(name) = ?', [mb_strtolower($value)])->when($type, fn ($q) => $q->whereKeyNot($type->id))->exists()) {
+                $fail('Tipe kegiatan ini sudah ada.');
+            }
+        }]]);
     }
 
     private function divisionInput(Request $r, ?Division $division = null): array
