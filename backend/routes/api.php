@@ -33,6 +33,7 @@ Route::middleware(['auth:sanctum', 'password.changed'])->group(function () {
     Route::post('auth/logout', [AuthController::class, 'logout']);
     Route::get('me', [AuthController::class, 'me']);
     Route::put('me/password', [AuthController::class, 'changePassword'])->middleware('throttle:10,1');
+    Route::put('me/push-token', [MeController::class, 'pushToken'])->middleware('throttle:20,1');
     Route::get('me/qr', [MemberController::class, 'myQr']);
     Route::get('me/card', [MeController::class, 'card']);
     Route::get('me/card.pdf', [MeController::class, 'cardPdf'])->middleware('throttle:10,1');

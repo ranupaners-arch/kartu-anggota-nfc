@@ -13,3 +13,7 @@ __pycache__/
 # Deploy (rahasia & cadangan lokal)
 deploy/.env
 deploy/backups/
+
+# Kunci Firebase (APK lewat secret CI, server lewat .env)
+google-services.json
+*firebase-adminsdk*.json
