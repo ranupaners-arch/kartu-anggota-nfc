@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 
 import '../api/api_client.dart';
+import '../api/response_cache.dart';
 import '../offline/offline_store.dart';
 import '../offline/sync_service.dart';
 import '../screens/connect_screen.dart';
@@ -49,6 +50,7 @@ mixin SessionWatch<T extends StatefulWidget> on State<T> {
       if (id != null && watchedSession.userId == null) {
         watchedSession.userId = id; // sesi dari versi app lama: data offline kini terikat ke akun ini
         await watchedSession.save();
+        watchedApi.cache ??= ResponseCache(watchedSession.owner!); // simpan untuk offline mulai sekarang
         if (!mounted) return;
       }
       if (role != watchedSession.role || hasMember != watchedSession.hasMember) {

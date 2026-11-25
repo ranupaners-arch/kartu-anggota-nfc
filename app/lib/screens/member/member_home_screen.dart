@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:material_ui/material_ui.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
@@ -52,9 +54,24 @@ class _MemberHomeScreenState extends State<MemberHomeScreen> with SessionWatch<M
   List<MemberNotice> _notices = const [];
   DateTime? _seenAt;
 
+  Timer? _retry;
+
+  @override
+  void dispose() {
+    _retry?.cancel();
+    super.dispose();
+  }
+
   @override
   void initState() {
     super.initState();
+    // Saat offline: coba server lagi berkala, agar data segar begitu sinyal kembali tanpa membuka ulang app.
+    _retry = Timer.periodic(const Duration(seconds: 20), (_) async {
+      if (_api.offlineSince.value == null) return;
+      _api.retryNow();
+      await _loadNotices();
+      if (mounted && _api.offlineSince.value == null) _home.currentState?.refresh();
+    });
     _api.myCard().then((c) {
       if (mounted) setState(() => _org = c.organization);
     }, onError: (_) {});

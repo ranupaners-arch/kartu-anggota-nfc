@@ -166,6 +166,12 @@ class ApiClient {
   /// Waktu data tersimpan yang sedang ditampilkan karena server tidak terjangkau; null = data dari server.
   final ValueNotifier<DateTime?> offlineSince = ValueNotifier(null);
 
+  /// Server baru saja tidak terjangkau: pakai simpanan tanpa menunggu lagi (VPN/Tailscale putus menggantung).
+  DateTime? _downUntil;
+
+  /// Coba server lagi pada permintaan berikutnya.
+  void retryNow() => _downUntil = null;
+
   Future<Map<String, dynamic>> login(String email, String password, {required String deviceUuid, String deviceName = 'HP Petugas', String? otp}) async {
     final j = await _send('POST', '/api/auth/login', {'email': email, 'password': password, 'device_uuid': deviceUuid, 'device_name': deviceName, if (otp != null && otp.isNotEmpty) 'otp': otp});
     token = j['token'] as String;
@@ -441,10 +447,16 @@ class ApiClient {
     final store = method == 'GET' && ResponseCache.paths.contains(path) ? cache : null;
     if (store == null) return _request(method, path, body, timeout);
     final saved = await store.load(path);
+    final until = _downUntil;
+    if (saved != null && until != null && DateTime.now().isBefore(until)) {
+      offlineSince.value = saved.at;
+      return saved.body;
+    }
     try {
       // Ada simpanan: jangan menunggu lama (VPN/Tailscale yang putus tidak langsung gagal).
       final fresh = await _request(method, path, body, saved == null ? timeout : const Duration(seconds: 4));
       offlineSince.value = null;
+      _downUntil = null;
       if (token != null) await store.save(path, fresh);
       return fresh;
     } on ApiException catch (e) {
@@ -452,6 +464,7 @@ class ApiClient {
     } catch (_) {
       if (saved == null) rethrow;
     }
+    _downUntil = DateTime.now().add(const Duration(seconds: 20));
     offlineSince.value = saved.at;
     return saved.body;
   }

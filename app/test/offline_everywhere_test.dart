@@ -210,6 +210,58 @@ void main() {
     await tester.pumpWidget(const SizedBox());
   });
 
+  test('Tailscale putus: hanya permintaan pertama yang menunggu; retryNow mencoba server lagi', () async {
+    await apiOf((_) async => http.Response('{"data":[]}', 200)).myEvents();
+    var calls = 0;
+    final api = apiOf((_) async {
+      calls++;
+      throw http.ClientException('putus');
+    });
+    for (var i = 0; i < 3; i++) {
+      await api.myEvents();
+    }
+    expect(calls, 1);
+    api.retryNow();
+    await api.myEvents();
+    expect(calls, 2);
+  });
+
+  testWidgets('anggota biasa: buka app offline lewat Tailscale, lalu pulih sendiri saat tersambung', (tester) async {
+    tester.view.physicalSize = const Size(1080, 2400);
+    tester.view.devicePixelRatio = 2.5;
+    addTearDown(tester.view.reset);
+    final s = Session(baseUrl: 'http://srv', token: 't', userName: 'Budi', role: 'member', hasMember: true, userId: 1);
+    await s.save();
+    await tester.pumpWidget(
+      KartuAnggotaApp(
+        home: MemberHomeScreen(session: s, api: member.api(member.server())..cache = const ResponseCache(owner)),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.pumpWidget(const SizedBox());
+
+    var online = false;
+    final base = member.server();
+    final api = apiOf((r) async => online ? http.Response.fromStream(await base.send(http.Request(r.method, r.url)..body = r.body)) : await hang(r));
+    await tester.pumpWidget(
+      KartuAnggotaApp(
+        home: MemberHomeScreen(session: s, api: api),
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 5));
+    await tester.pump(const Duration(seconds: 1));
+    expect(find.text('Mode offline'), findsWidgets);
+    expect(find.textContaining('QR Saya dan pengajuan izin butuh internet'), findsWidgets);
+    expect(find.text('Rapat Pleno'), findsWidgets);
+    online = true;
+    await tester.pump(const Duration(seconds: 20));
+    await tester.pumpAndSettle();
+    expect(find.text('Mode offline'), findsNothing);
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump(const Duration(seconds: 15));
+  });
+
   test('simpanan anggota: per akun, tanpa QR, hilang saat keluar', () async {
     Future<http.Response> ok(http.Request r) async => http.Response(
       jsonEncode({
