@@ -9,6 +9,7 @@ use App\Models\CertificateBatch;
 use App\Models\Division;
 use App\Models\Event;
 use App\Models\EventDocument;
+use App\Models\EventGuestCheckin;
 use App\Models\EventMinutes;
 use App\Models\EventSession;
 use App\Models\EventType;
@@ -17,6 +18,7 @@ use App\Services\AttendanceService;
 use App\Services\AuditLogger;
 use App\Services\CertificateService;
 use App\Services\EventService;
+use App\Services\GuestService;
 use App\Services\MinutesService;
 use App\Services\ReportService;
 use App\Services\RsvpService;
@@ -102,7 +104,7 @@ class EventController extends Controller
         return redirect()->route('events.show', $event)->with('status', 'Kegiatan dibuat.');
     }
 
-    public function show(Request $r, Event $event, ReportService $reports, RsvpService $rsvps, CertificateService $certificates, MinutesService $minutes, SurveyService $surveys)
+    public function show(Request $r, Event $event, ReportService $reports, RsvpService $rsvps, CertificateService $certificates, MinutesService $minutes, SurveyService $surveys, GuestService $guests)
     {
         $this->events->authorize($r->user(), $event);
         $tab = $r->query('tab', 'ringkasan');
@@ -115,10 +117,11 @@ class EventController extends Controller
             'certificate' => $tab === 'sertifikat' ? $this->certificateTab($r, $event, $certificates) : null,
             'minutes' => $tab === 'notulen' ? $minutes->tab($event) : null,
             'survey' => $tab === 'survei' ? $surveys->tab($event) : null,
+            'guests' => $tab === 'tamu' ? $guests->tab($event) : null,
             'rsvp' => $tab === 'rsvp' && $event->rsvp_enabled ? $rsvps->report($event) : null,
             'tab' => $tab,
             'report' => in_array($tab, ['ringkasan', 'hadir'], true) ? $reports->event($event, $session) : null,
-            'canDelete' => ! $event->attendances()->exists() && ! EventMinutes::where('event_id', $event->id)->exists() && ! EventDocument::where('event_id', $event->id)->exists(),
+            'canDelete' => ! $event->attendances()->exists() && ! EventGuestCheckin::whereHas('guest', fn ($q) => $q->where('event_id', $event->id))->exists() && ! EventMinutes::where('event_id', $event->id)->exists() && ! EventDocument::where('event_id', $event->id)->exists(),
             'sessions' => $reports->sessions($event),
             'divisions' => Division::orderBy('name')->get(['id', 'name']),
             'targetDivisionIds' => $event->targets->pluck('division_id')->filter()->values(),

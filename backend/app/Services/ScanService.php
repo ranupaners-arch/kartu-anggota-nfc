@@ -41,6 +41,12 @@ class ScanService
             return $this->result('clock_drift', null, null, 'Jam perangkat berbeda terlalu jauh dari server.');
         }
 
+        // Tamu: daftar & check-in terpisah dari absensi anggota; hanya saat tersambung.
+        if ($source === 'qr' && ($guest = GuestService::token((string) ($in['payload'] ?? '')))) {
+            return $fromBatch ? $this->result('invalid', null, null, 'QR tamu butuh koneksi internet.')
+                : app(GuestService::class)->scan($event, $guest, $in, $scannedAt, $user, $device, $ctx);
+        }
+
         // 1. Identifikasi anggota
         $card = null;
         if ($source === 'qr') {

@@ -17,7 +17,7 @@ class RunRetention extends Command
     {
         foreach (Organization::all() as $org) {
             $n = $privacy->retention($org, (bool) $this->option('dry-run'));
-            $this->line(sprintf('%s: %d izin, %d anggota, %d ekspor%s', $org->name, $n['excuses'], $n['members'], $n['exports'],
+            $this->line(sprintf('%s: %d tamu, %d izin, %d anggota, %d ekspor%s', $org->name, $n['guests'], $n['excuses'], $n['members'], $n['exports'],
                 $this->option('dry-run') ? ' (simulasi)' : ''));
         }
 

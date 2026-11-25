@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Card;
 use App\Models\Certificate;
+use App\Models\EventGuest;
 use App\Models\ExcuseRequest;
 use App\Models\Export;
 use App\Models\Member;
@@ -83,7 +84,7 @@ class PrivacyService
     /**
      * Jalankan retensi untuk satu organisasi. $dryRun: hanya hitung.
      *
-     * @return array{excuses: int, members: int, exports: int}
+     * @return array{excuses: int, members: int, exports: int, guests: int}
      */
     public function retention(Organization $org, bool $dryRun = false): array
     {
@@ -99,11 +100,16 @@ class PrivacyService
         $exports = Export::withoutGlobalScopes()->where('organization_id', $org->id)->whereNotNull('path')
             ->where('created_at', '<', now()->subDays((int) config('attendance.export_retention_days')));
 
+        // Nama tamu dihapus bersama alasan izin: masa simpan yang sama setelah periode berakhir.
+        $guests = EventGuest::withoutGlobalScopes()->whereNull('purged_at')
+            ->whereHas('event', fn ($e) => $e->withoutGlobalScopes()->where('organization_id', $org->id)
+                ->whereHas('term', fn ($t) => $t->withoutGlobalScopes()->where('ends_on', '<', now()->subDays($org->retention_excuse_days)->toDateString())));
+
         if ($dryRun) {
-            return ['excuses' => $excuses->count(), 'members' => $members?->count() ?? 0, 'exports' => $exports->count()];
+            return ['excuses' => $excuses->count(), 'members' => $members?->count() ?? 0, 'exports' => $exports->count(), 'guests' => $guests->count()];
         }
 
-        $n = ['excuses' => 0, 'members' => 0, 'exports' => 0];
+        $n = ['excuses' => 0, 'members' => 0, 'exports' => 0, 'guests' => 0];
         $excuses->get()->each(function (ExcuseRequest $x) use (&$n) {
             $file = $x->attachment_path;
             $x->update(['reason' => self::PURGED_REASON, 'review_note' => null, 'attachment_path' => null, 'purged_at' => now()]);
@@ -119,6 +125,7 @@ class PrivacyService
             $e->update(['path' => null, 'status' => 'expired']);
             $n['exports']++;
         });
+        $n['guests'] = $guests->update(['name' => 'Tamu (dihapus)', 'institution' => null, 'revoked_at' => now(), 'purged_at' => now()]);
         if (array_sum($n) > 0) {
             AuditLogger::log('privacy.retention', 'organization', $org->id, $n);
         }
