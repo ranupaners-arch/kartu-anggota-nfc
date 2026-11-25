@@ -41,16 +41,16 @@ function ReviewDialog({ req }: { req: Req }) {
             <DialogContent>
                 <DialogHeader>
                     <DialogTitle>Laporan kartu · {req.member?.name}</DialogTitle>
-                    <DialogDescription>{reasonLabel[req.reason]}{req.note ? ` — “${req.note}”` : ''}</DialogDescription>
+                    <DialogDescription>{reasonLabel[req.reason]}{req.note ? `: “${req.note}”` : ''}</DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-3 text-sm">
                     <Label className="flex items-start gap-2 font-normal">
                         <input type="radio" name="res" className="mt-1" checked={form.data.resolution === 'self'} onChange={() => form.setData('resolution', 'self')} />
-                        <span><b>Izinkan daftar sendiri</b> — anggota mendapat 1 kesempatan mendaftarkan kartu NFC baru lewat app (HP-nya atau HP lain ber-NFC).</span>
+                        <span><b>Izinkan daftar sendiri</b>: anggota bisa mendaftarkan 1 kartu NFC baru lewat app.</span>
                     </Label>
                     <Label className="flex items-start gap-2 font-normal">
                         <input type="radio" name="res" className="mt-1" checked={form.data.resolution === 'admin'} onChange={() => form.setData('resolution', 'admin')} />
-                        <span><b>Pengurus terbitkan</b> — tulis kartu lewat app petugas (Terbitkan Kartu), lalu serahkan ke anggota.</span>
+                        <span><b>Pengurus terbitkan</b>: tulis kartu lewat app petugas, lalu serahkan.</span>
                     </Label>
                     <FormField label="Catatan untuk anggota (opsional)" hint="Mis. “Ambil kartu di sekretariat, Senin 13.00”." error={form.errors.note}>
                         <Textarea rows={2} maxLength={500} value={form.data.note} onChange={(e) => form.setData('note', e.target.value)} />
@@ -77,9 +77,9 @@ function Requests({ items }: { items: Req[] }) {
                 {items.map((r) => (
                     <TableRow key={r.id}>
                         <TableCell>{fmtDateTime(r.created_at)}</TableCell>
-                        <TableCell>{r.member ? <Link href={`/anggota/${r.member.id}?tab=kartu`} className="font-medium hover:underline">{r.member.name}</Link> : '—'}<div className="text-xs text-muted-foreground">{r.member?.member_no}</div></TableCell>
+                        <TableCell>{r.member ? <Link href={`/anggota/${r.member.id}?tab=kartu`} className="font-medium hover:underline">{r.member.name}</Link> : '-'}<div className="text-xs text-muted-foreground">{r.member?.member_no}</div></TableCell>
                         <TableCell>{reasonLabel[r.reason] ?? r.reason}</TableCell>
-                        <TableCell className="max-w-xs whitespace-normal">{r.note ?? '—'}</TableCell>
+                        <TableCell className="max-w-xs whitespace-normal">{r.note ?? '-'}</TableCell>
                         <TableCell><StatusBadge status={r.status} />{r.reviewer && <div className="text-xs text-muted-foreground">{r.reviewer.name}</div>}</TableCell>
                         <TableCell>
                             {r.status === 'pending' ? <ReviewDialog req={r} /> : (
@@ -112,8 +112,8 @@ export default function Cards({ tab, items, filters }: { tab: string; items: Pag
                         {(items.data as Rejected[]).map((r) => (
                             <TableRow key={r.id}>
                                 <TableCell>{fmtDateTime(r.created_at)}</TableCell>
-                                <TableCell>{r.member ? `${r.member.name} (${r.member.member_no})` : '—'}</TableCell>
-                                <TableCell>{r.card_status ? <StatusBadge status={r.card_status} /> : '—'}</TableCell>
+                                <TableCell>{r.member ? `${r.member.name} (${r.member.member_no})` : '-'}</TableCell>
+                                <TableCell>{r.card_status ? <StatusBadge status={r.card_status} /> : '-'}</TableCell>
                                 <TableCell>#{r.event_id ?? '?'}</TableCell><TableCell>#{r.device_id ?? '?'}</TableCell>
                             </TableRow>
                         ))}

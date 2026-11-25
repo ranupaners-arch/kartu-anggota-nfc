@@ -87,7 +87,7 @@ class MemberAccessTest extends TestCase
     {
         $this->actingAs($this->admin)->delete("/anggota/{$this->humasMember->id}");
         $this->actingAs($this->admin)->post('/anggota', ['member_no' => 'H1', 'name' => 'Pengganti', 'consent' => '1'])
-            ->assertSessionHasErrors(['member_no' => 'Nomor anggota sudah dipakai — bisa jadi oleh anggota di tab Arsip; pulihkan dari sana.']);
+            ->assertSessionHasErrors(['member_no' => 'Nomor anggota sudah dipakai. Periksa juga tab Arsip.']);
         $this->assertSame(1, Member::where('member_no', 'H1')->withTrashed()->count());
     }
 }

@@ -150,11 +150,11 @@ class _EProfileScreenState extends State<EProfileScreen> {
                       field(
                         'Divisi yang diminati (opsional)',
                         ShadSelect<int?>(
-                          placeholder: const Text('— Belum memilih —'),
+                          placeholder: const Text('Belum memilih'),
                           initialValue: _division,
                           onChanged: (v) => setState(() => _division = v),
                           options: [for (final d in _divisions) ShadOption<int?>(value: d.id, child: Text(d.name))],
-                          selectedOptionBuilder: (context, v) => Text(_divisions.firstWhere((d) => d.id == v, orElse: () => (id: 0, name: '—')).name),
+                          selectedOptionBuilder: (context, v) => Text(_divisions.firstWhere((d) => d.id == v, orElse: () => (id: 0, name: '-')).name),
                         ),
                       ),
                     field(

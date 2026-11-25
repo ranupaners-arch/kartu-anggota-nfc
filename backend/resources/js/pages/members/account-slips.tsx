@@ -62,7 +62,7 @@ export default function AccountSlips({ created, skipped, organization, connect }
             {created.length > 0 && (
                 <Alert className="print:hidden">
                     <TriangleAlert />
-                    <AlertTitle>Simpan sekarang — password sementara tidak akan ditampilkan lagi</AlertTitle>
+                    <AlertTitle>Simpan sekarang, password hanya tampil sekali</AlertTitle>
                     <AlertDescription>
                         Cetak lembar di bawah (atau <b>Simpan sebagai PDF</b> dari dialog cetak), atau salin ke spreadsheet, lalu bagikan ke masing-masing anggota.
                         Anggota wajib mengganti password saat pertama masuk. Bila lembar hilang, reset password dari <b>Pengguna & Peran</b>.

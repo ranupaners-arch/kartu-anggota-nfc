@@ -75,7 +75,7 @@ export default function Home({ term, activeMembers, ongoing, upcoming, pendingEx
                                     <TableRow key={e.id}>
                                         <TableCell><Link href={`/kegiatan/${e.id}`} className="font-medium hover:underline">{e.title}</Link></TableCell>
                                         <TableCell>{fmtDateTime(e.starts_at)}</TableCell>
-                                        <TableCell>{e.location ?? '—'}</TableCell>
+                                        <TableCell>{e.location ?? '-'}</TableCell>
                                     </TableRow>
                                 ))}
                             </TableBody>

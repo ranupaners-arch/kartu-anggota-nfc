@@ -37,7 +37,7 @@ export default function UserForm({ user, divisions }: { user: U; divisions: { id
                             </FormField>
                             <FormField label="Divisi" hint="Wajib untuk Admin Divisi." error={form.errors.division_id}>
                                 <NativeSelect className="w-full" value={form.data.division_id} onChange={(e) => form.setData('division_id', e.target.value)}>
-                                    <NativeSelectOption value="">—</NativeSelectOption>
+                                    <NativeSelectOption value="">-</NativeSelectOption>
                                     {divisions.map((d) => <NativeSelectOption key={d.id} value={d.id}>{d.name}</NativeSelectOption>)}
                                 </NativeSelect>
                             </FormField>
@@ -45,7 +45,7 @@ export default function UserForm({ user, divisions }: { user: U; divisions: { id
                                 <Input value={form.data.member_no} onChange={(e) => form.setData('member_no', e.target.value)} />
                             </FormField>
                         </div>
-                        <FormField label="Akses keuangan" hint="Tambahan di luar peran, berlaku sampai periode berganti. Bendahara mencatat iuran; sekretaris hanya melihat untuk audit." error={form.errors.finance_role}>
+                        <FormField label="Akses keuangan" hint="Berlaku sampai periode berganti. Sekretaris hanya melihat." error={form.errors.finance_role}>
                             <NativeSelect className="w-full sm:w-64" value={form.data.finance_role} onChange={(e) => form.setData('finance_role', e.target.value)}>
                                 <NativeSelectOption value="">Tidak ada</NativeSelectOption>
                                 <NativeSelectOption value="treasurer">Bendahara</NativeSelectOption>

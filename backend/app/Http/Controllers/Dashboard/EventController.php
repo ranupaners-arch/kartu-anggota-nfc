@@ -223,7 +223,7 @@ class EventController extends Controller
         $first = $created->first();
 
         return redirect()->route('events.show', $first)->with('status', $created->count() > 1
-            ? "{$created->count()} kegiatan dibuat (".$first->starts_at->timezone(config('app.timezone'))->format('d/m').' – '.$created->last()->starts_at->timezone(config('app.timezone'))->format('d/m').').'
+            ? "{$created->count()} kegiatan dibuat (".$first->starts_at->timezone(config('app.timezone'))->format('d/m').' - '.$created->last()->starts_at->timezone(config('app.timezone'))->format('d/m').').'
             : 'Kegiatan diduplikat. Periksa jadwal & target sebelum check-in dibuka.');
     }
 

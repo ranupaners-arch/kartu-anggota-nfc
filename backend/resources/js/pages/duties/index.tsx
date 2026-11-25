@@ -29,8 +29,8 @@ function Previous({ items }: { items: Duty[] }) {
     return (
         <Card>
             <CardHeader>
-                <CardTitle>Periode sebelumnya — belum diperpanjang</CardTitle>
-                <CardDescription>Tugas berakhir otomatis saat periode berganti. Centang yang tetap bertugas, lalu perpanjang ke periode berjalan.</CardDescription>
+                <CardTitle>Periode sebelumnya, belum diperpanjang</CardTitle>
+                <CardDescription>Centang yang tetap bertugas, lalu perpanjang.</CardDescription>
             </CardHeader>
             <CardContent className="grid gap-3">
                 <DataTable head={['', 'Nama', 'Tugas', 'Periode']} count={items.length} empty="">
@@ -71,7 +71,7 @@ export default function Duties({ term, active, previous, history }: { term: stri
                         <TableCell>{d.label}{d.division ? ` · ${d.division}` : ''}</TableCell>
                         <TableCell>{fmtDate(d.created_at)}</TableCell>
                         <TableCell>{d.ends_on ? fmtDate(d.ends_on) : 'Akhir periode'}</TableCell>
-                        <TableCell>{d.granted_by ?? '—'}</TableCell>
+                        <TableCell>{d.granted_by ?? '-'}</TableCell>
                         <TableCell><EndDutyDialog dutyId={d.id} name={d.user?.name ?? ''} /></TableCell>
                     </TableRow>
                 ))}
@@ -84,7 +84,7 @@ export default function Duties({ term, active, previous, history }: { term: stri
                         <TableCell>{d.label}{d.division ? ` · ${d.division}` : ''}</TableCell>
                         <TableCell>{d.term}</TableCell>
                         <TableCell>{fmtDateTime(d.ended_at)}</TableCell>
-                        <TableCell className="max-w-xs whitespace-normal">{d.end_reason ?? '—'}</TableCell>
+                        <TableCell className="max-w-xs whitespace-normal">{d.end_reason ?? '-'}</TableCell>
                     </TableRow>
                 ))}
             </DataTable>

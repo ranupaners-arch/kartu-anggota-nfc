@@ -63,7 +63,7 @@ export default function EventForm({ event, divisions, windowLocked }: { event: E
                                 {superAdmin && (
                                     <FormField label="Milik divisi" hint="Kosongkan untuk kegiatan umum." error={form.errors.division_id}>
                                         <NativeSelect value={form.data.division_id} onChange={(e) => form.setData('division_id', e.target.value)}>
-                                            <NativeSelectOption value="">— Kegiatan umum —</NativeSelectOption>
+                                            <NativeSelectOption value="">Kegiatan umum</NativeSelectOption>
                                             {divisions.map((d) => <NativeSelectOption key={d.id} value={d.id}>{d.name}</NativeSelectOption>)}
                                         </NativeSelect>
                                     </FormField>

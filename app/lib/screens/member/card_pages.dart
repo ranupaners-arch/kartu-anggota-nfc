@@ -14,7 +14,7 @@ const _cardStatus = {'active': 'Aktif', 'lost': 'Hilang', 'blocked': 'Diblokir',
 String _issuedBy(String? by) => switch (by) {
   'self' => 'Didaftarkan sendiri',
   'admin' => 'Diterbitkan pengurus',
-  _ => '—',
+  _ => '-',
 };
 
 /// Baris label kiri, nilai rata kanan (turun baris bila sempit).
@@ -65,11 +65,11 @@ class CardDetailPage extends StatelessWidget {
           child: Column(
             children: [
               _Row('Status', status),
-              _Row('Nama', info.name ?? '—'),
-              _Row('Nomor anggota', info.memberNo ?? '—'),
-              _Row('Divisi', info.division ?? '—'),
-              _Row('Periode', info.term ?? '—'),
-              _Row('Berlaku sampai', info.validUntil == null ? '—' : fmtDate(info.validUntil!)),
+              _Row('Nama', info.name ?? '-'),
+              _Row('Nomor anggota', info.memberNo ?? '-'),
+              _Row('Divisi', info.division ?? '-'),
+              _Row('Periode', info.term ?? '-'),
+              _Row('Berlaku sampai', info.validUntil == null ? '-' : fmtDate(info.validUntil!)),
             ],
           ),
         ),
@@ -80,14 +80,14 @@ class CardDetailPage extends StatelessWidget {
           child: Column(
             children: [
               _Row('Nomor kartu', info.cardLast4 == null ? 'Belum terdaftar' : '…${info.cardLast4}'),
-              _Row('Diterbitkan', info.cardIssuedAt == null ? '—' : fmtDate(info.cardIssuedAt!)),
-              _Row('Cara terbit', info.cardLast4 == null ? '—' : _issuedBy(info.cardIssuedBy)),
-              _Row('Jatah daftar sendiri', info.selfWritesLeft > 0 ? '${info.selfWritesLeft}× lagi' : 'Habis — lewat pengurus'),
+              _Row('Diterbitkan', info.cardIssuedAt == null ? '-' : fmtDate(info.cardIssuedAt!)),
+              _Row('Cara terbit', info.cardLast4 == null ? '-' : _issuedBy(info.cardIssuedBy)),
+              _Row('Jatah daftar sendiri', info.selfWritesLeft > 0 ? '${info.selfWritesLeft}× lagi' : 'Habis, lewat pengurus'),
             ],
           ),
         ),
         const SizedBox(height: 12),
-        Text('Nomor kartu hanya 4 karakter terakhir demi keamanan. Ada data yang keliru? Hubungi pengurus.', style: theme.textTheme.muted),
+        Text('Ada data yang keliru? Hubungi pengurus.', style: theme.textTheme.muted),
       ],
     );
   }
@@ -318,7 +318,7 @@ class _CardCheckPageState extends State<CardCheckPage> {
         const SizedBox(height: 16),
         if (!_reading) FlexButton(label: 'Cek kartu lagi', icon: LucideIcons.refreshCw, variant: ShadButtonVariant.outline, onPressed: _check),
         const SizedBox(height: 12),
-        Text('Pemeriksaan hanya membaca kartu; tidak mencatat kehadiran dan tidak mengubah isi kartu.', style: theme.textTheme.muted.copyWith(fontSize: 12), textAlign: TextAlign.center),
+        Text('Hanya membaca kartu, tidak mencatat kehadiran.', style: theme.textTheme.muted.copyWith(fontSize: 12), textAlign: TextAlign.center),
       ],
     );
   }

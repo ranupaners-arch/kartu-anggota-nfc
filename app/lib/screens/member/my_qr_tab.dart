@@ -161,7 +161,7 @@ class _MyQrTabState extends State<MyQrTab> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    'QR berganti tiap menit dan butuh internet — tangkapan layar tidak bisa dipakai. Absen dengan QR bisa dikenai denda; bawa kartu anggota.',
+                    'QR berganti tiap menit dan butuh internet. Absen dengan QR bisa dikenai denda.',
                     style: theme.textTheme.muted.copyWith(fontSize: 12),
                   ),
                 ),

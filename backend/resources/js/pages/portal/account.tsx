@@ -23,7 +23,7 @@ function CalendarLink({ url }: { url: string | null }) {
         <Card>
             <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-base"><CalendarPlus className="size-4" /> Langganan jadwal</CardTitle>
-                <CardDescription>Kegiatan Anda muncul otomatis di kalender HP (Kalender iPhone, Google Calendar).</CardDescription>
+                <CardDescription>Kegiatan Anda muncul otomatis di kalender HP.</CardDescription>
             </CardHeader>
             <CardContent className="grid gap-3 text-sm">
                 {url ? (
@@ -57,7 +57,7 @@ export default function PortalAccount({ profile, mustChangePassword, calendarUrl
                 <Alert>
                     <KeyRound />
                     <AlertTitle>Buat password baru dulu</AlertTitle>
-                    <AlertDescription>Akun Anda memakai password sementara dari pengurus. Ganti di bawah untuk mulai memakai portal.</AlertDescription>
+                    <AlertDescription>Ganti password sementara Anda dulu.</AlertDescription>
                 </Alert>
             )}
             <Card>

@@ -65,7 +65,7 @@ function Items({ items, canManage, filters }: { items: Paginated<Item>; canManag
                 {items.data.map((i) => (
                     <TableRow key={i.id}>
                         <TableCell className="max-w-xs whitespace-normal">{i.name}<div className="text-xs text-muted-foreground">{[i.code, i.note].filter(Boolean).join(' · ')}</div></TableCell>
-                        <TableCell className="whitespace-normal">{i.location ?? '—'}</TableCell>
+                        <TableCell className="whitespace-normal">{i.location ?? '-'}</TableCell>
                         <TableCell className="tabular-nums">{i.quantity}</TableCell>
                         <TableCell className="tabular-nums">{i.quantity - i.on_loan}{i.on_loan > 0 && <span className="text-xs text-muted-foreground"> ({i.on_loan} dipinjam)</span>}</TableCell>
                         <TableCell>{canManage && (
@@ -96,14 +96,14 @@ function LendForm({ available }: { available: { id: number; name: string; free: 
     const submit = (e: FormEvent) => { e.preventDefault(); form.post('/inventaris/pinjam', { preserveScroll: true, onSuccess: () => form.reset() }); };
     return (
         <Card className="max-w-4xl">
-            <CardHeader><CardTitle>Catat peminjaman</CardTitle><CardDescription>{available.length ? 'Peminjam melihat barang ini di app/portal dan diingatkan menjelang jatuh tempo.' : 'Tidak ada barang tersedia.'}</CardDescription></CardHeader>
+            <CardHeader><CardTitle>Catat peminjaman</CardTitle><CardDescription>{available.length ? 'Peminjam diingatkan menjelang jatuh tempo.' : 'Tidak ada barang tersedia.'}</CardDescription></CardHeader>
             <CardContent>
                 <form onSubmit={submit} className="grid gap-4">
                     <div className="grid items-start gap-4 sm:grid-cols-4">
                         <FormField label="Barang" error={form.errors.item_id}>
                             <NativeSelect className="w-full" required value={form.data.item_id} onChange={(e) => form.setData('item_id', e.target.value)}>
                                 <NativeSelectOption value="">Pilih barang</NativeSelectOption>
-                                {available.map((i) => <NativeSelectOption key={i.id} value={i.id}>{i.name} — tersedia {i.free}</NativeSelectOption>)}
+                                {available.map((i) => <NativeSelectOption key={i.id} value={i.id}>{i.name} (tersedia {i.free})</NativeSelectOption>)}
                             </NativeSelect>
                         </FormField>
                         <FormField label="No. anggota" error={form.errors.member_no}><Input required maxLength={50} value={form.data.member_no} onChange={(e) => form.setData('member_no', e.target.value)} /></FormField>
@@ -146,12 +146,12 @@ function Loans({ loans, available, filters }: { loans: Paginated<Loan>; availabl
                 {loans.data.map((l) => (
                     <TableRow key={l.id}>
                         <TableCell className="max-w-xs whitespace-normal">{l.item}{l.quantity > 1 && ` (${l.quantity})`}{l.note && <div className="text-xs text-muted-foreground">{l.note}</div>}</TableCell>
-                        <TableCell>{l.member ? <Link href={`/anggota/${l.member.id}`} className="font-medium hover:underline">{l.member.name}</Link> : '—'}<div className="text-xs text-muted-foreground">{l.member?.member_no}</div></TableCell>
-                        <TableCell>{fmtDate(l.lent_at)}<div className="text-xs text-muted-foreground">{l.lender ?? '—'}</div></TableCell>
+                        <TableCell>{l.member ? <Link href={`/anggota/${l.member.id}`} className="font-medium hover:underline">{l.member.name}</Link> : '-'}<div className="text-xs text-muted-foreground">{l.member?.member_no}</div></TableCell>
+                        <TableCell>{fmtDate(l.lent_at)}<div className="text-xs text-muted-foreground">{l.lender ?? '-'}</div></TableCell>
                         <TableCell>{fmtDate(l.due_on)}</TableCell>
                         <TableCell className="whitespace-normal">
                             <StatusBadge status={l.returned_at ? (l.condition === 'good' ? 'approved' : 'rejected') : l.overdue ? 'rejected' : 'pending'} label={l.returned_at ? (l.condition === 'good' ? 'Kembali' : conditions[l.condition ?? '']) : l.overdue ? 'Terlambat' : 'Dipinjam'} />
-                            {l.returned_at && <div className="max-w-xs text-xs text-muted-foreground">{fmtDateTime(l.returned_at)} · {l.receiver ?? '—'}{l.return_note && ` · ${l.return_note}`}</div>}
+                            {l.returned_at && <div className="max-w-xs text-xs text-muted-foreground">{fmtDateTime(l.returned_at)} · {l.receiver ?? '-'}{l.return_note && ` · ${l.return_note}`}</div>}
                         </TableCell>
                         <TableCell>{!l.returned_at && <ReturnForm id={l.id} />}</TableCell>
                     </TableRow>

@@ -28,11 +28,11 @@ export function SurveyTab({ eventId, closed, data }: { eventId: number; closed: 
             <Card className="max-w-3xl">
                 <CardHeader>
                     <CardTitle>Buka survei kepuasan</CardTitle>
-                    <CardDescription>Untuk {data.eligible} peserta yang hadir. Jawaban tanpa nama, sekali isi. Hasil tampil setelah survei selesai dan ada minimal {data.min} jawaban. Survei tidak bisa diubah atau dibuka lagi.</CardDescription>
+                    <CardDescription>Untuk {data.eligible} peserta yang hadir. Tanpa nama, sekali isi. Tidak bisa diubah setelah dibuka. Hasil butuh minimal {data.min} jawaban.</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <form onSubmit={submit} className="grid gap-4">
-                        <FormField label="Pertanyaan tambahan (opsional)" hint={`Satu baris satu pertanyaan, maks. ${data.max_questions}. Dinilai 1–5. Kepuasan keseluruhan dan kolom saran selalu ada.`}
+                        <FormField label="Pertanyaan tambahan (opsional)" hint={`Satu baris satu pertanyaan, maks. ${data.max_questions}. Dinilai 1-5.`}
                             error={form.errors.questions ?? Object.entries(form.errors).find(([k]) => k.startsWith('questions.'))?.[1]}>
                             <Textarea className="min-h-24" placeholder={'Materi mudah dipahami\nWaktu pelaksanaan sesuai'} value={form.data.questions} onChange={(e) => form.setData('questions', e.target.value)} />
                         </FormField>
@@ -51,10 +51,10 @@ export function SurveyTab({ eventId, closed, data }: { eventId: number; closed: 
                     <CardDescription>{s.responses} dari {data.eligible} peserta hadir sudah mengisi. {s.open ? `Terbuka sampai ${fmtDateTime(s.closes_at)}.` : `Selesai ${fmtDateTime(s.closed_at)}.`}</CardDescription>
                 </CardHeader>
                 <CardContent className="grid gap-3 text-sm">
-                    {s.open && <p className="text-muted-foreground">Hasil baru tampil setelah survei selesai, supaya jawaban tidak bisa ditebak dari urutan pengisian.</p>}
+                    {s.open && <p className="text-muted-foreground">Hasil tampil setelah survei selesai.</p>}
                     {s.open && s.questions.length > 0 && <ol className="list-decimal pl-5">{s.questions.map((q) => <li key={q}>{q}</li>)}</ol>}
                     {s.open && <div><ConfirmAction title="Tutup survei sekarang?" description="Peserta yang belum mengisi tidak bisa mengisi lagi, dan survei tidak bisa dibuka kembali." href={`/kegiatan-survei/${s.id}/tutup`} confirmLabel="Tutup survei">Tutup lebih awal</ConfirmAction></div>}
-                    {!s.open && !data.result && <p className="text-muted-foreground">Jawaban kurang dari {data.min}, jadi hasil tidak ditampilkan demi kerahasiaan pengisi.</p>}
+                    {!s.open && !data.result && <p className="text-muted-foreground">Hasil tidak ditampilkan karena jawaban kurang dari {data.min}.</p>}
                 </CardContent>
             </Card>
             {data.result && (

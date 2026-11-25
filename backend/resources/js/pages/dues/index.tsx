@@ -27,7 +27,7 @@ export default function Dues({ dues, term, canManage }: { dues: Paginated<Row>; 
                 <Card className="max-w-4xl">
                     <CardHeader>
                         <CardTitle>Buat tagihan{term ? ` · ${term}` : ''}</CardTitle>
-                        <CardDescription>Nominal sama untuk semua anggota aktif. Nominal tidak bisa diubah setelah dibuat; bila salah, batalkan dan buat lagi.</CardDescription>
+                        <CardDescription>Untuk semua anggota aktif. Nominal tidak bisa diubah setelah dibuat.</CardDescription>
                     </CardHeader>
                     <CardContent>
                         <form onSubmit={submit} className="grid gap-4 sm:grid-cols-4 sm:items-end">

@@ -279,7 +279,7 @@ class _CalendarDialogState extends State<_CalendarDialog> {
                     style: theme.textTheme.muted,
                   ),
                   const SizedBox(height: 8),
-                  Text('Rahasiakan tautan ini. Bila tersebar, buat tautan baru — yang lama langsung tidak berlaku.', style: theme.textTheme.muted),
+                  Text('Rahasiakan tautan ini. Bila tersebar, buat tautan baru.', style: theme.textTheme.muted),
                   Align(
                     alignment: Alignment.centerLeft,
                     child: ShadButton.link(

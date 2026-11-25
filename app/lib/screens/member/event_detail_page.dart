@@ -136,8 +136,8 @@ class _EventDetailPageState extends State<EventDetailPage> {
             icon: LucideIcons.clock,
             description: switch (phase) {
               CheckinPhase.notYet => 'Belum dibuka.',
-              CheckinPhase.onTime => 'Sedang dibuka — datang sekarang tercatat Hadir.',
-              CheckinPhase.late => 'Sedang dibuka — datang sekarang tercatat Telat.',
+              CheckinPhase.onTime => 'Sedang dibuka. Datang sekarang tercatat Hadir.',
+              CheckinPhase.late => 'Sedang dibuka. Datang sekarang tercatat Telat.',
               CheckinPhase.closed => 'Sudah ditutup.',
             },
             child: _Timeline(

@@ -127,7 +127,7 @@ class _MyCardTabState extends State<MyCardTab> {
             spacing: 8,
             children: [
               const Text(
-                'Pilihan: minta pengurus menerbitkan kartu Anda, atau masuk dengan akun Anda di HP lain yang ber-NFC (mis. HP teman/sekretariat) untuk mendaftarkan kartu. Sementara itu absen pakai QR.',
+                'Minta pengurus menerbitkan kartu, atau masuk di HP lain yang ber-NFC. Sementara itu absen pakai QR.',
               ),
               FlexButton(label: 'Minta pengurus terbitkan kartu', variant: ShadButtonVariant.outline, small: true, onPressed: () => _report('tanpa_nfc')),
             ],
@@ -256,7 +256,7 @@ class _MyCardTabState extends State<MyCardTab> {
                   const ShadAlert(
                     icon: Icon(LucideIcons.hourglass),
                     title: Text('Menunggu pengesahan pusat'),
-                    description: Text('E-profil Anda sedang diperiksa pengurus. Kartu aktif otomatis setelah disahkan — tarik layar untuk memperbarui.'),
+                    description: Text('E-profil sedang diperiksa pengurus. Tarik layar untuk memperbarui.'),
                   ),
                 );
               case CardState.inactive:
@@ -403,7 +403,7 @@ class _ReportDialogState extends State<_ReportDialog> {
   @override
   Widget build(BuildContext context) => ShadDialog(
     title: const Text('Lapor kartu'),
-    description: const Text('Laporan dikirim ke pengurus untuk ditindaklanjuti. Sementara itu Anda tetap bisa absen dengan QR.'),
+    description: const Text('Sementara itu Anda tetap bisa absen dengan QR.'),
     actions: [
       ShadButton.outline(onPressed: () => Navigator.of(context).pop(false), child: const Text('Batal')),
       ShadButton(enabled: !_busy, onPressed: _busy ? null : _send, child: Text(_busy ? 'Mengirim…' : 'Kirim laporan')),
@@ -420,9 +420,9 @@ class _ReportDialogState extends State<_ReportDialog> {
             initialValue: _reason,
             onChanged: (v) => setState(() => _reason = v ?? _reason),
             items: const [
-              ShadRadio(value: 'hilang', label: Text('Kartu hilang — kartu lama langsung diblokir')),
+              ShadRadio(value: 'hilang', label: Text('Kartu hilang (langsung diblokir)')),
               ShadRadio(value: 'rusak', label: Text('Kartu rusak / tidak terbaca')),
-              ShadRadio(value: 'tanpa_nfc', label: Text('HP saya tanpa NFC / NFC rusak — minta pengurus terbitkan kartu')),
+              ShadRadio(value: 'tanpa_nfc', label: Text('HP tanpa NFC atau NFC rusak')),
             ],
           ),
           ShadInput(controller: _note, placeholder: const Text('Catatan (opsional), mis. kapan bisa ambil kartu'), maxLines: 2),

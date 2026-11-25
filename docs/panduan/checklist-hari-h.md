@@ -16,7 +16,7 @@ Cetak atau buka di HP penanggung jawab. Centang tiap butir.
 
 - [ ] Setiap HP petugas: NFC aktif, baterai penuh, **jam otomatis** aktif, app versi terbaru.
 - [ ] Setiap petugas membuka layar **Scan** kegiatan saat online (daftar peserta & foto tersimpan
-      untuk mode offline) — atau lakukan di awal acara.
+      untuk mode offline), atau lakukan di awal acara.
 - [ ] Scan tertunda di semua HP petugas sudah terkirim (Beranda tidak menampilkan scan tertunda).
 - [ ] Siapkan **HP cadangan** yang sudah login sebagai petugas, dan powerbank.
 - [ ] Dashboard → Pengaturan → *Sistem*: semua **Normal**.
@@ -26,7 +26,7 @@ Cetak atau buka di HP penanggung jawab. Centang tiap butir.
 ## Hari-H
 
 - [ ] Sebelum check-in dibuka: petugas di posisi, kegiatan muncul di Beranda app → **Kegiatan berlangsung**.
-- [ ] Uji satu kartu (mis. kartu pengurus) — hasil **Hadir** & bunyi terdengar.
+- [ ] Uji satu kartu (mis. kartu pengurus), hasil **Hadir** & bunyi terdengar.
 - [ ] Buka **Monitor langsung**; pantau jumlah hadir & daftar yang belum datang.
 - [ ] Kartu tertinggal → anggota menunjukkan **QR Saya** (butuh internet).
 - [ ] Hasil merah (**Bukan peserta**, **Kartu diblokir**, **Di luar jam check-in**) → arahkan ke satu

@@ -67,7 +67,7 @@ class CalendarFeedService
         foreach ($events as $e) {
             $desc = array_filter([
                 $e->is_mandatory ? 'Kegiatan wajib.' : 'Kegiatan tidak wajib.',
-                'Check-in '.$e->checkin_opens_at->timezone('Asia/Jakarta')->format('H.i').'–'.$e->checkin_closes_at->timezone('Asia/Jakarta')->format('H.i')
+                'Check-in '.$e->checkin_opens_at->timezone('Asia/Jakarta')->format('H.i').'-'.$e->checkin_closes_at->timezone('Asia/Jakarta')->format('H.i')
                     .', telat setelah '.$e->late_after->timezone('Asia/Jakarta')->format('H.i').' WIB.',
                 $e->closed_at ? 'Kegiatan sudah ditutup.' : null,
             ]);

@@ -188,7 +188,7 @@ class HomeTabState extends State<HomeTab> {
           ),
           const SizedBox(height: 8),
           Text(
-            info.cardLast4 != null ? 'Ketuk kartu untuk menampilkan QR · kartu NFC aktif' : 'Ketuk kartu untuk menampilkan QR · kartu NFC belum terdaftar',
+            info.cardLast4 != null ? 'Kartu NFC aktif' : 'Kartu NFC belum terdaftar',
             style: theme.textTheme.muted.copyWith(fontSize: 12),
             textAlign: TextAlign.center,
           ),
@@ -222,7 +222,7 @@ class HomeTabState extends State<HomeTab> {
           const ShadAlert(
             icon: Icon(LucideIcons.hourglass),
             title: Text('Menunggu pengesahan pusat'),
-            description: Text('E-profil Anda sedang diperiksa pengurus. Kartu aktif otomatis setelah disahkan — tarik layar untuk memperbarui.'),
+            description: Text('E-profil sedang diperiksa pengurus. Tarik layar untuk memperbarui.'),
           ),
         ];
       case CardState.inactive:
@@ -339,7 +339,7 @@ class HomeTabState extends State<HomeTab> {
                     Row(
                       children: [
                         Expanded(child: Text('Kehadiran${h.term != null ? ' periode ${h.term}' : ''}', style: theme.textTheme.muted)),
-                        Text(rate == null ? '–' : '${rate.toStringAsFixed(rate % 1 == 0 ? 0 : 1)}%', style: theme.textTheme.h3),
+                        Text(rate == null ? '-' : '${rate.toStringAsFixed(rate % 1 == 0 ? 0 : 1)}%', style: theme.textTheme.h3),
                       ],
                     ),
                     const SizedBox(height: 10),

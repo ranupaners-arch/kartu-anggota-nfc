@@ -13,12 +13,12 @@ Tugas Anda: mencatat kehadiran anggota dengan menempelkan kartu ke HP (atau memi
 
 ## Akun petugas = akun anggota Anda
 
-- Tugas Petugas Scan diberikan Super Admin **per periode** pada akun anggota Anda — tidak perlu akun lain.
+- Tugas Petugas Scan diberikan Super Admin **per periode** pada akun anggota Anda, tidak perlu akun lain.
   Di app Anda tetap melihat kartu, QR, izin, dan riwayat sebagai anggota, ditambah tab **Tugas** berisi
   beranda petugas di bawah ini. (HP bersama, mis. milik sekretariat, memakai akun petugas khusus dan
   langsung membuka beranda petugas.)
 - Saat tugas diberi atau berakhir (dicabut, mengundurkan diri, tanggal berakhir, atau periode berganti),
-  Anda menerima notifikasi dan **dikeluarkan dari app** — masuk lagi, tab Tugas muncul/hilang sesuai.
+  Anda menerima notifikasi dan **dikeluarkan dari app**. Masuk lagi, tab Tugas muncul/hilang sesuai.
 - Anda **tidak bisa memindai kartu/QR sendiri**; minta petugas lain mencatat kehadiran Anda.
 
 ## Beranda petugas
@@ -34,7 +34,7 @@ Tugas Anda: mencatat kehadiran anggota dengan menempelkan kartu ke HP (atau memi
 
 1. Di **Beranda**, bagian **Kegiatan berlangsung**, ketuk **Mulai scan** pada kegiatan yang sedang
    berjalan (atau menu cepat **Pindai**: langsung ke kegiatan bila hanya satu, atau pilih dulu bila
-   lebih). Kegiatan baru muncul saat jam check-in dibuka — tarik layar ke bawah atau ketuk **Muat ulang**.
+   lebih). Kegiatan baru muncul saat jam check-in dibuka. Tarik layar ke bawah atau ketuk **Muat ulang**.
 2. Bila kegiatan punya beberapa **Sesi** (mis. Hari 1, Hari 2), pastikan sesi yang terpilih benar.
    App otomatis memilih sesi yang sedang buka.
 3. Pilih **Kartu NFC**, lalu minta anggota **menempelkan kartu ke bagian belakang HP** sampai
@@ -86,7 +86,7 @@ Petugas tanpa HP Android ber-NFC tetap bisa memindai **QR Saya** anggota:
    (pengurus: tombol **Pindai QR (browser)** di halaman kegiatan).
 2. Pilih kegiatan yang **Dibuka**, izinkan akses kamera.
 3. Arahkan kamera ke QR Saya anggota. Hasil langsung tampil: **hijau** Hadir/Telat, **kuning** sudah
-   tercatat, **merah** ditolak (QR kedaluwarsa, bukan peserta, di luar jendela check-in) — disertai
+   tercatat, **merah** ditolak (QR kedaluwarsa, bukan peserta, di luar jendela check-in), disertai
    getar & bunyi. Cocokkan foto bila ada.
 
 Catatan: perlu internet (tidak ada mode offline) dan alamat **https://**; kartu NFC tetap lewat app
@@ -97,7 +97,7 @@ Android.
 | Masalah | Solusi |
 |---|---|
 | "NFC tidak siap" | Aktifkan NFC di pengaturan HP, lalu kembali ke app |
-| Kartu tidak terbaca | Tempel tepat di tengah belakang HP, tahan 1–2 detik; lepas casing tebal/logam |
+| Kartu tidak terbaca | Tempel tepat di tengah belakang HP, tahan 1-2 detik; lepas casing tebal/logam |
 | Muncul menu aplikasi lain saat kartu ditempel | Buka layar Scan app ini dulu, baru tempel kartu |
 | "Server tidak terjangkau" | Periksa internet. Lanjutkan scan kartu (offline), sinkron nanti |
 | "Sesi berakhir. Silakan masuk lagi." | Keluar lalu masuk lagi (sinkronkan dulu bila ada scan tertunda) |

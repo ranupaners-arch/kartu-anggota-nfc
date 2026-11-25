@@ -105,7 +105,7 @@ class _AccountTabState extends State<AccountTab> {
                 if (member)
                   _Section('Keanggotaan', [
                     _Item(LucideIcons.idCard, 'Data keanggotaan', 'Nama, NIM, divisi, periode, status', () => open('Data keanggotaan', MembershipPage(api: widget.api))),
-                    _Item(LucideIcons.userPen, 'Ubah data diri', 'Nama, no. HP, foto — disetujui pengurus', () => open('Ubah data diri', ProfileChangePage(api: widget.api))),
+                    _Item(LucideIcons.userPen, 'Ubah data diri', 'Nama, no. HP, foto', () => open('Ubah data diri', ProfileChangePage(api: widget.api))),
                     if (active)
                       _Item(LucideIcons.creditCard, 'Kartu saya', 'Daftarkan kartu NFC, unduh PDF, lapor kartu', () async {
                         await widget.onOpenCard?.call(context);
