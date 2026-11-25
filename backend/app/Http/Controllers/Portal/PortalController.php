@@ -11,6 +11,7 @@ use App\Models\Membership;
 use App\Models\PushSubscription;
 use App\Models\Term;
 use App\Services\AuditLogger;
+use App\Services\CertificateService;
 use App\Services\LeaderboardService;
 use App\Services\MemberCardService;
 use App\Services\Push\PushService;
@@ -104,9 +105,9 @@ class PortalController extends Controller
         return back()->with('status', 'Pengajuan izin terkirim. Pengurus akan meninjaunya.');
     }
 
-    public function history(Request $r, LeaderboardService $board)
+    public function history(Request $r, LeaderboardService $board, CertificateService $certificates)
     {
-        return Inertia::render('portal/history', ['history' => $this->me->history($r), 'leaderboard' => $this->me->leaderboard($r, $board)]);
+        return Inertia::render('portal/history', ['history' => $this->me->history($r), 'leaderboard' => $this->me->leaderboard($r, $board), 'certificates' => $this->me->certificates($r, $certificates)['data']]);
     }
 
     public function leaderboard(Request $r, LeaderboardService $board)

@@ -52,7 +52,7 @@ function Leaderboard({ board }: { board: Board }) {
     );
 }
 
-export default function PortalHistory({ history: h, leaderboard }: { history: History; leaderboard: Board }) {
+export default function PortalHistory({ history: h, leaderboard, certificates }: { history: History; leaderboard: Board; certificates: { id: number; event: string; date: string; number: string }[] }) {
     const pct = h.attendance_rate === null ? '–' : `${h.attendance_rate.toLocaleString('id-ID', { maximumFractionDigits: 1 })}%`;
     return (
         <PortalLayout title="Riwayat">
@@ -116,6 +116,21 @@ export default function PortalHistory({ history: h, leaderboard }: { history: Hi
                                     <span className="min-w-0 flex-1 truncate">{f.event ?? '—'}<span className="block text-xs text-muted-foreground">{fmtDate(f.date)}</span></span>
                                     <span className="tabular-nums">Rp{f.amount.toLocaleString('id-ID')}</span>
                                     <StatusBadge status={f.status === 'unpaid' ? 'pending' : f.status === 'paid' ? 'approved' : 'closed'} label={{ unpaid: 'Belum lunas', paid: 'Lunas', waived: 'Dibebaskan' }[f.status] ?? f.status} />
+                                </li>
+                            ))}
+                        </ul>
+                    </CardContent>
+                </Card>
+            )}
+            {certificates.length > 0 && (
+                <Card className="gap-2">
+                    <CardHeader><CardTitle className="text-base">Sertifikat</CardTitle></CardHeader>
+                    <CardContent>
+                        <ul className="divide-y">
+                            {certificates.map((c) => (
+                                <li key={c.id} className="flex items-center gap-3 py-2 text-sm">
+                                    <span className="min-w-0 flex-1 truncate">{c.event}<span className="block text-xs text-muted-foreground">{fmtDate(c.date)} · {c.number}</span></span>
+                                    <Button size="sm" variant="outline" render={<a href={`/saya/sertifikat/${c.id}.pdf`} aria-label={`Unduh sertifikat ${c.event}`} />}><FileDown /> Unduh</Button>
                                 </li>
                             ))}
                         </ul>

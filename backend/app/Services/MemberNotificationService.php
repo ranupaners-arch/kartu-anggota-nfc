@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Announcement;
 use App\Models\Attendance;
 use App\Models\CardRequest;
+use App\Models\Certificate;
 use App\Models\DueItem;
 use App\Models\Event;
 use App\Models\EventRsvp;
@@ -42,6 +43,7 @@ class MemberNotificationService
             ->merge($this->profileChanges($memberId, $since))
             ->merge($this->fines($memberId, $since))
             ->merge($this->rsvps($memberId, $since))
+            ->merge($this->certificates($memberId, $since))
             ->merge($this->dues($memberId, $since))
             ->merge($this->reminders($memberId, $term));
 
@@ -117,6 +119,12 @@ class MemberNotificationService
                 'id' => "rsvp:{$r->id}", 'type' => 'rsvp', 'title' => 'Anda dapat tempat: '.$r->event->title,
                 'body' => 'Naik dari daftar tunggu. Bila batal ikut, ubah RSVP.', 'at' => $r->updated_at,
             ])->values();
+    }
+
+    private function certificates(int $memberId, Carbon $since): Collection
+    {
+        return Certificate::with('event:id,title')->where('member_id', $memberId)->whereNull('revoked_at')->where('issued_at', '>=', $since)->get()
+            ->map(fn (Certificate $c) => ['id' => "certificate:{$c->id}", 'type' => 'certificate', 'title' => 'Sertifikat terbit: '.$c->event?->title, 'body' => 'Unduh di Riwayat → Sertifikat.', 'at' => $c->issued_at]);
     }
 
     /** Tagihan iuran yang belum lunas; hilang dari kotak setelah lunas, dibebaskan, atau dibatalkan. */
