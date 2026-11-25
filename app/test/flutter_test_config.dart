@@ -37,7 +37,10 @@ class MemoryTokenStore implements TokenStore {
 /// Notifikasi HP palsu: mencatat panggilan, tanpa plugin Android.
 class FakeNotices implements NoticePlatform {
   bool allow = true, scheduled = false, broken = false;
-  int cancelled = 0, asked = 0;
+  int cancelled = 0, cleared = 0, asked = 0;
+
+  /// Alarm terpasang: kunci → waktu.
+  final alarms = <String, DateTime>{};
   final shown = <String>[];
   void Function()? onTap;
 
@@ -68,7 +71,21 @@ class FakeNotices implements NoticePlatform {
   @override
   Future<void> showSummary(int count) async => shown.add('ringkasan:$count');
   @override
-  Future<void> cancelAll() async => cancelled++;
+  Future<void> remind(Reminder reminder) async {
+    _check();
+    alarms[reminder.key] = reminder.at;
+  }
+
+  @override
+  Future<void> cancelReminder(String key) async => alarms.remove(key);
+  @override
+  Future<void> cancelShown() async => cleared++;
+  @override
+  Future<void> cancelAll() async {
+    cancelled++;
+    alarms.clear();
+  }
+
   @override
   Future<void> listen(void Function() onTap) async => this.onTap = onTap;
 }

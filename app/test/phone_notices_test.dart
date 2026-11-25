@@ -100,7 +100,55 @@ void main() {
     expect(calls, 0);
     await signIn(role: 'scanner');
     await check([], before: () async => calls++);
-    expect(calls, 1);
+    expect(calls, 2); // notifikasi & kegiatan
+  });
+
+  MemberEvent ev(int id, Duration inTime, {String? status, String? excuse, bool closed = false}) =>
+      MemberEvent(id: id, title: 'K$id', startsAt: now.add(inTime), checkinClosesAt: now.add(inTime), myStatus: status, excuseStatus: excuse, closed: closed);
+  Future<void> sync(List<MemberEvent> e, {DateTime? at}) => PhoneNotices.syncReminders('http://srv|1', e, now: at ?? now);
+
+  test('alarm H-24 jam & H-1 jam; yang hadir, izin, ditutup, atau lewat tidak', () async {
+    await sync([
+      ev(1, const Duration(days: 3)),
+      ev(2, const Duration(hours: 5)),
+      ev(3, const Duration(days: 2), status: 'hadir'),
+      ev(4, const Duration(days: 2), excuse: 'pending'),
+      ev(5, const Duration(days: 2), closed: true),
+      ev(6, const Duration(hours: -1)),
+    ]);
+    expect(fake.alarms.keys, unorderedEquals(['reminder:1', 'soon:1', 'soon:2']));
+    expect(fake.alarms['reminder:1'], now.add(const Duration(days: 2)));
+  });
+
+  test('jadwal berubah dipasang ulang; kegiatan hilang atau sudah izin dibatalkan', () async {
+    await sync([ev(1, const Duration(days: 3)), ev(2, const Duration(days: 3))]);
+    await sync([ev(1, const Duration(days: 4)), ev(2, const Duration(days: 3), excuse: 'approved')]);
+    expect(fake.alarms, {'reminder:1': now.add(const Duration(days: 3)), 'soon:1': now.add(const Duration(days: 4, hours: -1))});
+    await sync([]);
+    expect(fake.alarms, isEmpty);
+  });
+
+  test('pengingat yang sudah dialarmkan HP tidak diulang pemeriksaan server', () async {
+    await check([]);
+    await sync([ev(9, const Duration(days: 2))]);
+    final later = now.add(const Duration(hours: 30));
+    await sync([ev(9, const Duration(days: 2))], at: later); // H-24 sudah lewat
+    expect(await check([notice('reminder:9'), notice('a')]), 1);
+    expect(fake.shown, ['a']);
+  });
+
+  test('kegiatan mendadak (<24 jam) tetap diingatkan lewat server', () async {
+    await check([]);
+    await sync([ev(9, const Duration(hours: 20))]);
+    expect(await check([notice('reminder:9')]), 1);
+  });
+
+  test('keluar akun menghapus alarm', () async {
+    await sync([ev(1, const Duration(days: 3))]);
+    await Session.clear();
+    await Future<void>.delayed(Duration.zero);
+    expect(fake.alarms, isEmpty);
+    expect((await SharedPreferences.getInstance()).getStringList('notif_alarm@http://srv|1'), isNull);
   });
 
   test('plugin rusak: keluar akun & buka layar tetap jalan', () async {
@@ -129,7 +177,7 @@ void main() {
     fake.onTap!();
     await tester.pumpAndSettle();
     expect(find.byType(NotificationsPage), findsOneWidget);
-    expect(fake.cancelled, 1);
+    expect((fake.cleared, fake.cancelled), (1, 0)); // alarm pengingat tidak ikut terhapus
     await tester.pumpWidget(const SizedBox());
   });
 }
