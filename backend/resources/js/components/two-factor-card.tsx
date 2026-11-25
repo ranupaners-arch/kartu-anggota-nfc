@@ -22,14 +22,14 @@ export function TwoFactorCard({ tf, base }: { tf: TwoFactor; base: string }) {
         <Card>
             <CardHeader>
                 <CardTitle className="flex items-center gap-2">Keamanan (2FA){tf.enabled && <ShieldCheck className="size-4 text-emerald-600 dark:text-emerald-400" />}</CardTitle>
-                <CardDescription>Verifikasi dua langkah dengan aplikasi authenticator (Google Authenticator, Authy, 2FAS, dll.).</CardDescription>
+                <CardDescription>Verifikasi dua langkah dengan aplikasi authenticator.</CardDescription>
             </CardHeader>
             <CardContent className="grid gap-4">
                 {tf.recoveryCodes && (
                     <Alert>
                         <AlertTitle>Simpan kode cadangan ini sekarang</AlertTitle>
                         <AlertDescription>
-                            <p>Dipakai bila HP hilang. Setiap kode sekali pakai, dan tidak akan ditampilkan lagi.</p>
+                            <p>Untuk saat HP hilang. Sekali pakai, hanya tampil sekali.</p>
                             <div className="mt-2 grid grid-cols-2 gap-1 font-mono text-sm">{tf.recoveryCodes.map((c) => <code key={c}>{c}</code>)}</div>
                             <Button size="sm" variant="outline" className="mt-2" onClick={() => navigator.clipboard?.writeText(tf.recoveryCodes!.join('\n'))}><Copy /> Salin</Button>
                         </AlertDescription>

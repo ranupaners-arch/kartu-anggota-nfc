@@ -64,7 +64,7 @@ export default function ScannerScan({ event, session, multiSession }: { event: {
                 headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'X-XSRF-TOKEN': xsrf(), 'X-Requested-With': 'XMLHttpRequest' },
                 body: JSON.stringify({ payload }),
             });
-            const data: Result = res.ok ? await res.json() : { status: 'error', attendance_status: null, member: null, message: res.status === 419 ? 'Sesi berakhir — muat ulang halaman.' : 'Gagal menghubungi server.' };
+            const data: Result = res.ok ? await res.json() : { status: 'error', attendance_status: null, member: null, message: res.status === 419 ? 'Sesi berakhir. Muat ulang halaman.' : 'Gagal menghubungi server.' };
             setResult(data);
             setRecent((r) => [{ ...data, at: now, key: now }, ...r].slice(0, 8));
             feedback(data.status === 'ok');
@@ -106,7 +106,7 @@ export default function ScannerScan({ event, session, multiSession }: { event: {
     const t = result ? tone(result) : null;
 
     return (
-        <ScannerLayout title={event.title} subtitle={[multiSession && session.title, `check-in ${fmtTime(session.checkin_opens_at)}–${fmtTime(session.checkin_closes_at)}`, `telat setelah ${fmtTime(session.late_after)}`].filter(Boolean).join(' · ')} back="/pindai">
+        <ScannerLayout title={event.title} subtitle={[multiSession && session.title, `check-in ${fmtTime(session.checkin_opens_at)}-${fmtTime(session.checkin_closes_at)}`, `telat setelah ${fmtTime(session.late_after)}`].filter(Boolean).join(' · ')} back="/pindai">
             <Head title={`Pindai · ${event.title}`} />
             <div className="relative overflow-hidden rounded-2xl bg-black">
                 {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
@@ -140,7 +140,7 @@ export default function ScannerScan({ event, session, multiSession }: { event: {
                                 {[result.member?.member_no, result.member?.division].filter(Boolean).join(' · ')}
                                 {result.status !== 'ok' && <> {result.member ? '· ' : ''}{result.message}</>}
                             </div>
-                            {!!result.fine && <div className="mt-1 text-sm font-semibold text-amber-700 dark:text-amber-400">Denda QR Rp{result.fine.toLocaleString('id-ID')} — kartu tidak dibawa</div>}
+                            {!!result.fine && <div className="mt-1 text-sm font-semibold text-amber-700 dark:text-amber-400">Denda QR Rp{result.fine.toLocaleString('id-ID')}</div>}
                         </div>
                     </div>
                 )}

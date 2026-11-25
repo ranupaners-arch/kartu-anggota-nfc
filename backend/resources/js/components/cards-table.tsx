@@ -18,7 +18,7 @@ export function CardsTable({ cards, showMember = true }: { cards: CardRow[]; sho
                     <TableCell><code className="text-xs">{c.public_id.slice(0, 10)}…</code></TableCell>
                     <TableCell><StatusBadge status={c.status} /></TableCell>
                     <TableCell>{fmtDate(c.issued_at)}</TableCell>
-                    {showIssuer && <TableCell>{c.issued_by ?? '—'}</TableCell>}
+                    {showIssuer && <TableCell>{c.issued_by ?? '-'}</TableCell>}
                     <TableCell>{fmtDate(c.revoked_at)}</TableCell>
                     <TableCell className="space-x-1.5">
                         {c.status === 'active' && (

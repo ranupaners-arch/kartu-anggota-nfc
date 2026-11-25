@@ -113,7 +113,7 @@ class _ProfileChangePageState extends State<ProfileChangePage> {
               const ShadAlert(
                 icon: Icon(LucideIcons.circleCheck),
                 title: Text('Pengajuan terkirim'),
-                description: Text('Data baru berlaku setelah disetujui pengurus. Anda akan diberi tahu lewat notifikasi.'),
+                description: Text('Data baru berlaku setelah disetujui pengurus.'),
               ),
               const SizedBox(height: 12),
             ],
@@ -132,7 +132,7 @@ class _ProfileChangePageState extends State<ProfileChangePage> {
               ),
               const SizedBox(height: 12),
             ],
-            Text('Ubah isian yang perlu diperbaiki. NIM, divisi, dan status keanggotaan hanya bisa diubah pengurus.', style: theme.textTheme.muted),
+            Text('NIM, divisi, dan status hanya bisa diubah pengurus.', style: theme.textTheme.muted),
             const SizedBox(height: 16),
             if (_error != null) ...[ErrorBanner(_error!), const SizedBox(height: 12)],
             ShadInputFormField(controller: _name, label: const Text('Nama lengkap'), maxLength: 150, autofillHints: const [AutofillHints.name]),

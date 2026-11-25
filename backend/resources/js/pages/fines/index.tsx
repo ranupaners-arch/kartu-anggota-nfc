@@ -42,7 +42,7 @@ export default function Fines({ fines, summary, policy, term, filters }: Props) 
                 <Card><CardHeader><CardDescription>Sudah lunas</CardDescription><CardTitle className="text-2xl tabular-nums">{rupiah(summary.paid_total)}</CardTitle></CardHeader></Card>
                 <Card><CardHeader><CardDescription>Kebijakan</CardDescription><CardTitle className="text-base">{policy.fine_enabled ? `${rupiah(policy.fine_amount)} per absen QR` : 'Nonaktif'}</CardTitle><CardDescription>{policy.fine_free_per_term ? `${policy.fine_free_per_term}× QR gratis per periode` : 'Tanpa jatah gratis'}</CardDescription></CardHeader></Card>
             </div>
-            <p className="text-sm text-muted-foreground">Denda tercatat otomatis saat anggota yang punya kartu NFC aktif absen memakai QR (kartu tidak dibawa). Belum punya kartu atau kartu dilapor hilang → tidak didenda.</p>
+            <p className="text-sm text-muted-foreground">Tercatat otomatis saat anggota yang punya kartu aktif absen memakai QR.</p>
             <FilterBar url="/denda" values={f} search={f.q} onSearch={(q) => setF({ ...f, q })} placeholder="Cari anggota">
                 <NativeSelect value={f.status} onChange={(e) => setF({ ...f, status: e.target.value })} aria-label="Status">
                     <NativeSelectOption value="unpaid">Belum lunas</NativeSelectOption>
@@ -55,11 +55,11 @@ export default function Fines({ fines, summary, policy, term, filters }: Props) 
                 {fines.data.map((r) => (
                     <TableRow key={r.id} data-state={sel.has(r.id) ? 'selected' : undefined}>
                         <TableCell className="w-8"><SelectRow sel={sel} id={r.id} label={r.member?.name ?? 'denda'} /></TableCell>
-                        <TableCell>{r.member ? <Link href={`/anggota/${r.member.id}`} className="font-medium hover:underline">{r.member.name}</Link> : '—'}<div className="text-xs text-muted-foreground">{r.member?.member_no}</div></TableCell>
-                        <TableCell>{r.event?.title ?? '—'}<div className="text-xs text-muted-foreground">{fmtDate(r.event?.starts_at)}</div></TableCell>
+                        <TableCell>{r.member ? <Link href={`/anggota/${r.member.id}`} className="font-medium hover:underline">{r.member.name}</Link> : '-'}<div className="text-xs text-muted-foreground">{r.member?.member_no}</div></TableCell>
+                        <TableCell>{r.event?.title ?? '-'}<div className="text-xs text-muted-foreground">{fmtDate(r.event?.starts_at)}</div></TableCell>
                         <TableCell className="tabular-nums">{rupiah(r.amount)}</TableCell>
                         <TableCell><StatusBadge status={r.status === 'unpaid' ? 'pending' : r.status === 'paid' ? 'approved' : 'closed'} label={statusLabel[r.status]} />{r.handler && <div className="text-xs text-muted-foreground">{r.handler} · {fmtDateTime(r.handled_at)}</div>}</TableCell>
-                        <TableCell className="max-w-xs whitespace-normal text-sm">{r.note ?? '—'}</TableCell>
+                        <TableCell className="max-w-xs whitespace-normal text-sm">{r.note ?? '-'}</TableCell>
                     </TableRow>
                 ))}
             </DataTable>

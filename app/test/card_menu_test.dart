@@ -87,7 +87,7 @@ void main() {
     expect(find.text('…ABCD'), findsOneWidget);
     expect(find.text('Didaftarkan sendiri'), findsOneWidget);
     expect(find.text('1 Nov 2026'), findsOneWidget);
-    expect(find.text('Habis — lewat pengurus'), findsOneWidget);
+    expect(find.text('Habis, lewat pengurus'), findsOneWidget);
   });
 
   testWidgets('Riwayat kartu: kartu lama & laporan beserta keputusan', (tester) async {

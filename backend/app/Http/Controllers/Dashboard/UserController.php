@@ -37,7 +37,7 @@ class UserController extends Controller
         $res = $this->users->create($r->user(), $this->input($r));
 
         return redirect()->route('users.index')
-            ->with('status', "Akun {$res['user']->email} dibuat. Password sementara: {$res['password']} — sampaikan ke pemiliknya; tidak akan ditampilkan lagi.");
+            ->with('status', "Akun {$res['user']->email} dibuat. Password sementara: {$res['password']}. Password hanya tampil sekali.");
     }
 
     public function edit(Request $r, User $user)
@@ -65,7 +65,7 @@ class UserController extends Controller
         $this->own($r, $user);
         $password = $this->users->resetPassword($r->user(), $user);
 
-        return back()->with('status', "Password {$user->email} direset: $password — sampaikan ke pemiliknya; tidak akan ditampilkan lagi.");
+        return back()->with('status', "Password {$user->email} direset: $password. Password hanya tampil sekali.");
     }
 
     public function resetTwoFactor(Request $r, User $user, TwoFactorService $twoFactor)

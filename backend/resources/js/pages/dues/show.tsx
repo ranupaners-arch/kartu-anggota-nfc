@@ -51,9 +51,9 @@ function Items({ due, items, filters, canManage }: { due: Props['due']; items: P
                 {items.data.map((i) => (
                     <TableRow key={i.id} data-state={sel.has(i.id) ? 'selected' : undefined}>
                         {manage && <TableCell className="w-8"><SelectRow sel={sel} id={i.id} label={i.member?.name ?? 'tagihan'} /></TableCell>}
-                        <TableCell>{i.member?.name ?? '—'}<div className="text-xs text-muted-foreground">{i.member?.member_no}</div></TableCell>
-                        <TableCell><StatusBadge status={tone[i.status]} label={label[i.status]} />{i.changed_at && <div className="text-xs text-muted-foreground">{i.changed_by ?? '—'} · {fmtDateTime(i.changed_at)}</div>}</TableCell>
-                        <TableCell className="max-w-xs whitespace-normal text-sm">{i.note ?? '—'}</TableCell>
+                        <TableCell>{i.member?.name ?? '-'}<div className="text-xs text-muted-foreground">{i.member?.member_no}</div></TableCell>
+                        <TableCell><StatusBadge status={tone[i.status]} label={label[i.status]} />{i.changed_at && <div className="text-xs text-muted-foreground">{i.changed_by ?? '-'} · {fmtDateTime(i.changed_at)}</div>}</TableCell>
+                        <TableCell className="max-w-xs whitespace-normal text-sm">{i.note ?? '-'}</TableCell>
                     </TableRow>
                 ))}
             </DataTable>
@@ -95,9 +95,9 @@ export default function DueShow({ due, summary, tab, filters, canManage, items, 
                         {changes.data.map((c) => (
                             <TableRow key={c.id}>
                                 <TableCell>{fmtDateTime(c.at)}</TableCell>
-                                <TableCell>{c.member?.name ?? '—'}<div className="text-xs text-muted-foreground">{c.member?.member_no}</div></TableCell>
-                                <TableCell>{label[c.from]} → {label[c.to]}</TableCell><TableCell>{c.by ?? '—'}</TableCell>
-                                <TableCell className="max-w-xs whitespace-normal text-sm">{c.note ?? '—'}</TableCell>
+                                <TableCell>{c.member?.name ?? '-'}<div className="text-xs text-muted-foreground">{c.member?.member_no}</div></TableCell>
+                                <TableCell>{label[c.from]} → {label[c.to]}</TableCell><TableCell>{c.by ?? '-'}</TableCell>
+                                <TableCell className="max-w-xs whitespace-normal text-sm">{c.note ?? '-'}</TableCell>
                             </TableRow>
                         ))}
                     </DataTable>

@@ -78,11 +78,11 @@ function ActiveQr({ profile, qr, card }: { profile: Profile; qr: Qr; card: Membe
                         <div className="text-sm text-muted-foreground tabular-nums">{[profile.member_no, profile.division].filter(Boolean).join(' · ')}</div>
                     </div>
                     <p role="status" className="text-sm text-muted-foreground">
-                        {stale ? 'QR kedaluwarsa — periksa koneksi internet, halaman akan memperbarui otomatis.' : 'Tunjukkan ke petugas untuk dipindai. QR berganti otomatis tiap menit.'}
+                        {stale ? 'QR kedaluwarsa. Periksa koneksi internet.' : 'Tunjukkan ke petugas untuk dipindai. QR berganti otomatis tiap menit.'}
                     </p>
                 </CardContent>
             </Card>
-            <p className="text-center text-xs text-muted-foreground">Naikkan kecerahan layar agar mudah dipindai. Jangan bagikan tangkapan layar QR ini.</p>
+            <p className="text-center text-xs text-muted-foreground">Naikkan kecerahan layar agar mudah dipindai.</p>
         </PortalLayout>
     );
 }

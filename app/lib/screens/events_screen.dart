@@ -240,7 +240,7 @@ class _EventsScreenState extends State<EventsScreen> with SessionWatch<EventsScr
       context: context,
       builder: (context) => ShadDialog(
         title: const Text('Keluar dari akun?'),
-        description: const Text('Scan offline yang belum tersinkron tetap tersimpan di HP ini dan baru terkirim setelah akun yang sama masuk lagi.'),
+        description: const Text('Scan yang belum terkirim tetap tersimpan sampai akun ini masuk lagi.'),
         actions: [
           ShadButton.outline(onPressed: () => Navigator.of(context).pop(false), child: const Text('Batal')),
           ShadButton.destructive(onPressed: () => Navigator.of(context).pop(true), child: const Text('Keluar')),
@@ -432,7 +432,7 @@ class _EventsScreenState extends State<EventsScreen> with SessionWatch<EventsScr
                   ShadAlert(
                     icon: Icon(LucideIcons.cloudOff),
                     title: Text('Mode offline'),
-                    description: Text('Menampilkan kegiatan terakhir yang tersimpan di HP ini. Scan kartu NFC tetap bisa dipakai.'),
+                    description: Text('Menampilkan data tersimpan. Scan kartu NFC tetap bisa.'),
                   ),
                   SizedBox(height: 12),
                 ]);
@@ -478,16 +478,16 @@ class OfficerHelp extends StatelessWidget {
   static const _faq = [
     (
       'Cara memindai kartu',
-      'Buka kegiatan → Mulai scan → minta anggota menempelkan kartu ke bagian belakang HP (dekat kamera). Bunyi & getar menandai hasil: hijau tercatat, kuning sudah tercatat, merah ditolak.',
+      'Buka kegiatan, Mulai scan, lalu tempelkan kartu ke belakang HP. Hijau tercatat, kuning sudah tercatat, merah ditolak.',
     ),
     (
       'Kartu tertinggal',
-      'Pindah ke mode QR di layar scan, lalu pindai QR Saya di HP anggota. QR berganti tiap menit, jadi tangkapan layar ditolak. Absen dengan QR bisa dikenai denda sesuai kebijakan.',
+      'Pindah ke mode QR, lalu pindai QR Saya di HP anggota. Absen dengan QR bisa dikenai denda.',
     ),
-    ('Tidak ada sinyal', 'Scan tetap jalan: hasil disimpan di HP (mode offline) dan dikirim otomatis saat online. Jumlah yang belum terkirim tampil di Beranda.'),
+    ('Tidak ada sinyal', 'Scan disimpan di HP dan dikirim otomatis saat online.'),
     ('Kartu ditolak', 'Kartu diblokir/hilang, bukan kartu organisasi ini, atau anggota bukan peserta kegiatan. Arahkan anggota ke pengurus; jangan dicatat manual.'),
     ('Kegiatan beberapa sesi', 'Layar scan memakai sesi yang sedang dibuka; tiap sesi dicatat terpisah.'),
-    ('NFC tidak membaca', 'Pastikan NFC HP menyala, lepas casing tebal, dan tahan kartu 1–2 detik. Gunakan Alat NFC untuk menguji kartu.'),
+    ('NFC tidak membaca', 'Nyalakan NFC, lepas casing tebal, tahan kartu 1-2 detik. Uji kartu di Alat NFC.'),
   ];
 
   @override

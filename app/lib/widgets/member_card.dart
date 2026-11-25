@@ -202,7 +202,7 @@ class MemberCardView extends StatelessWidget {
                                   ),
                                 ),
                               Text(
-                                info.memberNo ?? '—',
+                                info.memberNo ?? '-',
                                 style: TextStyle(color: fg, fontSize: w * 0.05, letterSpacing: w * 0.006, fontFeatures: const [FontFeature.tabularFigures()]),
                               ),
                               SizedBox(height: w * 0.008),

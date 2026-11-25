@@ -22,18 +22,18 @@
 <body>
   <div class="head">
     <h1>Rapor Kehadiran</h1>
-    <div class="muted">{{ $org?->name }} · Periode {{ $term->name }} ({{ \Illuminate\Support\Carbon::parse($term->starts_on)->translatedFormat('d M Y') }} – {{ \Illuminate\Support\Carbon::parse($term->ends_on)->translatedFormat('d M Y') }})</div>
+    <div class="muted">{{ $org?->name }} · Periode {{ $term->name }} ({{ \Illuminate\Support\Carbon::parse($term->starts_on)->translatedFormat('d M Y') }} - {{ \Illuminate\Support\Carbon::parse($term->ends_on)->translatedFormat('d M Y') }})</div>
   </div>
 
   <table class="ident">
     <tr><td class="muted">Nama</td><td><strong>{{ $member->name }}</strong></td></tr>
     <tr><td class="muted">Nomor anggota</td><td>{{ $member->member_no }}</td></tr>
-    <tr><td class="muted">Divisi</td><td>{{ $division ?? '—' }}</td></tr>
+    <tr><td class="muted">Divisi</td><td>{{ $division ?? '-' }}</td></tr>
   </table>
 
   <table class="summary">
     <tr>
-      <td class="rate"><div class="n">{{ $rate === null ? '–' : rtrim(rtrim(number_format($rate, 1, ',', '.'), '0'), ',').'%' }}</div>Kehadiran</td>
+      <td class="rate"><div class="n">{{ $rate === null ? '-' : rtrim(rtrim(number_format($rate, 1, ',', '.'), '0'), ',').'%' }}</div>Kehadiran</td>
       @foreach ($statusLabels as $k => $label)
         <td><div class="n">{{ $counts[$k] }}</div>{{ $label }}</td>
       @endforeach

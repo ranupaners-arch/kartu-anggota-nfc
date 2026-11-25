@@ -14,7 +14,7 @@ export default function Devices({ devices }: { devices: Paginated<D> }) {
     return (
         <AppLayout title="Perangkat Petugas">
             <Head title="Perangkat Petugas" />
-            <p className="text-sm text-muted-foreground">Perangkat terdaftar otomatis saat login di app. Mencabut akses langsung membatalkan sesinya.</p>
+            <p className="text-sm text-muted-foreground">Mencabut akses langsung mengeluarkan perangkat.</p>
             <DataTable head={['Perangkat', 'Pengguna', 'Terakhir aktif', 'Status', '']} count={devices.data.length} empty="Belum ada perangkat.">
                 {devices.data.map((d) => (
                     <TableRow key={d.id}>

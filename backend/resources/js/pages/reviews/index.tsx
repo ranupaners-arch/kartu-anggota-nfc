@@ -33,8 +33,8 @@ function Actions({ path, canAccept }: { path: string; canAccept: boolean }) {
 
 export default function Reviews({ tab, items }: { tab: string; items: Paginated<Att | Log | Held> }) {
     const help: Record<string, string> = {
-        offline: 'Scan offline yang bermasalah saat disinkron, mis. kartu diblokir setelah scan. Terima bila sah, batalkan bila tidak.',
-        tertahan: 'Scan offline dari petugas yang aksesnya berakhir (perangkat dicabut, peran diubah, atau akun dinonaktifkan). Belum tercatat; terima hanya bila Anda yakin kartunya benar ditempel saat kegiatan.',
+        offline: 'Scan offline yang bermasalah saat disinkron.',
+        tertahan: 'Scan offline dari petugas yang aksesnya berakhir (perangkat dicabut, peran diubah, atau akun dinonaktifkan). Belum tercatat.',
         override: 'Scan di luar jendela check-in yang di-override petugas dengan alasan.',
         anomali: 'Kartu yang sama di-tap di kegiatan/perangkat berbeda dalam < 60 detik. Periksa kemungkinan kartu digandakan.',
     };
@@ -47,7 +47,7 @@ export default function Reviews({ tab, items }: { tab: string; items: Paginated<
                 <DataTable head={['Anggota', 'Kegiatan', 'Perangkat', 'Waktu scan', 'Tindakan']} count={items.data.length} empty="Tidak ada scan tertahan.">
                     {(items.data as Held[]).map((h) => (
                         <TableRow key={h.id}>
-                            <TableCell>{h.member?.name ?? '—'}<div className="text-xs text-muted-foreground">{h.member?.member_no}</div></TableCell>
+                            <TableCell>{h.member?.name ?? '-'}<div className="text-xs text-muted-foreground">{h.member?.member_no}</div></TableCell>
                             <TableCell>{h.event?.title}</TableCell>
                             <TableCell>{h.device?.name}<div className="text-xs text-muted-foreground">{h.user?.name}</div></TableCell>
                             <TableCell>
@@ -75,7 +75,7 @@ export default function Reviews({ tab, items }: { tab: string; items: Paginated<
                             <TableCell>{a.event?.title}</TableCell>
                             <TableCell><StatusBadge status={a.status} /></TableCell>
                             <TableCell>{fmtDateTime(a.scanned_at)}</TableCell>
-                            <TableCell className="text-muted-foreground">{a.review_reason ? (reasons[a.review_reason] ?? a.review_reason) : '—'}</TableCell>
+                            <TableCell className="text-muted-foreground">{a.review_reason ? (reasons[a.review_reason] ?? a.review_reason) : '-'}</TableCell>
                             <TableCell><Actions path={`/tinjauan/${a.id}`} canAccept={tab === 'offline'} /></TableCell>
                         </TableRow>
                     ))}

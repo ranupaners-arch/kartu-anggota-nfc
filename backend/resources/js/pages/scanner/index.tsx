@@ -23,7 +23,7 @@ export default function ScannerIndex({ events, isAdmin }: { events: Ev[]; isAdmi
                             <span className="min-w-0 flex-1">
                                 <span className="block truncate font-medium">{e.title}</span>
                                 <span className="mt-1 flex flex-wrap gap-x-3 text-xs text-muted-foreground">
-                                    <span className="inline-flex items-center gap-1"><CalendarDays className="size-3.5" />check-in {fmtTime(e.checkin_opens_at)}–{fmtTime(e.checkin_closes_at)}</span>
+                                    <span className="inline-flex items-center gap-1"><CalendarDays className="size-3.5" />check-in {fmtTime(e.checkin_opens_at)}-{fmtTime(e.checkin_closes_at)}</span>
                                     {e.location && <span className="inline-flex items-center gap-1"><MapPin className="size-3.5" />{e.location}</span>}
                                 </span>
                             </span>

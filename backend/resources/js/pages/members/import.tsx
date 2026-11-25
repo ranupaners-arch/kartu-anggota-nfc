@@ -65,7 +65,7 @@ export default function MemberImport({ preview }: { preview: Preview | null }) {
                     )}
                     <h2 className="font-semibold">Contoh data (10 pertama)</h2>
                     <DataTable head={['Aksi', 'No.', 'Nama', 'Email', 'Angkatan', 'Status']} count={preview.sample.length}>
-                        {preview.sample.map((s) => <TableRow key={s.member_no}><TableCell>{s.action === 'create' ? 'Baru' : 'Perbarui'}</TableCell><TableCell>{s.member_no}</TableCell><TableCell>{s.name}</TableCell><TableCell>{s.email ?? '—'}</TableCell><TableCell>{s.cohort ?? '—'}</TableCell><TableCell>{s.status}</TableCell></TableRow>)}
+                        {preview.sample.map((s) => <TableRow key={s.member_no}><TableCell>{s.action === 'create' ? 'Baru' : 'Perbarui'}</TableCell><TableCell>{s.member_no}</TableCell><TableCell>{s.name}</TableCell><TableCell>{s.email ?? '-'}</TableCell><TableCell>{s.cohort ?? '-'}</TableCell><TableCell>{s.status}</TableCell></TableRow>)}
                     </DataTable>
                     <div className="flex flex-wrap items-center gap-4">
                         {preview.errors.length > 0 && (

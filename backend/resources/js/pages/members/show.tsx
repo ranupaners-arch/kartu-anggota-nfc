@@ -146,14 +146,14 @@ export default function MemberShow({ member, tab, memberships, cards, attendance
                         <Card>
                             <CardHeader><CardTitle>Data diri</CardTitle></CardHeader>
                             <CardContent className="grid gap-2 text-sm sm:grid-cols-3">
-                                <div><div className="text-muted-foreground">Email</div>{member.email ?? '—'}</div>
-                                <div><div className="text-muted-foreground">Telepon</div>{member.phone ?? '—'}</div>
-                                <div><div className="text-muted-foreground">Angkatan</div>{member.cohort ?? '—'}</div>
+                                <div><div className="text-muted-foreground">Email</div>{member.email ?? '-'}</div>
+                                <div><div className="text-muted-foreground">Telepon</div>{member.phone ?? '-'}</div>
+                                <div><div className="text-muted-foreground">Angkatan</div>{member.cohort ?? '-'}</div>
                             </CardContent>
                         </Card>
                         <DataTable head={['Periode', 'Divisi', 'Jabatan', 'Status']} count={memberships.length} empty="Belum ada keanggotaan.">
                             {memberships.map((m) => (
-                                <TableRow key={m.id}><TableCell>{m.term} {!anonymized && <a href={`/anggota/${member.id}/rapor?periode=${m.term_id}`} target="_blank" rel="noreferrer" className="ml-1 text-xs text-primary hover:underline">rapor</a>}</TableCell><TableCell>{m.division ?? '—'}</TableCell><TableCell>{m.role ?? '—'}</TableCell><TableCell><StatusBadge status={m.status} /></TableCell></TableRow>
+                                <TableRow key={m.id}><TableCell>{m.term} {!anonymized && <a href={`/anggota/${member.id}/rapor?periode=${m.term_id}`} target="_blank" rel="noreferrer" className="ml-1 text-xs text-primary hover:underline">rapor</a>}</TableCell><TableCell>{m.division ?? '-'}</TableCell><TableCell>{m.role ?? '-'}</TableCell><TableCell><StatusBadge status={m.status} /></TableCell></TableRow>
                             ))}
                         </DataTable>
                         {editable && duty && <DutyCard memberId={member.id} memberName={member.name} duty={duty} />}
@@ -175,7 +175,7 @@ export default function MemberShow({ member, tab, memberships, cards, attendance
             {tab === 'kartu' && (
                 <>
                     <div className="max-w-sm"><MemberCard info={cardPreview} /></div>
-                    <p className="text-sm text-muted-foreground">Kartu baru diterbitkan lewat app petugas (mode Issue). Menerbitkan kartu baru otomatis memblokir kartu lama.</p>
+                    <p className="text-sm text-muted-foreground">Kartu baru diterbitkan lewat app petugas (mode Issue). Kartu lama otomatis diblokir.</p>
                     <CardsTable cards={cards} showMember={false} />
                     <Card>
                         <CardHeader>

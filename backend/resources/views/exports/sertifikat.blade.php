@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="utf-8">
-    <title>{{ $batch->title }} — {{ $event->title }}</title>
+    <title>{{ $batch->title }}: {{ $event->title }}</title>
     <style>
         @page { margin: 0; }
         body { margin: 0; font-family: 'DejaVu Sans', sans-serif; color: #18181b; }

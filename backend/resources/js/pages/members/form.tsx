@@ -39,7 +39,7 @@ export default function MemberForm({ member, membership, divisions }: { member: 
                         <div className="grid gap-4 sm:grid-cols-3">
                             <FormField label="Divisi (periode ini)" error={form.errors.division_id}>
                                 <NativeSelect className="w-full" value={form.data.division_id} onChange={(e) => form.setData('division_id', e.target.value)}>
-                                    <NativeSelectOption value="">—</NativeSelectOption>
+                                    <NativeSelectOption value="">-</NativeSelectOption>
                                     {divisions.map((d) => <NativeSelectOption key={d.id} value={d.id}>{d.name}</NativeSelectOption>)}
                                 </NativeSelect>
                             </FormField>

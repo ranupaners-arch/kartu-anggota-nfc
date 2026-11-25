@@ -44,7 +44,7 @@ export default function RegisterForm({ token, organization, term, divisions }: P
                 {divisions.length > 0 && (
                     <FormField label="Divisi yang diminati (opsional)" error={form.errors.division_id}>
                         <NativeSelect className="w-full" value={form.data.division_id} onChange={(e) => form.setData('division_id', e.target.value)}>
-                            <NativeSelectOption value="">— Belum memilih —</NativeSelectOption>
+                            <NativeSelectOption value="">Belum memilih</NativeSelectOption>
                             {divisions.map((d) => <NativeSelectOption key={d.id} value={d.id}>{d.name}</NativeSelectOption>)}
                         </NativeSelect>
                     </FormField>

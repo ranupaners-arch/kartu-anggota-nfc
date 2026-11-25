@@ -43,14 +43,14 @@ flowchart LR
 ```
 
 1. Pengurus membuat kegiatan (jendela check-in, target peserta, sesi) di **dashboard**.
-2. Petugas membuka kegiatan di **app**, lalu anggota menempelkan **kartu NFC** — atau menunjukkan **QR Saya** bila kartu tertinggal. Status Hadir/Telat dihitung dari jam scan.
-3. Saat kegiatan ditutup, yang tidak hadir otomatis **Alpa** — atau **Izin/Sakit** bila izinnya disetujui.
+2. Petugas membuka kegiatan di **app**, lalu anggota menempelkan **kartu NFC**, atau menunjukkan **QR Saya** bila kartu tertinggal. Status Hadir/Telat dihitung dari jam scan.
+3. Saat kegiatan ditutup, yang tidak hadir otomatis **Alpa**, atau **Izin/Sakit** bila izinnya disetujui.
 4. Pengurus memantau langsung, meninjau anomali, merekap & mengekspor; anggota melihat riwayat dan rapornya sendiri.
 
 ## Fitur
 
 **Absensi**
-- Kartu **NFC (NTAG215)** berisi data bertanda tangan (HMAC) — kartu palsu ditolak; **QR dinamis** (berganti tiap menit) sebagai cadangan.
+- Kartu **NFC (NTAG215)** berisi data bertanda tangan (HMAC) sehingga kartu palsu ditolak; **QR dinamis** (berganti tiap menit) sebagai cadangan.
 - Jendela check-in (tepat waktu → telat → tutup), kegiatan **multi-sesi**, target per divisi/anggota.
 - **Mode offline** di app petugas: scan diantre di HP dan disinkronkan saat online; konflik ditandai untuk ditinjau.
 - Kegiatan ditutup otomatis oleh scheduler.
@@ -65,7 +65,7 @@ flowchart LR
 - Peran **Super Admin / Admin Divisi / Petugas Scan / Anggota**, **2FA**, mode terang/gelap, nyaman di HP.
 - Email (opsional, aktif setelah SMTP diatur): **lupa password** mandiri & **ringkasan mingguan** pengurus.
 
-**Untuk anggota — app Android atau portal web (iPhone)**
+**Untuk anggota: app Android atau portal web (iPhone)**
 - QR Saya, kegiatan & pengingat, pengumuman, **ajukan izin** dengan bukti, riwayat & peringatan, **rapor PDF**, **langganan jadwal** ke Google Calendar / kalender HP.
 - **Portal web** `/saya` untuk yang tidak memakai app Android, bisa dipasang di Layar Utama.
 
@@ -123,12 +123,12 @@ Di app, hubungkan ke server dengan memindai QR di **Pengaturan → Aplikasi** pa
 
 ## Produksi
 
-Satu VPS dengan Docker Compose — lihat [docs/deploy.md](docs/deploy.md): HTTPS otomatis, backup harian + uji
+Satu VPS dengan Docker Compose, lihat [docs/deploy.md](docs/deploy.md): HTTPS otomatis, backup harian + uji
 pemulihan, pemantauan (`/api/health`, Sentry opsional), dan pengaturan email.
 
 CI ([`.github/workflows`](.github/workflows)):
-- **CI** — di setiap pull request; menjalankan **Backend (Laravel)** dan/atau **App (Flutter)** sesuai bagian yang berubah. Job `gerbang` bisa dijadikan status check wajib.
-- **Deploy (uji stack Docker)** — membangun stack produksi lalu menguji login, antrean, scheduler, uji beban scan, dan backup/restore; di setiap merge ke `main` (sebelum image diterbitkan) dan tiap minggu.
+- **CI**: di setiap pull request; menjalankan **Backend (Laravel)** dan/atau **App (Flutter)** sesuai bagian yang berubah. Job `gerbang` bisa dijadikan status check wajib.
+- **Deploy (uji stack Docker)**: membangun stack produksi lalu menguji login, antrean, scheduler, uji beban scan, dan backup/restore; di setiap merge ke `main` (sebelum image diterbitkan) dan tiap minggu.
 - APK uji dibuat manual (`gh workflow run app.yml`).
 
 ## Keamanan & privasi
@@ -138,7 +138,7 @@ CI ([`.github/workflows`](.github/workflows)):
 - Semua data dibatasi per organisasi dan per divisi (Admin Divisi); log aktivitas untuk tindakan penting.
 - Persetujuan pemrosesan data anggota, hapus data pribadi, dan retensi otomatis (bukti izin, data lama, ekspor).
 
-Menemukan celah keamanan? Jangan buka issue publik — ikuti [SECURITY.md](SECURITY.md).
+Menemukan celah keamanan? Jangan buka issue publik, ikuti [SECURITY.md](SECURITY.md).
 
 ## Kontribusi
 

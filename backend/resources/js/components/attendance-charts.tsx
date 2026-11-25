@@ -10,7 +10,7 @@ export type TrendPoint = { id: number; title: string; date: string; total: numbe
 export type DivisionRate = { division: string; total: number; present: number; rate: number | null };
 export type AtRisk = { member_id: number; member_no: string; name: string; division: string | null; alpa_streak: number; rate: number | null; total: number };
 
-const pct = (v: number | null) => (v === null ? '–' : `${Number(v).toLocaleString('id-ID', { maximumFractionDigits: 1 })}%`);
+const pct = (v: number | null) => (v === null ? '-' : `${Number(v).toLocaleString('id-ID', { maximumFractionDigits: 1 })}%`);
 
 /** Lebar elemen sebenarnya (px), agar SVG digambar 1:1 dan teks sumbu tidak mengecil di HP. */
 function useWidth(min = 240) {
@@ -114,7 +114,7 @@ export function ArrivalChart({ data }: { data: Arrivals }) {
     const y = (v: number) => padT + plotH - (v / max) * plotH;
     const lateX = padL + ((new Date(data.late_after).getTime() - start) / binMs) * step;
     const showLate = lateX > padL && lateX < W;
-    const range = (i: number) => `${fmtTime(new Date(start + i * binMs).toISOString())}–${fmtTime(new Date(start + (i + 1) * binMs).toISOString())}`;
+    const range = (i: number) => `${fmtTime(new Date(start + i * binMs).toISOString())}-${fmtTime(new Date(start + (i + 1) * binMs).toISOString())}`;
     const active = hover !== null ? hover : null;
 
     return (
@@ -192,7 +192,7 @@ export type Comparison = {
 
 /** Selisih dalam poin persen, dengan panah sebagai penanda arah (bukan warna). */
 function Delta({ now, before }: { now: number | null; before: number | null }) {
-    if (now === null || before === null) return <span className="text-muted-foreground">–</span>;
+    if (now === null || before === null) return <span className="text-muted-foreground">-</span>;
     const d = Math.round((now - before) * 10) / 10;
     const label = `${d > 0 ? '+' : ''}${d.toLocaleString('id-ID', { maximumFractionDigits: 1 })} poin`;
     return <span className="whitespace-nowrap tabular-nums text-foreground">{d > 0 ? '▲' : d < 0 ? '▼' : '='} {label}</span>;
@@ -267,11 +267,11 @@ export function StatsSection({ trend, divisions, atRisk, rules, comparison }: { 
                     <CardDescription>Anggota aktif yang Alpa {rules.streak}× berturut-turut, atau kehadirannya di bawah {rules.minRate}% (minimal {rules.minRecords} catatan).</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <DataTable head={['Anggota', 'Divisi', 'Alpa berturut-turut', 'Kehadiran']} count={atRisk.length} empty="Tidak ada — semua anggota aman.">
+                    <DataTable head={['Anggota', 'Divisi', 'Alpa berturut-turut', 'Kehadiran']} count={atRisk.length} empty="Tidak ada.">
                         {atRisk.map((m) => (
                             <TableRow key={m.member_id}>
                                 <TableCell><Link href={`/anggota/${m.member_id}`} className="font-medium hover:underline">{m.name}</Link><div className="text-xs text-muted-foreground">{m.member_no}</div></TableCell>
-                                <TableCell>{m.division ?? '—'}</TableCell>
+                                <TableCell>{m.division ?? '-'}</TableCell>
                                 <TableCell className="tabular-nums">{m.alpa_streak >= rules.streak ? <span className="inline-flex items-center gap-1 font-medium text-amber-700 dark:text-amber-400"><AlertTriangle className="size-3.5" /> {m.alpa_streak}×</span> : m.alpa_streak}</TableCell>
                                 <TableCell className="tabular-nums">{pct(m.rate)} <span className="text-xs text-muted-foreground">({m.total})</span></TableCell>
                             </TableRow>

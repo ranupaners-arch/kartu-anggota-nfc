@@ -86,7 +86,7 @@ function Summary({ event, report, canDelete }: Pick<Props, 'event' | 'report' | 
                 {Object.entries(report.summary.by_status).map(([s, n]) => (
                     <Card size="sm" key={s}><CardHeader><CardDescription>{statusLabels[s] ?? s}</CardDescription><CardTitle className="text-2xl tabular-nums">{n}</CardTitle></CardHeader></Card>
                 ))}
-                <Card size="sm"><CardHeader><CardDescription>Kehadiran</CardDescription><CardTitle className="text-2xl tabular-nums">{report.summary.present_rate ?? '–'}%</CardTitle></CardHeader></Card>
+                <Card size="sm"><CardHeader><CardDescription>Kehadiran</CardDescription><CardTitle className="text-2xl tabular-nums">{report.summary.present_rate ?? '-'}%</CardTitle></CardHeader></Card>
             </div>
             <Card>
                 <CardHeader><CardTitle>Ekspor rekap kegiatan</CardTitle><CardDescription>Hasilnya muncul di Rekap &amp; Ekspor → Hasil Ekspor.</CardDescription></CardHeader>
@@ -193,7 +193,7 @@ function Sessions({ event, sessions }: Pick<Props, 'event' | 'sessions'>) {
                     <TableRow key={s.id}>
                         <TableCell>{s.title} {i === 0 && <StatusBadge status="open" label="Utama" />}</TableCell>
                         <TableCell>{fmtDateTime(s.starts_at)}</TableCell><TableCell>{fmtDateTime(s.ends_at)}</TableCell>
-                        <TableCell className="tabular-nums">{fmtDateTime(s.checkin_opens_at)}–{fmtTime(s.checkin_closes_at)}</TableCell>
+                        <TableCell className="tabular-nums">{fmtDateTime(s.checkin_opens_at)}-{fmtTime(s.checkin_closes_at)}</TableCell>
                         <TableCell className="tabular-nums">{fmtTime(s.late_after)}</TableCell>
                         <TableCell className="text-right">
                             {!event.closed_at && (
@@ -278,7 +278,7 @@ function RsvpList({ event, rsvp }: Pick<Props, 'event' | 'rsvp'>) {
                         <TableRow key={m.member_id}>
                             <TableCell className="tabular-nums">{m.member_no}</TableCell><TableCell>{m.name}</TableCell>
                             <TableCell><StatusBadge status={tone} label={label} /></TableCell>
-                            <TableCell>{m.responded_at ? fmtDateTime(m.responded_at) : '—'}</TableCell>
+                            <TableCell>{m.responded_at ? fmtDateTime(m.responded_at) : '-'}</TableCell>
                         </TableRow>
                     );
                 })}
@@ -307,7 +307,7 @@ export default function EventShow(props: Props) {
         }>
             <Head title={event.title} />
             <p className="text-sm text-muted-foreground">
-                {fmtDateTime(event.starts_at)}–{fmtTime(event.ends_at)} · {event.location ?? 'tanpa lokasi'} · check-in {fmtTime(event.checkin_opens_at)}–{fmtTime(event.checkin_closes_at)}, telat setelah {fmtTime(event.late_after)} ·{' '}
+                {fmtDateTime(event.starts_at)}-{fmtTime(event.ends_at)} · {event.location ?? 'tanpa lokasi'} · check-in {fmtTime(event.checkin_opens_at)}-{fmtTime(event.checkin_closes_at)}, telat setelah {fmtTime(event.late_after)} ·{' '}
                 <StatusBadge status={event.closed_at ? 'closed' : 'open'} />
             </p>
             <PageTabs tabs={{ ringkasan: 'Ringkasan', hadir: 'Daftar Hadir', sesi: 'Sesi', target: 'Target Peserta', ...(event.rsvp_enabled ? { rsvp: 'RSVP' } : {}), tamu: 'Tamu', notulen: 'Notulen & Dokumen', survei: 'Survei', sertifikat: 'Sertifikat' }} current={tab} />
@@ -317,10 +317,10 @@ export default function EventShow(props: Props) {
                 <DataTable head={['No. Anggota', 'Nama', 'Divisi', 'Status', 'Waktu', 'Koreksi']} count={report.rows.length} empty="Belum ada peserta.">
                     {report.rows.map((r) => (
                         <TableRow key={r.member_id}>
-                            <TableCell className="tabular-nums">{r.member_no}</TableCell><TableCell>{r.name}</TableCell><TableCell>{r.division ?? '—'}</TableCell>
+                            <TableCell className="tabular-nums">{r.member_no}</TableCell><TableCell>{r.name}</TableCell><TableCell>{r.division ?? '-'}</TableCell>
                             <TableCell className="space-x-1"><StatusBadge status={r.status} />{r.needs_review && <StatusBadge status="pending" label="Perlu ditinjau" />}</TableCell>
-                            <TableCell>{r.scanned_at ? fmtTime(r.scanned_at) : '—'} <span className="text-xs text-muted-foreground">{r.source}</span></TableCell>
-                            <TableCell>{r.attendance_id ? <CorrectionForm row={r} /> : <span className="text-muted-foreground">—</span>}</TableCell>
+                            <TableCell>{r.scanned_at ? fmtTime(r.scanned_at) : '-'} <span className="text-xs text-muted-foreground">{r.source}</span></TableCell>
+                            <TableCell>{r.attendance_id ? <CorrectionForm row={r} /> : <span className="text-muted-foreground">-</span>}</TableCell>
                         </TableRow>
                     ))}
                 </DataTable>

@@ -83,7 +83,7 @@ class _CertificatesPageState extends State<CertificatesPage> {
               padding: EdgeInsets.all(32),
               child: Center(child: CircularProgressIndicator()),
             ),
-          if (items != null && items.isEmpty) Text('Belum ada sertifikat. Sertifikat terbit setelah kegiatan yang Anda hadiri ditutup pengurus.', style: ShadTheme.of(context).textTheme.muted),
+          if (items != null && items.isEmpty) Text('Belum ada sertifikat.', style: ShadTheme.of(context).textTheme.muted),
           for (final c in items ?? const <MemberCertificate>[])
             Padding(
               padding: const EdgeInsets.only(bottom: 12),

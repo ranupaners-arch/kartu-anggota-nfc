@@ -29,8 +29,8 @@ function Photo({ url, label }: { url: string | null; label: string }) {
 function Diff({ c, withPhoto }: { c: Change; withPhoto?: boolean }) {
     return (
         <div className="grid gap-1.5">
-            {c.name && <div><span className="text-muted-foreground">Nama:</span> {c.member?.name ?? '—'} <ArrowRight className="inline size-3.5" /> <b>{c.name}</b></div>}
-            {c.phone && <div><span className="text-muted-foreground">No. HP:</span> {c.member?.phone ?? '—'} <ArrowRight className="inline size-3.5" /> <b>{c.phone}</b></div>}
+            {c.name && <div><span className="text-muted-foreground">Nama:</span> {c.member?.name ?? '-'} <ArrowRight className="inline size-3.5" /> <b>{c.name}</b></div>}
+            {c.phone && <div><span className="text-muted-foreground">No. HP:</span> {c.member?.phone ?? '-'} <ArrowRight className="inline size-3.5" /> <b>{c.phone}</b></div>}
             {c.photo_url && (withPhoto ? (
                 <div className="flex items-center gap-2">
                     <Photo url={c.member?.photo_url ?? null} label="Foto lama" /><ArrowRight className="size-4" /><Photo url={c.photo_url} label="Foto baru" />
@@ -53,7 +53,7 @@ function ReviewDialog({ c }: { c: Change }) {
             <DialogContent>
                 <DialogHeader>
                     <DialogTitle>Perubahan data · {c.member?.name}</DialogTitle>
-                    <DialogDescription>{c.member?.member_no}{c.reason ? ` — “${c.reason}”` : ''}</DialogDescription>
+                    <DialogDescription>{c.member?.member_no}{c.reason ? `: “${c.reason}”` : ''}</DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4 text-sm">
                     <Diff c={c} withPhoto />
@@ -83,11 +83,11 @@ export default function ProfileChanges({ items }: { items: Paginated<Change> }) 
                     <TableRow key={c.id}>
                         <TableCell>{fmtDateTime(c.created_at)}</TableCell>
                         <TableCell>
-                            {c.member ? <Link href={`/anggota/${c.member.id}`} className="font-medium hover:underline">{c.member.name}</Link> : '—'}
+                            {c.member ? <Link href={`/anggota/${c.member.id}`} className="font-medium hover:underline">{c.member.name}</Link> : '-'}
                             <div className="text-xs text-muted-foreground">{c.member?.member_no}</div>
                         </TableCell>
                         <TableCell className="whitespace-normal"><Diff c={c} /></TableCell>
-                        <TableCell className="max-w-xs whitespace-normal">{c.reason ?? '—'}</TableCell>
+                        <TableCell className="max-w-xs whitespace-normal">{c.reason ?? '-'}</TableCell>
                         <TableCell><StatusBadge status={c.status} />{c.reviewer && <div className="text-xs text-muted-foreground">{c.reviewer}</div>}</TableCell>
                         <TableCell>
                             {c.status === 'pending' ? <ReviewDialog c={c} /> : (

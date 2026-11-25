@@ -35,7 +35,7 @@ Aktif setelah email server diatur (lihat *Pengaturan → Sistem → Email*; cara
 ## Pemberitahuan alur kartu
 
 Super Admin otomatis diberi tahu saat ada **pendaftar baru** (e-profil/formulir pendaftaran) dan
-**laporan kartu** baru (hilang/rusak/HP tanpa NFC) — lewat **email** (bila SMTP diatur) dan **push**
+**laporan kartu** baru (hilang/rusak/HP tanpa NFC), lewat **email** (bila SMTP diatur) dan **push**
 (aktifkan di **Akun → Notifikasi**, bila server mengaktifkan push). Anggota diberi tahu saat
 e-profilnya **disahkan**, saat laporan kartunya **diputuskan**, dan saat **perubahan data**-nya
 disetujui/ditolak (beserta catatan Anda). Super Admin juga diberi tahu saat ada pengajuan perubahan data.
@@ -49,7 +49,7 @@ disetujui/ditolak (beserta catatan Anda). Super Admin juga diberi tahu saat ada 
 - Status keanggotaan per periode: Aktif, Tidak aktif, Alumni, Pendaftar. Hanya anggota **Aktif**
   yang bisa absen.
 - Anggota yang dihapus masuk tab **Arsip** dan bisa **Pulihkan** (kartu lamanya tetap diblokir).
-  Nomor anggota di arsip tidak bisa dipakai anggota baru — pulihkan saja.
+  Nomor anggota di arsip tidak bisa dipakai anggota baru. Pulihkan saja.
 - Admin Divisi bisa melihat daftar & detail anggota divisinya (baca-saja).
 - **Pendaftaran mandiri**: **Pengaturan → Aplikasi → Pendaftaran anggota mandiri → Buka
   pendaftaran**, lalu bagikan tautan/QR-nya (mis. di grup atau poster open recruitment). Calon anggota
@@ -68,7 +68,7 @@ disetujui/ditolak (beserta catatan Anda). Super Admin juga diberi tahu saat ada 
   **Terbitkan & tulis kartu** → tempel kartu NTAG215 kosong. Kartu lama anggota itu otomatis diblokir.
 - **Cetak desain kartu (PDF)**: detail anggota → **Cetak kartu**, atau centang banyak anggota →
   **Cetak kartu** di bilah bawah. Format **A4 · 10 kartu** (garis potong; halaman belakang kolomnya
-  ditukar — cetak bolak-balik *balik di sisi panjang*) atau **Per kartu (PVC)** untuk printer kartu.
+  ditukar, cetak bolak-balik *balik di sisi panjang*) atau **Per kartu (PVC)** untuk printer kartu.
   Ukuran CR80 (85,6 × 54 mm); foto, nama, nomor, divisi, berlaku s.d. akhir periode.
 - Kartu hilang/dicuri: dashboard → **Kartu** → **Hilang** atau **Blokir**. Berlaku seketika.
 - **Kartu dari anggota sendiri**: anggota yang sudah disahkan bisa mendaftarkan kartu NFC kosong lewat
@@ -81,13 +81,13 @@ disetujui/ditolak (beserta catatan Anda). Super Admin juga diberi tahu saat ada 
   Pengajuan muncul di **Perubahan Data** (angka di menu) dengan perbandingan lama → baru (termasuk foto
   lama vs baru) → **Tinjau** → *Setujui & terapkan* (data langsung diperbarui) atau *Tolak* (wajib menulis
   alasan; data lama tetap dipakai). NIM, divisi, dan status tetap hanya diubah pengurus lewat Anggota.
-- **Riwayat kartu per anggota**: detail anggota → tab **Kartu** — semua kartu (siapa yang menerbitkan:
+- **Riwayat kartu per anggota**: detail anggota → tab **Kartu**: semua kartu (siapa yang menerbitkan:
   pengurus atau *anggota sendiri*), laporan kartu & keputusannya, sisa jatah daftar sendiri, dan
   **Tambah jatah** (maks. 3) bila perlu memberi kesempatan tanpa laporan.
 
 ### Petugas & Pengurus (tugas per periode)
 - Petugas Scan & Admin Divisi adalah **anggota yang diberi tugas**, satu akun per orang. Beri tugas di
-  **Anggota → detail → Tugas** (Petugas Scan, atau Admin Divisi + divisinya; tanggal berakhir opsional —
+  **Anggota → detail → Tugas** (Petugas Scan, atau Admin Divisi + divisinya; tanggal berakhir opsional,
   kosong = akhir periode). Anggota harus sudah punya **akun app** (Anggota → Buat akun app).
 - **Cabut tugas** (mengundurkan diri / tidak bertugas lagi) di bagian yang sama atau di **Petugas &
   Pengurus** → *Cabut tugas* + alasan. Akun langsung kembali menjadi anggota biasa, dikeluarkan dari
@@ -105,9 +105,9 @@ disetujui/ditolak (beserta catatan Anda). Super Admin juga diberi tahu saat ada 
   **mengeluarkan akun itu dari semua HP**; saat masuk lagi, app tampil sesuai peran barunya.
 - **Akun app anggota sekaligus**: **Anggota** → centang anggota (atau *Pilih semua*) → **Buat akun
   app**. Login memakai email anggota; yang belum punya email atau sudah punya akun dilewati
-  beserta alasannya. Halaman berikutnya berisi **lembar akun** (email + password sementara) —
+  beserta alasannya. Halaman berikutnya berisi **lembar akun** (email + password sementara),
   **Cetak lembar** / simpan sebagai PDF atau **Salin tabel** saat itu juga, karena hanya tampil
-  sekali. Tiap lembar memuat **QR penghubung** — anggota memindainya di app, lalu masuk.
+  sekali. Tiap lembar memuat **QR penghubung**, anggota memindainya di app, lalu masuk.
   Kolom **Akun app** dan filter **Kesiapan** (*Belum punya akun app* / *Belum punya kartu*) di
   daftar anggota membantu memantau siapa yang belum siap.
 - **Perangkat Petugas** → **Cabut akses** bila HP petugas hilang (akun di HP itu langsung keluar).
@@ -139,13 +139,13 @@ Setelah dibuat, buka kegiatan:
 - **RSVP** (formulir kegiatan → *Buka RSVP*): batas waktu dan kuota opsional. Jawaban ada di halaman kegiatan →
   tab **RSVP**. Kuota hanya untuk kegiatan yang tidak wajib hadir; tempat kosong diisi otomatis dari daftar tunggu,
   dan menurunkan kuota tidak mengeluarkan yang sudah terdaftar. RSVP tidak memengaruhi scan atau Alpa.
-- **Duplikat** (halaman kegiatan): salin kegiatan ke tanggal baru — target, sesi, dan jendela
+- **Duplikat** (halaman kegiatan): salin kegiatan ke tanggal baru beserta target, sesi, dan jendela
   check-in ikut. Bisa **berulang** tiap minggu / 2 minggu / bulan (maks. 12), cocok untuk rapat rutin.
 
 ### Kalender kegiatan
 - **Kegiatan** → tab **Kalender**: semua kegiatan sebulan, warna per divisi (abu = kegiatan umum),
   tanggal hari ini ditandai. Tanda ⚠ **Bentrok** muncul bila dua kegiatan di hari yang sama
-  waktunya tumpang-tindih — cek dulu sebelum membuat kegiatan baru. Di HP tampil sebagai daftar
+  waktunya tumpang-tindih, cek dulu sebelum membuat kegiatan baru. Di HP tampil sebagai daftar
   agenda per hari. Filter divisi/tipe/cari tetap berlaku.
 
 ## Pengumuman
@@ -155,7 +155,7 @@ disematkan dan diberi tanggal kedaluwarsa. Tampil di app anggota (tab Kegiatan).
 untuk divisinya.
 
 - Pengumuman baru juga dikirim sebagai **notifikasi push** ke HP anggota yang mengaktifkannya di
-  portal (bila server sudah diatur — *Pengaturan → Sistem*). Anggota juga mendapat pengingat ±1 jam
+  portal (bila server sudah diatur, *Pengaturan → Sistem*). Anggota juga mendapat pengingat ±1 jam
   sebelum kegiatan bila belum tercatat hadir/izin.
 
 ## Selama kegiatan
@@ -165,7 +165,7 @@ untuk divisinya.
   Grafik **Kedatangan** menunjukkan jumlah scan per beberapa menit sejak check-in dibuka; batang di
   kanan garis putus-putus *Batas telat* berarti datang telat. **Per divisi** menunjukkan berapa
   yang sudah hadir dari target tiap divisi (terendah di atas).
-- **Daftar Hadir**: koreksi status (Hadir/Telat/Izin/Sakit/Alpa) atau **Batalkan** scan yang salah —
+- **Daftar Hadir**: koreksi status (Hadir/Telat/Izin/Sakit/Alpa) atau **Batalkan** scan yang salah,
   wajib alasan; riwayat koreksi tersimpan.
 
 ## Setelah kegiatan
@@ -179,7 +179,7 @@ untuk divisinya.
   (catatan opsional berlaku untuk semuanya).
 - Anggota mengabarkan izin langsung (tanpa app)? **Pengajuan Izin** → **Catat Izin**: pilih
   kegiatan, isi nomor anggota, jenis, alasan, bukti (opsional); centang **Langsung setujui**.
-- **Perlu Ditinjau**: scan yang perlu keputusan —
+- **Perlu Ditinjau**: scan yang perlu keputusan:
   *Konflik Offline* (mis. kartu diblokir setelah scan offline), *Akses Berakhir* (scan dari petugas
   yang perangkatnya dicabut, perannya diubah, atau akunnya dinonaktifkan; dikirim paling lambat 7 hari; belum tercatat sampai diterima), *Override*, *Anomali* (kartu sama
   di dua tempat dalam satu menit). **Terima** atau **Batalkan**.
@@ -202,7 +202,7 @@ Halaman kegiatan → tab **Tamu**: tempel daftar (*Nama* atau *Nama; Instansi*),
 
 ## Survei kepuasan
 
-Halaman kegiatan yang sudah **ditutup** → tab **Survei** → **Buka survei** (1–30 hari, maks. 5 pertanyaan tambahan).
+Halaman kegiatan yang sudah **ditutup** → tab **Survei** → **Buka survei** (1-30 hari, maks. 5 pertanyaan tambahan).
 - Hanya peserta Hadir/Telat, sekali isi. **Tanpa nama:** jawaban tidak disimpan bersama identitas pengisi.
 - Hasil tampil setelah survei selesai dan ada minimal 3 jawaban. Survei tidak bisa diubah atau dibuka lagi.
 

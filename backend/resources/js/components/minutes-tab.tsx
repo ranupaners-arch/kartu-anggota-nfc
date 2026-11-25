@@ -82,7 +82,7 @@ export function MinutesTab({ eventId, data }: { eventId: number; data: MinutesDa
             <DataTable head={['Dokumen', 'Ukuran', 'Terlihat oleh', '']} count={data.documents.length} empty="Belum ada dokumen.">
                 {data.documents.map((d) => (
                     <TableRow key={d.id}>
-                        <TableCell className="max-w-xs whitespace-normal">{d.title}<div className="text-xs text-muted-foreground">{d.extension.toUpperCase()} · {fmtDateTime(d.created_at)} · {d.by ?? '—'}</div></TableCell>
+                        <TableCell className="max-w-xs whitespace-normal">{d.title}<div className="text-xs text-muted-foreground">{d.extension.toUpperCase()} · {fmtDateTime(d.created_at)} · {d.by ?? '-'}</div></TableCell>
                         <TableCell className="tabular-nums">{fmtSize(d.size)}</TableCell>
                         <TableCell>
                             <NativeSelect size="sm" aria-label={`${d.title} terlihat oleh`} value={d.for_members ? '1' : '0'} onChange={(e) => router.patch(`/kegiatan-dokumen/${d.id}`, { for_members: e.target.value }, { preserveScroll: true })}>

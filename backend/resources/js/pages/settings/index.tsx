@@ -73,7 +73,7 @@ function AppConnect({ connect, registration }: { connect: Connect; registration:
             <Card>
                 <CardHeader>
                     <CardTitle>Hubungkan app petugas</CardTitle>
-                    <CardDescription>Pindai kode ini dengan kamera HP yang sudah terpasang app, atau di app pilih “Scan QR dari dashboard”. App akan terhubung ke server {connect.name}.</CardDescription>
+                    <CardDescription>Pindai dengan kamera HP, atau di app pilih “Scan QR dari dashboard”.</CardDescription>
                 </CardHeader>
                 <CardContent className="flex flex-col gap-6 sm:flex-row sm:items-center">
                     <div className="rounded-xl border bg-white p-4"><QRCodeSVG value={connect.payload} size={200} marginSize={0} /></div>
@@ -176,7 +176,7 @@ function Terms({ terms }: { terms: Term[] }) {
                                 <EditTerm term={t} />
                                 {!t.is_current && (
                                     <>
-                                        <ConfirmAction size="sm" title={`Jadikan ${t.name} periode berjalan?`} description="Keanggotaan dan rekap baru mengikuti periode ini. Data periode lama tidak diubah." href={`/pengaturan/periode/${t.id}/berjalan`} confirmLabel="Jadikan berjalan">
+                                        <ConfirmAction size="sm" title={`Jadikan ${t.name} periode berjalan?`} description="Data periode lama tidak diubah." href={`/pengaturan/periode/${t.id}/berjalan`} confirmLabel="Jadikan berjalan">
                                             Jadikan berjalan
                                         </ConfirmAction>
                                         <ConfirmAction size="sm" destructive title={`Hapus periode ${t.name}?`} description="Hanya periode yang belum punya keanggotaan maupun kegiatan yang bisa dihapus." href={`/pengaturan/periode/${t.id}`} method="delete" confirmLabel="Hapus">Hapus</ConfirmAction>
@@ -388,7 +388,7 @@ function SystemHealth({ health }: { health: Health }) {
             <Card className="max-w-3xl" size="sm">
                 <CardHeader><CardTitle>Pemantauan</CardTitle></CardHeader>
                 <CardContent className="grid gap-1 text-sm">
-                    <p>Pelacakan error (Sentry): <b>{health.sentry ? 'aktif' : 'tidak aktif'}</b>{!health.sentry && ' — isi SENTRY_LARAVEL_DSN di .env server untuk mengaktifkan.'}</p>
+                    <p>Pelacakan error (Sentry): <b>{health.sentry ? 'aktif' : 'tidak aktif'}</b>{!health.sentry && '. Isi SENTRY_LARAVEL_DSN di .env server.'}</p>
                     <p>Pemantau uptime: <code className="break-all">{health.healthUrl}</code> (HTTP 503 bila ada yang gagal){health.healthTokenSet ? '; detail dengan header X-Health-Token.' : '.'}</p>
                 </CardContent>
             </Card>

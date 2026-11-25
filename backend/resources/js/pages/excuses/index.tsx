@@ -126,14 +126,14 @@ export default function Excuses({ tab, excuses, events, filters }: { tab: string
             <DataTable head={[...(bulk ? [<SelectAll key="all" sel={sel} />] : []), 'Anggota', 'Kegiatan', 'Jenis', 'Alasan', 'Bukti', tab === 'menunggu' ? 'Tindakan' : 'Keputusan']} count={excuses.data.length} empty="Tidak ada pengajuan.">
                 {excuses.data.map((x) => (
                     <TableRow key={x.id} data-state={sel.has(x.id) ? 'selected' : undefined}>
-                        {bulk && <TableCell className="w-8"><SelectRow sel={sel} id={x.id} label={`${x.member?.name ?? 'pengajuan'} — ${x.event?.title ?? ''}`} /></TableCell>}
+                        {bulk && <TableCell className="w-8"><SelectRow sel={sel} id={x.id} label={`${x.member?.name ?? 'pengajuan'}: ${x.event?.title ?? ''}`} /></TableCell>}
                         <TableCell>{x.member?.name}<div className="text-xs text-muted-foreground">{x.member?.member_no}</div></TableCell>
                         <TableCell>{x.event?.title}<div className="text-xs text-muted-foreground">{fmtDate(x.event?.starts_at)}</div></TableCell>
                         <TableCell><StatusBadge status={x.type} /></TableCell>
                         <TableCell className="max-w-xs whitespace-normal">{x.reason}</TableCell>
                         <TableCell>{x.attachment_path
                             ? <a href={`/izin/${x.id}/bukti`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-primary hover:underline"><Paperclip className="size-3.5" /> Lihat</a>
-                            : <span className="text-muted-foreground">—</span>}</TableCell>
+                            : <span className="text-muted-foreground">-</span>}</TableCell>
                         <TableCell>{x.status === 'pending' ? <Review excuse={x} /> : (
                             <div><StatusBadge status={x.status} />{x.review_note && <div className="mt-1 text-xs text-muted-foreground">{x.review_note}</div>}</div>
                         )}</TableCell>

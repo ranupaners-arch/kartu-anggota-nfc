@@ -32,7 +32,7 @@ export function GuestTab({ eventId, closed, data }: { eventId: number; closed: b
         <>
             {!closed && (
                 <Card className="max-w-3xl">
-                    <CardHeader><CardTitle>Tambah tamu</CardTitle><CardDescription>Bukan anggota. Tiap tamu mendapat tautan QR untuk dipindai petugas (butuh internet). Tamu tidak masuk rekap, poin, denda, survei, dan sertifikat anggota.</CardDescription></CardHeader>
+                    <CardHeader><CardTitle>Tambah tamu</CardTitle><CardDescription>QR tamu butuh internet. Tamu tidak masuk rekap anggota.</CardDescription></CardHeader>
                     <CardContent>
                         <form onSubmit={submit} className="grid gap-4">
                             <FormField label="Daftar tamu" hint={`Satu baris satu tamu: Nama atau Nama; Instansi. Maksimal ${data.max} per kegiatan.`} error={form.errors.lines}>

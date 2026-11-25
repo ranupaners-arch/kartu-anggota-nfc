@@ -15,7 +15,7 @@ export default function ScannerPassword() {
     return (
         <ScannerLayout title="Buat password baru">
             <Head title="Buat password baru" />
-            <Alert><AlertDescription>Akun Anda memakai password sementara dari pengurus. Ganti dulu sebelum memindai.</AlertDescription></Alert>
+            <Alert><AlertDescription>Ganti password sementara Anda dulu.</AlertDescription></Alert>
             <form onSubmit={submit} className="grid gap-4">
                 <FormField label="Password sementara" error={form.errors.current_password}>
                     <Input type="password" autoComplete="current-password" required value={form.data.current_password} onChange={(e) => form.setData('current_password', e.target.value)} />

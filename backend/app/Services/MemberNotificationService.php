@@ -110,7 +110,7 @@ class MemberNotificationService
             ->map(fn (Fine $f) => [
                 'id' => "fine:{$f->id}", 'type' => 'fine',
                 'title' => 'Denda absen QR Rp'.number_format($f->amount, 0, ',', '.'),
-                'body' => ($f->attendance?->event?->title ?? 'Kegiatan').' — kartu tidak dibawa. Bayar ke pengurus.',
+                'body' => ($f->attendance?->event?->title ?? 'Kegiatan').': kartu tidak dibawa. Bayar ke pengurus.',
                 'at' => $f->created_at,
             ]);
     }
