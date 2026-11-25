@@ -128,6 +128,10 @@ ketuk lencana untuk melihat syarat & progresnya. Poin & lencana hanya Anda yang 
 lain kecuali Anda memilih **Tampilkan nama saya** (yang terlihat: nama, divisi, poin); bisa disembunyikan lagi
 kapan saja.
 
+## Barang dipinjam
+
+Barang organisasi yang sedang Anda pinjam dan jatuh temponya: app **Akun → Barang dipinjam**, portal **Riwayat**.
+
 ## Survei kegiatan
 
 Setelah kegiatan yang Anda hadiri, pengurus bisa membuka survei: app **Akun → Survei kegiatan**, portal **Kegiatan**.

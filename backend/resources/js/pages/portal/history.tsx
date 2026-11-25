@@ -52,7 +52,7 @@ function Leaderboard({ board }: { board: Board }) {
     );
 }
 
-export default function PortalHistory({ history: h, leaderboard, certificates }: { history: History; leaderboard: Board; certificates: { id: number; event: string; date: string; number: string }[] }) {
+export default function PortalHistory({ history: h, leaderboard, certificates, loans }: { history: History; leaderboard: Board; certificates: { id: number; event: string; date: string; number: string }[]; loans: { id: number; item: string; quantity: number; due_on: string; overdue: boolean }[] }) {
     const pct = h.attendance_rate === null ? '–' : `${h.attendance_rate.toLocaleString('id-ID', { maximumFractionDigits: 1 })}%`;
     return (
         <PortalLayout title="Riwayat">
@@ -116,6 +116,21 @@ export default function PortalHistory({ history: h, leaderboard, certificates }:
                                     <span className="min-w-0 flex-1 truncate">{f.event ?? '—'}<span className="block text-xs text-muted-foreground">{fmtDate(f.date)}</span></span>
                                     <span className="tabular-nums">Rp{f.amount.toLocaleString('id-ID')}</span>
                                     <StatusBadge status={f.status === 'unpaid' ? 'pending' : f.status === 'paid' ? 'approved' : 'closed'} label={{ unpaid: 'Belum lunas', paid: 'Lunas', waived: 'Dibebaskan' }[f.status] ?? f.status} />
+                                </li>
+                            ))}
+                        </ul>
+                    </CardContent>
+                </Card>
+            )}
+            {loans.length > 0 && (
+                <Card className="gap-2">
+                    <CardHeader><CardTitle className="text-base">Barang dipinjam</CardTitle><CardDescription>Kembalikan ke pengurus sebelum jatuh tempo.</CardDescription></CardHeader>
+                    <CardContent>
+                        <ul className="divide-y">
+                            {loans.map((l) => (
+                                <li key={l.id} className="flex items-center gap-3 py-2 text-sm">
+                                    <span className="min-w-0 flex-1 break-words">{l.item}{l.quantity > 1 && ` (${l.quantity})`}<span className="block text-xs text-muted-foreground">jatuh tempo {fmtDate(l.due_on)}</span></span>
+                                    <StatusBadge status={l.overdue ? 'rejected' : 'pending'} label={l.overdue ? 'Terlambat' : 'Dipinjam'} />
                                 </li>
                             ))}
                         </ul>

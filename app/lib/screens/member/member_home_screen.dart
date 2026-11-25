@@ -16,6 +16,7 @@ import 'home_tab.dart';
 import 'member_pages.dart';
 import 'my_card_tab.dart';
 import 'certificates_page.dart';
+import 'loans_page.dart';
 import 'minutes_page.dart';
 import 'my_events_tab.dart';
 import 'my_history_tab.dart';
@@ -111,6 +112,8 @@ class _MemberHomeScreenState extends State<MemberHomeScreen> with SessionWatch<M
         await pushMemberPage<void>(context, 'Ubah data diri', ProfileChangePage(api: _api));
       case 'rsvp':
         await pushMemberPage<void>(context, 'Kegiatan', MyEventsTab(api: _api));
+      case 'loan':
+        await pushMemberPage<void>(context, 'Barang dipinjam', LoansPage(api: _api));
       case 'survey':
         await pushMemberPage<void>(context, 'Survei kegiatan', SurveysPage(api: _api));
       case 'minutes':

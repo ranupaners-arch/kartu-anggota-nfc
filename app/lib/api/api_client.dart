@@ -417,6 +417,11 @@ class ApiClient {
     return [for (final r in j['results'] as List) r as Map<String, dynamic>];
   }
 
+  Future<List<MemberLoan>> loans() async {
+    final j = await _send('GET', '/api/me/loans');
+    return [for (final l in j['data'] as List) MemberLoan.fromJson(l as Map<String, dynamic>)];
+  }
+
   Future<List<MemberSurvey>> surveys() async {
     final j = await _send('GET', '/api/me/surveys');
     return [for (final s in j['data'] as List) MemberSurvey.fromJson(s as Map<String, dynamic>)];
@@ -853,6 +858,19 @@ class ProfileChangeStatus {
 
   /// Keputusan terakhir (30 hari): status approved/rejected + catatan pengurus.
   final ({String? name, String? phone, bool photo, String status, String? note, DateTime? at})? lastDecision;
+}
+
+/// Barang organisasi yang sedang dipinjam.
+class MemberLoan {
+  const MemberLoan({required this.id, required this.item, required this.quantity, required this.dueOn, this.overdue = false});
+
+  factory MemberLoan.fromJson(Map<String, dynamic> j) =>
+      MemberLoan(id: j['id'] as int, item: j['item'] as String, quantity: j['quantity'] as int, dueOn: DateTime.parse(j['due_on'] as String), overdue: j['overdue'] as bool? ?? false);
+
+  final int id, quantity;
+  final String item;
+  final DateTime dueOn;
+  final bool overdue;
 }
 
 /// Survei kegiatan yang belum diisi.

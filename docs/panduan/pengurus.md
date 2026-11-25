@@ -184,6 +184,14 @@ untuk divisinya.
   yang perangkatnya dicabut, perannya diubah, atau akunnya dinonaktifkan; dikirim paling lambat 7 hari; belum tercatat sampai diterima), *Override*, *Anomali* (kartu sama
   di dua tempat dalam satu menit). **Terima** atau **Batalkan**.
 
+## Inventaris
+
+Menu **Inventaris**. Super Admin mengelola barang; Super Admin dan Admin Divisi mencatat pinjam dan kembali.
+- **Peminjaman:** pilih barang, nomor anggota, jumlah, jatuh tempo. Tidak bisa melebihi yang tersedia.
+- **Pengembalian:** Baik, Rusak, atau Hilang (dua terakhir wajib keterangan). Hilang mengurangi jumlah barang.
+- Peminjam diingatkan sehari sebelum jatuh tempo dan saat terlambat. Riwayat tidak dihapus dan bisa diunduh CSV.
+- Barang yang pernah dipinjam tidak bisa dihapus, hanya diarsipkan.
+
 ## Peserta tamu
 
 Halaman kegiatan → tab **Tamu**: tempel daftar (*Nama* atau *Nama; Instansi*), lalu **Salin tautan** dan kirim ke tamunya.
