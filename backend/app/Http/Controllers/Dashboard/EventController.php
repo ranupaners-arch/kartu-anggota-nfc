@@ -7,6 +7,7 @@ use App\Models\Attendance;
 use App\Models\Division;
 use App\Models\Event;
 use App\Models\EventSession;
+use App\Models\EventType;
 use App\Models\Member;
 use App\Services\AttendanceService;
 use App\Services\AuditLogger;
@@ -81,7 +82,7 @@ class EventController extends Controller
 
     public function create()
     {
-        return Inertia::render('events/form', ['event' => (object) [], 'divisions' => Division::orderBy('name')->get(['id', 'name']), 'windowLocked' => false]);
+        return Inertia::render('events/form', ['event' => (object) [], 'divisions' => Division::orderBy('name')->get(['id', 'name']), 'types' => EventType::orderBy('name')->pluck('name'), 'windowLocked' => false]);
     }
 
     public function store(Request $r)
@@ -122,6 +123,7 @@ class EventController extends Controller
         return Inertia::render('events/form', [
             'event' => $event->only('id', 'title', 'type', 'location', 'is_mandatory', 'starts_at', 'ends_at', 'checkin_opens_at', 'late_after', 'checkin_closes_at', 'rsvp_enabled', 'rsvp_deadline', 'quota'),
             'divisions' => Division::orderBy('name')->get(['id', 'name']),
+            'types' => EventType::orderBy('name')->pluck('name'),
             'windowLocked' => $event->checkin_opens_at->lte(now()),
         ]);
     }

@@ -169,6 +169,9 @@ Route::middleware(['auth:web', 'dashboard'])->group(function () {
         Route::post('pengaturan/periode/{term}/berjalan', [Dashboard\SettingsController::class, 'setCurrentTerm'])->name('settings.terms.current');
         Route::put('pengaturan/periode/{term}', [Dashboard\SettingsController::class, 'updateTerm'])->name('settings.terms.update');
         Route::delete('pengaturan/periode/{term}', [Dashboard\SettingsController::class, 'destroyTerm'])->name('settings.terms.destroy');
+        Route::post('pengaturan/tipe', [Dashboard\SettingsController::class, 'storeEventType'])->name('settings.event-types.store');
+        Route::put('pengaturan/tipe/{type}', [Dashboard\SettingsController::class, 'updateEventType'])->name('settings.event-types.update');
+        Route::delete('pengaturan/tipe/{type}', [Dashboard\SettingsController::class, 'destroyEventType'])->name('settings.event-types.destroy');
         Route::post('pengaturan/divisi', [Dashboard\SettingsController::class, 'storeDivision'])->name('settings.divisions.store');
         Route::put('pengaturan/divisi/{division}', [Dashboard\SettingsController::class, 'updateDivision'])->name('settings.divisions.update');
         Route::delete('pengaturan/divisi/{division}', [Dashboard\SettingsController::class, 'destroyDivision'])->name('settings.divisions.destroy');

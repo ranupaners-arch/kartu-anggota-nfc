@@ -18,11 +18,11 @@ type Ev = {
     rsvp_enabled?: boolean; rsvp_deadline?: string | null; quota?: number | null;
 };
 
-export default function EventForm({ event, divisions, windowLocked }: { event: Ev; divisions: { id: number; name: string }[]; windowLocked: boolean }) {
+export default function EventForm({ event, divisions, types, windowLocked }: { event: Ev; types: string[]; divisions: { id: number; name: string }[]; windowLocked: boolean }) {
     const isEdit = Boolean(event.id);
     const superAdmin = usePage<SharedProps>().props.auth?.isSuperAdmin;
     const form = useForm({
-        title: event.title ?? '', type: event.type ?? 'rapat', location: event.location ?? '',
+        title: event.title ?? '', type: event.type ?? types[0] ?? '', location: event.location ?? '',
         starts_at: toLocalInput(event.starts_at), ends_at: toLocalInput(event.ends_at),
         checkin_opens_at: toLocalInput(event.checkin_opens_at), late_after: toLocalInput(event.late_after),
         checkin_closes_at: toLocalInput(event.checkin_closes_at), is_mandatory: event.is_mandatory ?? true,
@@ -51,7 +51,12 @@ export default function EventForm({ event, divisions, windowLocked }: { event: E
                     <form onSubmit={submit} className="grid gap-6">
                         <div className="grid gap-4 sm:grid-cols-3">
                             <FormField label="Judul" error={form.errors.title}><Input required value={form.data.title} onChange={(e) => form.setData('title', e.target.value)} /></FormField>
-                            <FormField label="Tipe" error={form.errors.type}><Input value={form.data.type} onChange={(e) => form.setData('type', e.target.value)} /></FormField>
+                            <FormField label="Tipe" hint={superAdmin ? 'Tambah pilihan di Pengaturan → Tipe Kegiatan.' : undefined} error={form.errors.type}>
+                                <NativeSelect className="w-full" required value={form.data.type} onChange={(e) => form.setData('type', e.target.value)}>
+                                    {/* Nilai lama yang sudah tidak ada di pilihan tetap bisa dipertahankan. */}
+                                    {(types.includes(form.data.type) || !form.data.type ? types : [form.data.type, ...types]).map((t) => <NativeSelectOption key={t} value={t}>{t}</NativeSelectOption>)}
+                                </NativeSelect>
+                            </FormField>
                             <FormField label="Lokasi" error={form.errors.location}><Input value={form.data.location} onChange={(e) => form.setData('location', e.target.value)} /></FormField>
                         </div>
                         <div className="grid gap-4 sm:grid-cols-2">{dt('starts_at', 'Mulai')}{dt('ends_at', 'Selesai')}</div>
