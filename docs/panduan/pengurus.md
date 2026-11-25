@@ -182,6 +182,14 @@ untuk divisinya.
   yang perangkatnya dicabut, perannya diubah, atau akunnya dinonaktifkan; dikirim paling lambat 7 hari; belum tercatat sampai diterima), *Override*, *Anomali* (kartu sama
   di dua tempat dalam satu menit). **Terima** atau **Batalkan**.
 
+## Peserta tamu
+
+Halaman kegiatan → tab **Tamu**: tempel daftar (*Nama* atau *Nama; Instansi*), lalu **Salin tautan** dan kirim ke tamunya.
+- Petugas memindai QR tamu seperti QR anggota (app mode QR atau `/pindai`). **Butuh internet**; tidak berlaku saat offline.
+- QR hanya untuk kegiatan itu, sekali per sesi, dan bisa dibatalkan. Tamu yang sudah hadir tidak bisa dihapus.
+- Tamu tidak masuk rekap, poin, denda, survei, dan sertifikat anggota. Daftarnya bisa diunduh CSV.
+- Nama tamu dihapus otomatis bersama masa simpan alasan izin (Pengaturan → Privasi).
+
 ## Survei kepuasan
 
 Halaman kegiatan yang sudah **ditutup** → tab **Survei** → **Buka survei** (1–30 hari, maks. 5 pertanyaan tambahan).

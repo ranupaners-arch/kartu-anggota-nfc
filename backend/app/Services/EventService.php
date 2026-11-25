@@ -6,6 +6,7 @@ use App\Models\Attendance;
 use App\Models\Division;
 use App\Models\Event;
 use App\Models\EventDocument;
+use App\Models\EventGuestCheckin;
 use App\Models\EventMinutes;
 use App\Models\EventSession;
 use App\Models\Member;
@@ -195,6 +196,7 @@ class EventService
         abort_if($event->closed_at, 422, 'Kegiatan sudah ditutup.');
         abort_if($event->defaultSession()->is($session), 422, 'Sesi utama tidak bisa dihapus.');
         abort_if(Attendance::where('session_id', $session->id)->exists(), 422, 'Sesi ini sudah memiliki absensi; koreksi lewat Daftar Hadir, jangan dihapus.');
+        abort_if(EventGuestCheckin::where('session_id', $session->id)->exists(), 422, 'Sesi ini sudah dihadiri tamu, jadi tidak bisa dihapus.');
         $session->delete();
         AuditLogger::log('event.session_deleted', 'event', $event->id, ['session_id' => $session->id, 'title' => $session->title]);
     }
@@ -214,6 +216,9 @@ class EventService
     {
         if ($event->attendances()->exists()) {
             throw ValidationException::withMessages(['event' => 'Kegiatan sudah memiliki absensi; tutup kegiatan, jangan dihapus.']);
+        }
+        if (EventGuestCheckin::whereHas('guest', fn ($q) => $q->where('event_id', $event->id))->exists()) {
+            throw ValidationException::withMessages(['event' => 'Kegiatan sudah dihadiri tamu; tutup kegiatan, jangan dihapus.']);
         }
         if (EventDocument::where('event_id', $event->id)->exists() || EventMinutes::where('event_id', $event->id)->exists()) {
             throw ValidationException::withMessages(['event' => 'Kegiatan punya notulen atau dokumen; tutup kegiatan, jangan dihapus.']);

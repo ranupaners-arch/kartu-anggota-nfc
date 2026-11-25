@@ -5,6 +5,7 @@ use App\Http\Controllers\CalendarFeedController;
 use App\Http\Controllers\Dashboard;
 use App\Http\Controllers\Portal\PortalController;
 use App\Http\Controllers\Publik\CertificateController as PublikCertificateController;
+use App\Http\Controllers\Publik\GuestController as PublikGuestController;
 use App\Http\Controllers\Publik\RegistrationController;
 use App\Http\Controllers\Scanner\ScannerController;
 use Illuminate\Support\Facades\Route;
@@ -28,6 +29,9 @@ Route::middleware('guest')->group(function () {
     Route::get('atur-password/{token}', [Dashboard\PasswordResetController::class, 'show'])->name('password.reset');
     Route::post('atur-password', [Dashboard\PasswordResetController::class, 'update'])->middleware('throttle:10,1')->name('password.update');
 });
+
+// QR masuk tamu kegiatan (tautan rahasia dari pengurus).
+Route::get('tamu/{token}', [PublikGuestController::class, 'show'])->where('token', '[A-Za-z0-9]{40}')->middleware('throttle:30,1')->name('guests.show');
 
 // Cek keaslian sertifikat (publik, dari QR).
 Route::get('sertifikat/{code}', [PublikCertificateController::class, 'verify'])->where('code', '[A-Za-z0-9-]{16,25}')->middleware('throttle:30,1')->name('certificates.verify');
@@ -111,6 +115,10 @@ Route::middleware(['auth:web', 'dashboard'])->group(function () {
     Route::post('kegiatan/{event}/sesi', [Dashboard\EventController::class, 'storeSession'])->name('events.sessions.store');
     Route::put('kegiatan/{event}/sesi/{session}', [Dashboard\EventController::class, 'updateSession'])->name('events.sessions.update');
     Route::delete('kegiatan/{event}/sesi/{session}', [Dashboard\EventController::class, 'destroySession'])->name('events.sessions.destroy');
+    Route::post('kegiatan/{event}/tamu', [Dashboard\GuestController::class, 'store'])->middleware('throttle:30,1')->name('guests.store');
+    Route::get('kegiatan/{event}/tamu/ekspor', [Dashboard\GuestController::class, 'export'])->middleware('throttle:20,1')->name('guests.export');
+    Route::patch('kegiatan-tamu/{guest}', [Dashboard\GuestController::class, 'update'])->whereNumber('guest')->name('guests.update');
+    Route::delete('kegiatan-tamu/{guest}', [Dashboard\GuestController::class, 'destroy'])->whereNumber('guest')->name('guests.destroy');
     Route::post('kegiatan/{event}/survei', [Dashboard\SurveyController::class, 'open'])->name('surveys.open');
     Route::post('kegiatan-survei/{survey}/tutup', [Dashboard\SurveyController::class, 'close'])->whereNumber('survey')->name('surveys.close');
     Route::put('kegiatan/{event}/notulen', [Dashboard\MinutesController::class, 'save'])->name('minutes.save');
