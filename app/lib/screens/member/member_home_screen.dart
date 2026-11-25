@@ -3,7 +3,6 @@ import 'package:shadcn_ui/shadcn_ui.dart';
 
 import '../../api/api_client.dart';
 import '../../app/server_config.dart';
-import '../../app/format.dart';
 import '../../app/session.dart';
 import '../../app/session_watch.dart';
 import '../../notify/phone_notices.dart';
@@ -52,6 +51,10 @@ class _MemberHomeScreenState extends State<MemberHomeScreen> with SessionWatch<M
   List<MemberNotice> _notices = const [];
   DateTime? _seenAt;
 
+  /// Pindah otomatis ke Tugas hanya sekali, agar tidak melawan pilihan pengguna.
+  bool _movedToDuty = false;
+  static const _dutyTab = 3;
+
   @override
   void initState() {
     super.initState();
@@ -74,8 +77,12 @@ class _MemberHomeScreenState extends State<MemberHomeScreen> with SessionWatch<M
           _seenAt = seen;
         });
       }
-    } catch (_) {
+    } catch (e) {
       // Belum anggota / tanpa koneksi: lonceng tanpa angka.
+      // Anggota yang bertugas & server tidak terjangkau: buka Tugas, satu-satunya bagian yang jalan offline.
+      final down = e is! ApiException || e.unreachable;
+      if (mounted && down && widget.session.isMemberOnDuty && _tab == 0 && !_movedToDuty) setState(() => _tab = _dutyTab);
+      _movedToDuty = true;
     }
   }
 
@@ -139,26 +146,7 @@ class _MemberHomeScreenState extends State<MemberHomeScreen> with SessionWatch<M
       NoticeBell(unread: NoticeSeen.unread(_notices, _seenAt), onPressed: _openNotices),
       ShadIconButton.ghost(icon: const Icon(LucideIcons.logOut, size: 18), onPressed: _confirmLogout),
     ],
-    child: ValueListenableBuilder<DateTime?>(
-      valueListenable: _api.offlineSince,
-      builder: (context, since, _) => Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          if (since != null)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-              child: ShadAlert(
-                icon: const Icon(LucideIcons.cloudOff),
-                title: const Text('Mode offline'),
-                description: Text(
-                  'Menampilkan data terakhir (${fmtDateTime(since)}).${widget.session.isMemberOnDuty ? ' Scan kartu ada di tab Tugas.' : ' QR Saya dan pengajuan izin butuh internet.'}',
-                ),
-              ),
-            ),
-          Expanded(child: child),
-        ],
-      ),
-    ),
+    child: child,
   );
 
   Future<void> _logout() async {

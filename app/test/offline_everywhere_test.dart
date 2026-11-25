@@ -5,7 +5,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:kartuanggota/api/api_client.dart';
-import 'package:kartuanggota/api/response_cache.dart';
 import 'package:kartuanggota/app/home.dart';
 import 'package:kartuanggota/app/session.dart';
 import 'package:kartuanggota/main.dart';
@@ -26,9 +25,7 @@ import 'nfc_service_test.dart' show FakeNfc;
 import 'offline_test.dart' show at, budiCard, rosterJson;
 
 const owner = 'http://srv|1';
-ApiClient apiOf(Future<http.Response> Function(http.Request) f) => ApiClient(baseUrl: 'http://srv', client: MockClient(f))
-  ..token = 't'
-  ..cache = const ResponseCache(owner);
+ApiClient apiOf(Future<http.Response> Function(http.Request) f) => ApiClient(baseUrl: 'http://srv', client: MockClient(f))..token = 't';
 Future<http.Response> down(http.Request _) async => throw http.ClientException('putus');
 Future<http.Response> hang(http.Request _) => Completer<http.Response>().future;
 Session officer({bool hasMember = false, String role = 'scanner'}) => Session(baseUrl: 'http://srv', token: 't', userName: 'Sari', role: role, hasMember: hasMember, userId: 1);
@@ -127,7 +124,7 @@ void main() {
     expect(find.textContaining('check-in dibuka'), findsOneWidget);
   });
 
-  testWidgets('VPN/Tailscale mati (permintaan menggantung): kegiatan langsung tampil, bukan spinner 10 detik', (tester) async {
+  testWidgets('jaringan menggantung: kegiatan langsung tampil, bukan spinner 10 detik', (tester) async {
     final store = await OfflineStore.open(owner: owner);
     await store.saveEvents([EventSummary.fromJson(ev(7, 'Rapat Pleno', const Duration(hours: -1), const Duration(hours: 1)))]);
     await store.saveRoster(Roster.fromApi(rosterJson()));
@@ -172,67 +169,43 @@ void main() {
     });
   }
 
-  testWidgets('pengurus yang juga anggota: Beranda menampilkan data terakhir & menunjuk tab Tugas', (tester) async {
+  Future<void> pumpMember(WidgetTester tester, Session s, ApiClient api) async {
     tester.view.physicalSize = const Size(1080, 2400);
     tester.view.devicePixelRatio = 2.5;
     addTearDown(tester.view.reset);
-    final s = officer(hasMember: true, role: 'super_admin');
-    expect(homeFor(s), isA<MemberHomeScreen>());
     await s.save();
-    final store = await OfflineStore.open(owner: owner);
-    await store.saveEvents([EventSummary.fromJson(ev(7, 'Rapat Offline', const Duration(hours: -1), const Duration(hours: 1)))]);
-    final online = member.api(member.server())..cache = const ResponseCache(owner);
+    await (await OfflineStore.open(owner: owner)).saveEvents([EventSummary.fromJson(ev(7, 'Rapat Offline', const Duration(hours: -1), const Duration(hours: 1)))]);
     await tester.pumpWidget(
       KartuAnggotaApp(
-        home: MemberHomeScreen(session: s, api: online),
+        home: MemberHomeScreen(session: s, api: api),
       ),
     );
     await tester.pumpAndSettle();
+  }
+
+  testWidgets('anggota yang bertugas & offline: langsung ke Tugas, sekali saja', (tester) async {
+    final s = officer(hasMember: true);
+    expect(homeFor(s), isA<MemberHomeScreen>());
+    await pumpMember(tester, s, apiOf(down));
+    expect(find.text('Rapat Offline').hitTestable(), findsOneWidget);
+    expect(find.text('Mulai scan').hitTestable(), findsOneWidget);
+    await tester.tap(find.text('Beranda').last);
+    await tester.pumpAndSettle();
+    expect(find.text('Rapat Offline').hitTestable(), findsNothing); // tidak dipaksa kembali
+    await tester.pumpWidget(const SizedBox());
+  });
+
+  testWidgets('anggota yang bertugas & online: tetap di Beranda', (tester) async {
+    await pumpMember(tester, officer(hasMember: true), member.api(member.server()));
+    expect(find.text('Mulai scan').hitTestable(), findsNothing);
+    await tester.pumpWidget(const SizedBox());
+  });
+
+  testWidgets('anggota biasa tidak punya mode offline', (tester) async {
+    await pumpMember(tester, officer(hasMember: true, role: 'member'), apiOf(down));
     expect(find.text('Mode offline'), findsNothing);
+    expect(find.text('Rapat Offline'), findsNothing);
     await tester.pumpWidget(const SizedBox());
-    await store.saveEvents([EventSummary.fromJson(ev(7, 'Rapat Offline', const Duration(hours: -1), const Duration(hours: 1)))]);
-
-    await tester.pumpWidget(
-      KartuAnggotaApp(
-        home: MemberHomeScreen(session: s, api: apiOf(down)),
-      ),
-    );
-    await tester.pumpAndSettle();
-    expect(find.text('Mode offline'), findsWidgets);
-    expect(find.textContaining('Scan kartu ada di tab Tugas'), findsWidgets);
-    await tester.tap(find.text('Kegiatan').last);
-    await tester.pumpAndSettle();
-    expect(find.text('Rapat Pleno'), findsWidgets); // data anggota tersimpan
-    await tester.tap(find.text('Tugas').last);
-    await tester.pumpAndSettle();
-    expect(find.text('Rapat Offline'), findsWidgets);
-    expect(find.text('Mulai scan'), findsWidgets);
-    await tester.pumpWidget(const SizedBox());
-  });
-
-  test('simpanan anggota: per akun, tanpa QR, hilang saat keluar', () async {
-    Future<http.Response> ok(http.Request r) async => http.Response(
-      jsonEncode({
-        'data': <Object>[],
-        'payload': 'card:qr:x',
-        'expires_in': 60,
-      }),
-      200,
-    );
-    final api = apiOf(ok);
-    await api.myEvents();
-    await api.myQr();
-    expect(await apiOf(down).myEvents(), isEmpty);
-    await expectLater(apiOf(down).myQr(), throwsA(anything));
-    final other = ApiClient(baseUrl: 'http://srv', client: MockClient(down))..cache = const ResponseCache('http://srv|2');
-    await expectLater(other.myEvents(), throwsA(anything));
-    await Session.clear();
-    await expectLater(apiOf(down).myEvents(), throwsA(anything));
-  });
-
-  test('galat sungguhan dari server (403/422) tidak ditutupi data lama', () async {
-    await apiOf((_) async => http.Response('{"data":[]}', 200)).myEvents();
-    await expectLater(apiOf((_) async => http.Response('{"message":"x"}', 403)).myEvents(), throwsA(isA<ApiException>()));
   });
 
   Future<SwitchNfc> pumpScan(WidgetTester tester, ApiClient api, SwitchNfc nfc) async {

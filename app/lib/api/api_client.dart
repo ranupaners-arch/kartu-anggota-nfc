@@ -1,10 +1,8 @@
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
 import 'ids.dart';
-import 'response_cache.dart';
 
 class ApiException implements Exception {
   ApiException(this.status, this.message, {this.otpRequired = false});
@@ -159,12 +157,6 @@ class ApiClient {
   final String baseUrl;
   final http.Client _http;
   String? token;
-
-  /// Simpanan jawaban untuk dilihat offline (layar anggota); null = tidak menyimpan.
-  ResponseCache? cache;
-
-  /// Waktu data tersimpan yang sedang ditampilkan karena server tidak terjangkau; null = data dari server.
-  final ValueNotifier<DateTime?> offlineSince = ValueNotifier(null);
 
   Future<Map<String, dynamic>> login(String email, String password, {required String deviceUuid, String deviceName = 'HP Petugas', String? otp}) async {
     final j = await _send('POST', '/api/auth/login', {'email': email, 'password': password, 'device_uuid': deviceUuid, 'device_name': deviceName, if (otp != null && otp.isNotEmpty) 'otp': otp});
@@ -438,25 +430,6 @@ class ApiClient {
   }
 
   Future<Map<String, dynamic>> _send(String method, String path, [Map<String, dynamic>? body, Duration timeout = const Duration(seconds: 10)]) async {
-    final store = method == 'GET' && ResponseCache.paths.contains(path) ? cache : null;
-    if (store == null) return _request(method, path, body, timeout);
-    final saved = await store.load(path);
-    try {
-      // Ada simpanan: jangan menunggu lama (VPN/Tailscale yang putus tidak langsung gagal).
-      final fresh = await _request(method, path, body, saved == null ? timeout : const Duration(seconds: 4));
-      offlineSince.value = null;
-      if (token != null) await store.save(path, fresh);
-      return fresh;
-    } on ApiException catch (e) {
-      if (!e.unreachable || saved == null) rethrow;
-    } catch (_) {
-      if (saved == null) rethrow;
-    }
-    offlineSince.value = saved.at;
-    return saved.body;
-  }
-
-  Future<Map<String, dynamic>> _request(String method, String path, Map<String, dynamic>? body, Duration timeout) async {
     final req = http.Request(method, Uri.parse('$baseUrl$path'))
       ..headers.addAll({'Accept': 'application/json', if (body != null) 'Content-Type': 'application/json', if (token != null) 'Authorization': 'Bearer $token'});
     if (body != null) req.body = jsonEncode(body);

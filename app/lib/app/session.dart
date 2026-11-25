@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../api/api_client.dart';
-import '../api/response_cache.dart';
 import '../offline/offline_store.dart';
 import '../notify/phone_notices.dart';
 import '../offline/photo_cache.dart';
@@ -34,9 +33,7 @@ class Session {
   /// Anggota yang sedang bertugas: tampilan anggota + tab "Tugas".
   bool get isMemberOnDuty => role != 'member' && hasMember;
 
-  ApiClient client() => ApiClient(baseUrl: baseUrl)
-    ..token = token
-    ..cache = owner == null ? null : ResponseCache(owner!);
+  ApiClient client() => ApiClient(baseUrl: baseUrl)..token = token;
 
   // URL server disimpan bersama ServerConfig (kunci 'server_url').
   static const _kUrl = 'server_url', _kToken = 'token', _kName = 'user_name', _kRole = 'user_role', _kHasMember = 'user_has_member', _kUserId = 'user_id';
@@ -102,7 +99,7 @@ class Session {
     await p.remove(_kRole);
     await p.remove(_kHasMember);
     await p.remove(_kUserId);
-    for (final k in p.getKeys().where((k) => k.startsWith(OfflineStore.eventsKey) || k.startsWith('roster:') || k.startsWith(ResponseCache.prefix)).toList()) {
+    for (final k in p.getKeys().where((k) => k.startsWith(OfflineStore.eventsKey) || k.startsWith('roster:')).toList()) {
       await p.remove(k); // kegiatan & peserta akun lama tidak tertinggal untuk akun berikutnya
     }
     unawaited(PhotoCache.clearAll());
