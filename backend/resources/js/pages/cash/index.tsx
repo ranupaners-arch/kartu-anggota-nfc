@@ -41,7 +41,7 @@ function NewEntry({ categories }: { categories: Category[] }) {
     };
     return (
         <Card className="max-w-5xl">
-            <CardHeader><CardTitle>Catat transaksi</CardTitle><CardDescription>Transaksi tidak bisa diubah. Bila salah, batalkan dengan alasan lalu catat lagi. Iuran masuk otomatis saat ditandai lunas.</CardDescription></CardHeader>
+            <CardHeader><CardTitle>Catat transaksi</CardTitle><CardDescription>Tidak bisa diubah, hanya dibatalkan. Iuran lunas masuk otomatis.</CardDescription></CardHeader>
             <CardContent>
                 <form onSubmit={submit} className="grid gap-4">
                     <div className="grid items-start gap-4 sm:grid-cols-4">
@@ -95,7 +95,7 @@ function Entries({ entries, filters, categories, canManage }: { entries: Paginat
                 {entries.data.map((e) => (
                     <TableRow key={e.id} className={e.voided_at ? 'opacity-60' : undefined}>
                         <TableCell>{fmtDate(e.date)}</TableCell>
-                        <TableCell className="max-w-xs whitespace-normal">{e.description}{e.member && ` — ${e.member}`}<div className="text-xs text-muted-foreground">{e.by ?? '—'}</div></TableCell>
+                        <TableCell className="max-w-xs whitespace-normal">{e.description}{e.member && ` (${e.member})`}<div className="text-xs text-muted-foreground">{e.by ?? '-'}</div></TableCell>
                         <TableCell>{e.category}</TableCell>
                         <TableCell className="tabular-nums"><span className={e.voided_at ? 'line-through' : e.kind === 'in' ? 'text-emerald-700 dark:text-emerald-400' : undefined}>{e.kind === 'in' ? '+' : '−'}{rupiah(e.amount)}</span></TableCell>
                         <TableCell className="whitespace-normal">{e.voided_at ? <><StatusBadge status="void" label="Dibatalkan" /><div className="max-w-xs text-xs text-muted-foreground">{e.voided_by}: {e.void_reason}</div></> : <StatusBadge status="active" label="Berlaku" />}</TableCell>
