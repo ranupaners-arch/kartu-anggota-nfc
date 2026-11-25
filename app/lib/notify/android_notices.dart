@@ -16,7 +16,7 @@ Future<void> _quickCheck() => Workmanager().registerOneOffTask(
   'uji-cepat-${DateTime.now().millisecondsSinceEpoch ~/ 60000}',
   _task,
   initialDelay: const Duration(minutes: 1),
-  constraints: Constraints(networkType: NetworkType.connected),
+  constraints: Constraints(networkType: NetworkType.notRequired),
   existingWorkPolicy: ExistingWorkPolicy.keep,
 );
 
@@ -50,12 +50,22 @@ class AndroidNotices implements NoticePlatform {
       settings: const InitializationSettings(android: AndroidInitializationSettings('ic_notice')),
       onDidReceiveNotificationResponse: (_) => _onTap?.call(),
     );
+    await _plugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()?.deleteNotificationChannel(channelId: _oldChannel);
     _ready = true;
   }
 
-  // Isi disembunyikan di layar kunci yang diamankan: bisa memuat alasan izin atau tagihan.
+  // Prioritas tinggi: muncul sebagai kartu di atas layar. Prioritas saluran tidak bisa diubah setelah dibuat,
+  // jadi saluran lama ('anggota') diganti. Isi disembunyikan di layar kunci yang diamankan.
+  static const _oldChannel = 'anggota';
   static const _details = NotificationDetails(
-    android: AndroidNotificationDetails('anggota', 'Pemberitahuan anggota', channelDescription: 'Pengumuman, izin, tagihan, dan pengingat kegiatan', visibility: NotificationVisibility.private),
+    android: AndroidNotificationDetails(
+      'anggota_penting',
+      'Pemberitahuan anggota',
+      channelDescription: 'Pengumuman, izin, tagihan, dan pengingat kegiatan',
+      importance: Importance.high,
+      priority: Priority.high,
+      visibility: NotificationVisibility.private,
+    ),
   );
 
   /// Id tetap per notifikasi (FNV-1a 31 bit): notifikasi yang sama menimpa, bukan menumpuk.
@@ -80,7 +90,9 @@ class AndroidNotices implements NoticePlatform {
       _task,
       _task,
       frequency: const Duration(minutes: 15), // paling rapat yang diizinkan Android
-      constraints: Constraints(networkType: NetworkType.connected),
+      // Tanpa syarat jaringan: di Samsung A36 pekerjaan bersyarat jaringan sempat tertahan beberapa menit walau
+      // internet aktif. Tanpa koneksi, pemeriksaan cukup gagal diam-diam dan diulang pada jadwal berikutnya.
+      constraints: Constraints(networkType: NetworkType.notRequired),
       existingWorkPolicy: ExistingPeriodicWorkPolicy.update, // jadwal lama (30 menit) ikut diganti
     );
     if (kDebugMode) await _quickCheck();
