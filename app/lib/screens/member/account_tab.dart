@@ -6,7 +6,6 @@ import '../../widgets/member_photo.dart';
 import '../../widgets/ui.dart';
 import 'member_pages.dart';
 import 'profile_change_page.dart';
-import 'phone_notices_page.dart';
 import 'my_events_tab.dart' show showCalendarSubscription;
 
 /// Tab "Akun": identitas anggota dan menu berkelompok. Tiap menu membuka halamannya sendiri.
@@ -119,10 +118,6 @@ class _AccountTabState extends State<AccountTab> {
                     _Item(LucideIcons.fileText, 'Rapor kehadiran', 'Ringkasan & unduh rapor PDF', () => open('Rapor kehadiran', ReportPage(api: widget.api))),
                     _Item(LucideIcons.wallet, 'Denda', 'Denda absen dengan QR', () => open('Denda', FinesPage(api: widget.api))),
                     _Item(LucideIcons.calendarSync, 'Langganan jadwal', 'Jadwal otomatis di kalender HP', () => showCalendarSubscription(context, widget.api)),
-                  ]),
-                if (member)
-                  _Section('Pemberitahuan', [
-                    _Item(LucideIcons.bellRing, 'Notifikasi HP', 'Muncul walau app ditutup', () => open('Notifikasi HP', const PhoneNoticesPage())),
                   ]),
                 _Section('Keamanan', [
                   _Item(LucideIcons.keyRound, 'Ganti password', 'Minimal 10 karakter, berisi huruf dan angka', () => open('Ganti password', ChangeOwnPasswordPage(api: widget.api))),

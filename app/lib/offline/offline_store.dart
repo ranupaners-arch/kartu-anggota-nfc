@@ -133,7 +133,7 @@ class OfflineStore {
   /// Daftar kegiatan terakhir dari server, agar layar Scan bisa dibuka tanpa internet.
   Future<void> saveEvents(List<EventSummary> events) => _prefs.setString(_key(eventsKey), jsonEncode([for (final e in events) e.toJson()]));
 
-  /// Kegiatan tersimpan yang check-in-nya belum ditutup.
+  /// Kegiatan tersimpan yang check-in-nya belum ditutup (termasuk yang belum dibuka).
   List<EventSummary> loadEvents(DateTime now) {
     final raw = _prefs.getString(_key(eventsKey));
     if (raw == null) return [];
