@@ -7,6 +7,7 @@ import '../../widgets/ui.dart';
 import 'member_pages.dart';
 import 'profile_change_page.dart';
 import 'certificates_page.dart';
+import 'loans_page.dart';
 import 'minutes_page.dart';
 import 'surveys_page.dart';
 import 'my_events_tab.dart' show showCalendarSubscription;
@@ -122,6 +123,7 @@ class _AccountTabState extends State<AccountTab> {
                     _Item(LucideIcons.star, 'Survei kegiatan', 'Nilai kegiatan tanpa nama', () => open('Survei kegiatan', SurveysPage(api: widget.api))),
                     _Item(LucideIcons.notebookText, 'Notulen & dokumen', 'Hasil rapat dan berkas kegiatan', () => open('Notulen & dokumen', MinutesPage(api: widget.api))),
                     _Item(LucideIcons.fileBadge, 'Sertifikat', 'Unduh sertifikat kegiatan', () => open('Sertifikat', CertificatesPage(api: widget.api))),
+                    _Item(LucideIcons.package, 'Barang dipinjam', 'Pinjaman inventaris organisasi', () => open('Barang dipinjam', LoansPage(api: widget.api))),
                     _Item(LucideIcons.wallet, 'Denda', 'Denda absen dengan QR', () => open('Denda', FinesPage(api: widget.api))),
                     _Item(LucideIcons.calendarSync, 'Langganan jadwal', 'Jadwal otomatis di kalender HP', () => showCalendarSubscription(context, widget.api)),
                   ]),

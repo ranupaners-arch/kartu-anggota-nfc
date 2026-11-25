@@ -8,6 +8,7 @@ import {
     SidebarFooter, SidebarMenuItem, SidebarRail,
 } from '@/components/ui/sidebar';
 import type { SharedProps } from '@/types';
+import { Package } from 'lucide-react';
 import { Copyright } from '@/components/copyright';
 
 type Item = { label: string; href: string; icon: LucideIcon; badge?: number };
@@ -27,6 +28,7 @@ export function useNavigation(): Group[] {
                 { label: 'Pengajuan Izin', href: '/izin', icon: ClipboardCheck, badge: navBadges?.excuses },
                 { label: 'Perlu Ditinjau', href: '/tinjauan', icon: ShieldAlert, badge: navBadges?.reviews },
                 { label: 'Pengumuman', href: '/pengumuman', icon: Megaphone },
+                { label: 'Inventaris', href: '/inventaris', icon: Package },
             ],
         },
         {

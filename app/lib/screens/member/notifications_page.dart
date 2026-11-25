@@ -89,6 +89,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
     'card': LucideIcons.creditCard,
     'fine': LucideIcons.wallet,
     'due': LucideIcons.banknote,
+    'loan': LucideIcons.package,
     'survey': LucideIcons.star,
     'minutes': LucideIcons.notebookText,
     'certificate': LucideIcons.fileBadge,

@@ -11,6 +11,7 @@ use App\Models\Event;
 use App\Models\EventDocument;
 use App\Models\EventSurvey;
 use App\Models\ExcuseRequest;
+use App\Models\InventoryLoan;
 use App\Models\Member;
 use App\Models\Membership;
 use App\Models\Organization;
@@ -21,6 +22,7 @@ use App\Services\CardPrintService;
 use App\Services\CertificateService;
 use App\Services\DuesService;
 use App\Services\FineService;
+use App\Services\InventoryService;
 use App\Services\LeaderboardService;
 use App\Services\MemberCardService;
 use App\Services\MemberNotificationService;
@@ -110,6 +112,13 @@ class MeController extends Controller
     }
 
     /** Sertifikat milik sendiri yang masih berlaku. */
+    /** Barang organisasi yang sedang ia pinjam. */
+    public function loans(Request $r, InventoryService $inventory)
+    {
+        return ['data' => $inventory->activeFor($this->memberId($r))->map(fn (InventoryLoan $l) => ['id' => $l->id, 'item' => $l->item->name, 'quantity' => $l->quantity,
+            'due_on' => $l->due_on->toDateString(), 'overdue' => $l->isOverdue(), 'lent_at' => $l->created_at])->values()];
+    }
+
     /** Survei terbuka yang belum ia isi. */
     public function surveys(Request $r, SurveyService $surveys)
     {

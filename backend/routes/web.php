@@ -138,6 +138,16 @@ Route::middleware(['auth:web', 'dashboard'])->group(function () {
     Route::patch('izin/{excuse}', [Dashboard\ExcuseController::class, 'review'])->name('excuses.review');
     Route::get('izin/{excuse}/bukti', [Dashboard\ExcuseController::class, 'attachment'])->name('excuses.attachment');
     Route::resource('pengumuman', Dashboard\AnnouncementController::class)->parameters(['pengumuman' => 'announcement'])->names('announcements')->only(['index', 'store', 'update', 'destroy']);
+    Route::prefix('inventaris')->name('inventory.')->group(function () {
+        Route::get('/', [Dashboard\InventoryController::class, 'index'])->name('index');
+        Route::post('/', [Dashboard\InventoryController::class, 'store'])->name('store');
+        Route::get('ekspor', [Dashboard\InventoryController::class, 'export'])->middleware('throttle:20,1')->name('export');
+        Route::post('pinjam', [Dashboard\InventoryController::class, 'lend'])->middleware('throttle:60,1')->name('lend');
+        Route::post('pinjam/{loan}/kembali', [Dashboard\InventoryController::class, 'giveBack'])->whereNumber('loan')->name('return');
+        Route::put('{item}', [Dashboard\InventoryController::class, 'update'])->whereNumber('item')->name('update');
+        Route::patch('{item}/arsip', [Dashboard\InventoryController::class, 'archive'])->whereNumber('item')->name('archive');
+        Route::delete('{item}', [Dashboard\InventoryController::class, 'destroy'])->whereNumber('item')->name('destroy');
+    });
     Route::get('tinjauan', [Dashboard\ReviewController::class, 'index'])->name('reviews.index');
     Route::post('tinjauan/tertahan/{scan}/terima', [Dashboard\ReviewController::class, 'acceptHeld'])->name('reviews.held.accept');
     Route::post('tinjauan/tertahan/{scan}/batalkan', [Dashboard\ReviewController::class, 'rejectHeld'])->name('reviews.held.reject');

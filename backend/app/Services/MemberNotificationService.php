@@ -13,6 +13,7 @@ use App\Models\EventRsvp;
 use App\Models\EventSurvey;
 use App\Models\ExcuseRequest;
 use App\Models\Fine;
+use App\Models\InventoryLoan;
 use App\Models\Membership;
 use App\Models\ProfileChange;
 use App\Models\Term;
@@ -46,6 +47,7 @@ class MemberNotificationService
             ->merge($this->fines($memberId, $since))
             ->merge($this->rsvps($memberId, $since))
             ->merge($this->certificates($memberId, $since))
+            ->merge($this->loans($memberId))
             ->merge($this->surveys($memberId, $since))
             ->merge($this->minutes($memberId, $since))
             ->merge($this->dues($memberId, $since))
@@ -129,6 +131,18 @@ class MemberNotificationService
     {
         return Certificate::with('event:id,title')->where('member_id', $memberId)->whereNull('revoked_at')->where('issued_at', '>=', $since)->get()
             ->map(fn (Certificate $c) => ['id' => "certificate:{$c->id}", 'type' => 'certificate', 'title' => 'Sertifikat terbit: '.$c->event?->title, 'body' => 'Unduh di Riwayat → Sertifikat.', 'at' => $c->issued_at]);
+    }
+
+    /** Besok jatuh tempo, lalu satu lagi setelah terlambat; hilang setelah dikembalikan. */
+    private function loans(int $memberId): Collection
+    {
+        return app(InventoryService::class)->activeFor($memberId)->filter(fn (InventoryLoan $l) => $l->due_on->lte(today()->addDay()))
+            ->map(fn (InventoryLoan $l) => [
+                'id' => "loan:{$l->id}".($l->isOverdue() ? ':late' : ''), 'type' => 'loan',
+                'title' => ($l->isOverdue() ? 'Terlambat dikembalikan: ' : 'Segera kembalikan: ').$l->item->name,
+                'body' => 'Jatuh tempo '.$l->due_on->locale('id')->translatedFormat('j F Y').'. Kembalikan ke pengurus.',
+                'at' => ($l->isOverdue() ? $l->due_on->copy()->addDay() : $l->due_on->copy()->subDay())->max($l->created_at),
+            ])->values();
     }
 
     private function surveys(int $memberId, Carbon $since): Collection
