@@ -9,6 +9,9 @@ return [
         'subject' => env('VAPID_SUBJECT', env('APP_URL')),
     ],
 
+    // Notifikasi realtime app Android (Firebase). Isi: base64 berkas private key. Kosong = app memeriksa berkala.
+    'fcm' => ['credentials' => env('FCM_CREDENTIALS_BASE64')],
+
     /*
     |--------------------------------------------------------------------------
     | Third Party Services

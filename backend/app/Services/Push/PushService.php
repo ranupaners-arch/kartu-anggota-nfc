@@ -43,6 +43,7 @@ class PushService
     /** Kirim ke semua perangkat milik pengguna ini; langganan yang kedaluwarsa dihapus. @return int jumlah perangkat */
     public function toUsers(Collection $userIds, string $title, string $body, string $url = '/saya', ?string $tag = null): int
     {
+        FcmService::wakeLater($userIds); // app Android
         if (! self::enabled() || $userIds->isEmpty()) {
             return 0;
         }

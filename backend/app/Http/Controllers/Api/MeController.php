@@ -28,6 +28,7 @@ use App\Services\MemberCardService;
 use App\Services\MemberNotificationService;
 use App\Services\MinutesService;
 use App\Services\ProfileChangeService;
+use App\Services\Push\FcmService;
 use App\Services\RegistrationService;
 use App\Services\ReportCardService;
 use App\Services\RsvpService;
@@ -36,10 +37,21 @@ use App\Services\StatsService;
 use App\Services\SurveyService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Laravel\Sanctum\PersonalAccessToken;
 
 /** Data untuk anggota yang login (app sisi anggota). */
 class MeController extends Controller
 {
+    /** Daftarkan HP untuk notifikasi realtime. `active` false = app memakai pemeriksaan berkala. */
+    public function pushToken(Request $r, FcmService $fcm)
+    {
+        $d = $r->validate(['token' => 'required|string|max:4096', 'project_id' => 'required|string|max:100']);
+        $session = $r->user()->currentAccessToken();
+        abort_unless($session instanceof PersonalAccessToken, 403);
+
+        return ['active' => $fcm->register($r->user(), $session->id, $d['token'], $d['project_id'])];
+    }
+
     /** Kegiatan periode berjalan yang ia menjadi pesertanya: yang akan datang/berlangsung + 30 hari terakhir. */
     public function events(Request $r)
     {
