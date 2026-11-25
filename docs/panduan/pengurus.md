@@ -182,6 +182,14 @@ untuk divisinya.
   yang perangkatnya dicabut, perannya diubah, atau akunnya dinonaktifkan; dikirim paling lambat 7 hari; belum tercatat sampai diterima), *Override*, *Anomali* (kartu sama
   di dua tempat dalam satu menit). **Terima** atau **Batalkan**.
 
+## Notulen & dokumen
+
+Halaman kegiatan → tab **Notulen & Dokumen**.
+- Notulen disimpan sebagai **draf**, lalu **Terbitkan** supaya peserta bisa membaca dan mendapat notifikasi. Bisa ditarik lagi.
+- Bila dua pengurus menulis bersamaan, yang kedua ditolak dan tulisannya tetap ada di layar untuk digabungkan.
+- Dokumen (PDF, gambar, Office; maks. 5 MB, 20 berkas) dibuka untuk **peserta kegiatan** atau **hanya pengurus**.
+- Kegiatan yang punya notulen atau dokumen tidak bisa dihapus.
+
 ## Sertifikat kegiatan
 
 Halaman kegiatan yang sudah **ditutup** → tab **Sertifikat**: isi judul, peran, penanda tangan, lalu **Terbitkan**. Yang

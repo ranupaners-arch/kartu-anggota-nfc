@@ -128,6 +128,10 @@ ketuk lencana untuk melihat syarat & progresnya. Poin & lencana hanya Anda yang 
 lain kecuali Anda memilih **Tampilkan nama saya** (yang terlihat: nama, divisi, poin); bisa disembunyikan lagi
 kapan saja.
 
+## Notulen & dokumen
+
+Hasil rapat dan berkas kegiatan yang Anda ikuti: app **Akun → Notulen & dokumen**, portal **Kegiatan → Notulen & dokumen**.
+
 ## Sertifikat
 
 Sertifikat kegiatan yang Anda hadiri: app **Akun → Sertifikat**, portal **Riwayat → Sertifikat**.

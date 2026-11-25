@@ -1,5 +1,5 @@
-import { Head, router, useForm } from '@inertiajs/react';
-import { BellRing, CalendarDays, MapPin, Pin } from 'lucide-react';
+import { Head, Link, router, useForm } from '@inertiajs/react';
+import { BellRing, CalendarDays, FileText, MapPin, Pin } from 'lucide-react';
 import { type FormEvent, useState } from 'react';
 import { FormField } from '@/components/form-field';
 import { StatusBadge } from '@/components/status-badge';
@@ -124,6 +124,7 @@ export default function PortalEvents({ events, announcements }: { events: Member
             {events.length === 0 && (
                 <Card><CardHeader><CardTitle className="text-base">Belum ada kegiatan</CardTitle><CardDescription>Kegiatan yang Anda ikuti akan muncul di sini.</CardDescription></CardHeader></Card>
             )}
+            <Button variant="outline" render={<Link href="/saya/notulen" />}><FileText /> Notulen & dokumen</Button>
             <ul className="grid gap-3" aria-label="Daftar kegiatan">
                 {events.map((e) => (
                     <li key={e.id}>

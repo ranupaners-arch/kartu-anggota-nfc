@@ -14,6 +14,7 @@ use App\Services\AuditLogger;
 use App\Services\CertificateService;
 use App\Services\LeaderboardService;
 use App\Services\MemberCardService;
+use App\Services\MinutesService;
 use App\Services\Push\PushService;
 use App\Services\RegistrationService;
 use App\Services\ReportCardService;
@@ -108,6 +109,11 @@ class PortalController extends Controller
     public function history(Request $r, LeaderboardService $board, CertificateService $certificates)
     {
         return Inertia::render('portal/history', ['history' => $this->me->history($r), 'leaderboard' => $this->me->leaderboard($r, $board), 'certificates' => $this->me->certificates($r, $certificates)['data']]);
+    }
+
+    public function minutes(Request $r, MinutesService $minutes)
+    {
+        return Inertia::render('portal/minutes', ['items' => $this->me->minutes($r, $minutes)['data']]);
     }
 
     public function leaderboard(Request $r, LeaderboardService $board)

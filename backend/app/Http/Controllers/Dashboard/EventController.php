@@ -8,12 +8,15 @@ use App\Models\Certificate;
 use App\Models\CertificateBatch;
 use App\Models\Division;
 use App\Models\Event;
+use App\Models\EventDocument;
+use App\Models\EventMinutes;
 use App\Models\EventSession;
 use App\Models\Member;
 use App\Services\AttendanceService;
 use App\Services\AuditLogger;
 use App\Services\CertificateService;
 use App\Services\EventService;
+use App\Services\MinutesService;
 use App\Services\ReportService;
 use App\Services\RsvpService;
 use App\Support\LocalTime;
@@ -97,7 +100,7 @@ class EventController extends Controller
         return redirect()->route('events.show', $event)->with('status', 'Kegiatan dibuat.');
     }
 
-    public function show(Request $r, Event $event, ReportService $reports, RsvpService $rsvps, CertificateService $certificates)
+    public function show(Request $r, Event $event, ReportService $reports, RsvpService $rsvps, CertificateService $certificates, MinutesService $minutes)
     {
         $this->events->authorize($r->user(), $event);
         $tab = $r->query('tab', 'ringkasan');
@@ -108,10 +111,11 @@ class EventController extends Controller
         return Inertia::render('events/show', [
             'event' => $event->only('id', 'title', 'location', 'starts_at', 'ends_at', 'checkin_opens_at', 'late_after', 'checkin_closes_at', 'closed_at', 'rsvp_enabled', 'rsvp_deadline', 'quota'),
             'certificate' => $tab === 'sertifikat' ? $this->certificateTab($r, $event, $certificates) : null,
+            'minutes' => $tab === 'notulen' ? $minutes->tab($event) : null,
             'rsvp' => $tab === 'rsvp' && $event->rsvp_enabled ? $rsvps->report($event) : null,
             'tab' => $tab,
             'report' => in_array($tab, ['ringkasan', 'hadir'], true) ? $reports->event($event, $session) : null,
-            'canDelete' => ! $event->attendances()->exists(),
+            'canDelete' => ! $event->attendances()->exists() && ! EventMinutes::where('event_id', $event->id)->exists() && ! EventDocument::where('event_id', $event->id)->exists(),
             'sessions' => $reports->sessions($event),
             'divisions' => Division::orderBy('name')->get(['id', 'name']),
             'targetDivisionIds' => $event->targets->pluck('division_id')->filter()->values(),
