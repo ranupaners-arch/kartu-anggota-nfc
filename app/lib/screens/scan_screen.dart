@@ -63,6 +63,11 @@ class _ScanScreenState extends State<ScanScreen> with WidgetsBindingObserver {
   ScanResult? _last;
   String? _nfcProblem;
   bool _busy = false;
+
+  /// Baru saja gagal menjangkau server: kartu langsung diperiksa offline tanpa menunggu.
+  DateTime? _offlineUntil;
+  Timer? _nfcRetry;
+  String? _rosterProblem;
   int _loop = 0; // generasi loop NFC; berubah = loop lama berhenti
   int _okCount = 0;
   String? _lastQr;
@@ -113,6 +118,8 @@ class _ScanScreenState extends State<ScanScreen> with WidgetsBindingObserver {
       if (!mounted) return;
       setState(() => _useRoster(roster));
       unawaited(_cachePhotos(roster)); // di latar belakang; scan tidak menunggu
+    } on ApiException catch (e) {
+      if (mounted && !e.unreachable) setState(() => _rosterProblem = e.message);
     } catch (_) {
       // Offline: tetap memakai roster tersimpan.
     }
@@ -140,6 +147,7 @@ class _ScanScreenState extends State<ScanScreen> with WidgetsBindingObserver {
     setState(() {
       _syncing = false;
       _pending = r.remaining;
+      if (r.ok && r.sent > 0) _offlineUntil = null; // server terjangkau lagi
       if (r.sent > 0) {
         _syncNote = '${r.sent} scan tersinkron (${r.accepted} diterima, ${r.duplicates} duplikat, ${r.rejected} ditolak).${r.rejected > 0 ? ' Rincian ada di Beranda.' : ''}';
       } else if (!quiet && r.error != null) {
@@ -152,6 +160,7 @@ class _ScanScreenState extends State<ScanScreen> with WidgetsBindingObserver {
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _syncTimer?.cancel();
+    _nfcRetry?.cancel();
     _loop++;
     _nfc.stop();
     super.dispose();
@@ -161,16 +170,43 @@ class _ScanScreenState extends State<ScanScreen> with WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (_mode != ScanMode.nfc) return;
     if (state == AppLifecycleState.resumed) {
-      _startNfc();
+      _restartNfc();
     } else if (state == AppLifecycleState.paused) {
       _loop++;
       _nfc.stop();
     }
   }
 
+  /// NFC bisa dimatikan mode pesawat lalu dinyalakan lagi: pegang ulang dari awal.
+  Future<void> _restartNfc() async {
+    _loop++;
+    try {
+      await _nfc.stop();
+    } catch (_) {
+      // sudah dilepas sistem
+    }
+    if (mounted && _mode == ScanMode.nfc) await _startNfc();
+  }
+
+  Future<NfcAvailability> _availability() async {
+    try {
+      return await _nfc.availability();
+    } catch (_) {
+      return NfcAvailability.unsupported;
+    }
+  }
+
   Future<void> _startNfc() async {
     final gen = ++_loop;
-    final status = await _nfc.availability();
+    _nfcRetry?.cancel();
+    // Pantau: NFC bisa mati/menyala tanpa layar ini ditutup (panel cepat tidak mengirim kejadian jeda).
+    _nfcRetry = Timer.periodic(const Duration(seconds: 2), (_) async {
+      if (!mounted || _mode != ScanMode.nfc) return;
+      final ready = await _availability() == NfcAvailability.enabled;
+      if (!mounted || _mode != ScanMode.nfc) return;
+      if (ready == (_nfcProblem != null)) await _restartNfc();
+    });
+    final status = await _availability();
     if (!mounted || gen != _loop) return;
     if (status != NfcAvailability.enabled) {
       setState(() => _nfcProblem = status == NfcAvailability.disabled ? 'NFC mati. Aktifkan NFC di pengaturan HP, lalu kembali ke sini.' : 'HP ini tidak mendukung NFC. Gunakan mode QR.');
@@ -190,6 +226,13 @@ class _ScanScreenState extends State<ScanScreen> with WidgetsBindingObserver {
       } on NfcException catch (e) {
         if (!mounted || gen != _loop) return;
         _show(ScanResult(status: 'invalid', message: e.message));
+      } catch (_) {
+        // Sesi NFC diputus sistem: pemantau di atas memulainya lagi.
+        if (!mounted || gen != _loop) return;
+        await Future<void>.delayed(const Duration(seconds: 1));
+        if (!mounted || gen != _loop) return;
+        await _restartNfc();
+        return;
       }
     }
   }
@@ -201,6 +244,7 @@ class _ScanScreenState extends State<ScanScreen> with WidgetsBindingObserver {
       _startNfc();
     } else {
       _loop++;
+      _nfcRetry?.cancel();
       _nfc.stop();
     }
   }
@@ -220,7 +264,10 @@ class _ScanScreenState extends State<ScanScreen> with WidgetsBindingObserver {
     final uuid = uuidV4();
     final scannedAt = _now();
     try {
+      final until = _offlineUntil;
+      if (source == 'nfc' && _roster != null && until != null && DateTime.now().isBefore(until)) return await _offline(payload, source, uuid, scannedAt);
       final r = await _api.scan(widget.event.id, payload, source: source, clientUuid: uuid, scannedAt: scannedAt, sessionId: _sessionId);
+      _offlineUntil = null;
       if ((r.ok || r.status == 'duplicate') && r.memberId != null) _present.add(r.memberId!);
       _show(r);
       if (_pending > 0) unawaited(_sync(quiet: true)); // sedang online: kirim antrean
@@ -236,12 +283,14 @@ class _ScanScreenState extends State<ScanScreen> with WidgetsBindingObserver {
 
   /// Tanpa internet: periksa dengan roster lokal lalu simpan ke antrean.
   Future<void> _offline(String payload, String source, String uuid, DateTime scannedAt) async {
+    final until = _offlineUntil;
+    if (until == null || DateTime.now().isAfter(until)) _offlineUntil = DateTime.now().add(const Duration(seconds: 20));
     final roster = _roster, store = _store;
     if (source == 'qr') {
       return _show(const ScanResult(status: 'error', message: 'QR butuh koneksi internet. Gunakan kartu NFC saat offline.', offline: true));
     }
     if (roster == null || store == null) {
-      return _show(const ScanResult(status: 'error', message: 'Offline dan belum ada data peserta. Buka layar ini sekali saat online.', offline: true));
+      return _show(const ScanResult(status: 'error', message: 'Offline dan belum ada data peserta di HP ini. Buka Beranda sekali saat online sampai tertulis "Siap offline".', offline: true));
     }
     final r = OfflineVerifier.check(roster, payload, scannedAt, alreadyPresent: _present, session: _session);
     if (r.ok) {
@@ -362,6 +411,7 @@ class _ScanScreenState extends State<ScanScreen> with WidgetsBindingObserver {
               const SizedBox(height: 12),
             ],
             if (_last != null) ScanResultCard(result: _last!, token: widget.session.token, photoFile: _photos?.cached(_last!.memberId, _last!.photoUrl)),
+            if (_rosterProblem != null) ...[const SizedBox(height: 8), ErrorBanner('Data peserta offline belum diperbarui: $_rosterProblem')],
             if (_roster != null) ...[const SizedBox(height: 8), Center(child: Text('Data offline: ${_roster!.members.length} peserta', style: theme.textTheme.muted))],
             const SizedBox(height: 12),
             Center(child: Text(_sessions.length > 1 ? '$_okCount berhasil tercatat sejak layar dibuka' : '$_okCount berhasil tercatat di sesi ini', style: theme.textTheme.muted)),

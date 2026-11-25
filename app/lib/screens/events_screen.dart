@@ -4,6 +4,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
 import '../api/api_client.dart';
+import '../app/format.dart';
 import '../app/server_config.dart';
 import '../app/session.dart';
 import '../app/session_watch.dart';
@@ -50,7 +51,15 @@ class _EventsScreenState extends State<EventsScreen> with SessionWatch<EventsScr
 
   @override
   bool get watchEnabled => !widget.embedded;
-  late Future<List<EventSummary>> _events = _load();
+
+  /// Null = belum ada apa pun untuk ditampilkan. Data tersimpan tampil dulu, lalu diganti dari server.
+  List<EventSummary>? _events;
+  Object? _error;
+  bool _loading = true;
+
+  /// Kesiapan offline per kegiatan: jumlah peserta tersimpan, atau pesan galat unduhannya.
+  final Map<int, int> _ready = {};
+  final Map<int, String> _notReady = {};
   String? _org;
   int _pendingOffline = 0;
   int _rejected = 0;
@@ -67,6 +76,7 @@ class _EventsScreenState extends State<EventsScreen> with SessionWatch<EventsScr
     ServerConfig.load().then((s) {
       if (mounted && s?.name != null) setState(() => _org = s!.name);
     }, onError: (_) {});
+    _showSaved().then((_) => _load());
     _sync();
     // Juga untuk kegiatan yang sudah tutup (tidak bisa dibuka lagi di layar Scan).
     _syncTimer = Timer.periodic(const Duration(seconds: 30), (_) => _sync());
@@ -115,43 +125,82 @@ class _EventsScreenState extends State<EventsScreen> with SessionWatch<EventsScr
     }
   }
 
-  Future<List<EventSummary>> _load() async {
+  /// Tampilkan kegiatan tersimpan seketika; server (bisa lambat/tidak terjangkau) menyusul.
+  Future<void> _showSaved() async {
     try {
-      final events = await _api.ongoingEvents();
-      _offline = false;
-      unawaited(_prepareOffline(events)); // di latar belakang; daftar tidak menunggu
-      return events;
-    } on ApiException catch (e) {
-      if (e.status == 401 && mounted) await _logout(expired: true);
-      if (!e.unreachable) rethrow;
-      return _savedEvents(e);
-    } catch (e) {
-      return _savedEvents(e);
+      final store = await _openStore();
+      final saved = store.loadEvents(DateTime.now());
+      if (!mounted || saved.isEmpty) return;
+      setState(() {
+        _events = saved;
+        for (final e in saved) {
+          final n = store.loadRoster(e.id)?.members.length;
+          if (n != null) _ready[e.id] = n;
+        }
+      });
+    } catch (_) {
+      // penyimpanan tidak tersedia: tunggu server
     }
   }
 
-  /// Tanpa koneksi: daftar kegiatan terakhir; bila tidak ada, teruskan galat aslinya.
-  Future<List<EventSummary>> _savedEvents(Object error) async {
-    final events = await _openStore().then((s) => s.loadEvents(DateTime.now()), onError: (_) => <EventSummary>[]);
-    if (events.isEmpty) throw error;
-    _offline = true;
-    return events;
+  Future<void> _load() async {
+    if (!mounted) return;
+    setState(() => _loading = true);
+    Object? error;
+    try {
+      final events = await _api.ongoingEvents();
+      if (!mounted) return;
+      setState(() {
+        _offline = false;
+        _events = events;
+      });
+      unawaited(_prepareOffline(events)); // di latar belakang; daftar tidak menunggu
+    } on ApiException catch (e) {
+      if (e.status == 401 && mounted) await _logout(expired: true);
+      error = e;
+    } catch (e) {
+      error = e;
+    }
+    if (!mounted) return;
+    final down = error != null && (error is! ApiException || error.unreachable);
+    if (down) await _showSaved();
+    if (!mounted) return;
+    setState(() {
+      _loading = false;
+      _offline = down && (_events?.isNotEmpty ?? false);
+      _error = _offline ? null : error;
+      if (error != null && !down) _events = null;
+    });
   }
 
-  /// Simpan daftar kegiatan & data pesertanya selagi online, agar scan jalan walau sinyal hilang kemudian.
-  Future<void> _prepareOffline(List<EventSummary> events) async {
+  /// Simpan daftar kegiatan (juga yang segera dibuka) & data pesertanya selagi online, agar scan jalan walau
+  /// sinyal hilang kemudian.
+  Future<void> _prepareOffline(List<EventSummary> ongoing) async {
     try {
       final store = await _openStore();
+      var upcoming = <EventSummary>[];
+      try {
+        upcoming = await _api.upcomingEvents();
+      } catch (_) {
+        // daftar yang akan datang bisa menyusul; yang berlangsung tetap disimpan
+      }
       if (!mounted) return; // sudah keluar akun: jangan tulis ulang data yang baru dihapus
-      await store.saveEvents(events);
-      for (final e in events) {
+      final all = [...ongoing, ...upcoming.where((u) => !ongoing.any((o) => o.id == u.id))];
+      await store.saveEvents(all);
+      for (final e in all) {
+        String? problem;
         try {
           final roster = Roster.fromApi(await _api.roster(e.id));
           if (!mounted) return;
           await store.saveRoster(roster);
+          _ready[e.id] = roster.members.length;
+        } on ApiException catch (x) {
+          problem = x.message;
         } catch (_) {
-          // satu kegiatan gagal tidak menghentikan yang lain
+          problem = 'Data peserta tidak bisa diunduh.';
         }
+        if (!mounted) return;
+        setState(() => problem == null ? _notReady.remove(e.id) : _notReady[e.id] = problem);
       }
     } catch (_) {
       // penyimpanan tidak tersedia: abaikan
@@ -161,12 +210,8 @@ class _EventsScreenState extends State<EventsScreen> with SessionWatch<EventsScr
   Future<OfflineStore> _openStore() => widget.offlineStore?.call() ?? OfflineStore.open(owner: widget.session.owner);
 
   Future<void> _refresh() async {
-    final events = _load();
-    setState(() {
-      _events = events;
-    });
     _sync();
-    await _events.catchError((_) => <EventSummary>[]);
+    await _load();
   }
 
   Future<void> _logout({bool expired = false}) async {
@@ -216,8 +261,7 @@ class _EventsScreenState extends State<EventsScreen> with SessionWatch<EventsScr
 
   /// Menu "Pindai": satu kegiatan → langsung scan; beberapa → pilih dulu.
   Future<void> _quickScan() async {
-    final events = await _events.catchError((_) => <EventSummary>[]);
-    if (!mounted) return;
+    final events = _events ?? const <EventSummary>[];
     if (events.isEmpty) {
       ScaffoldMessenger.maybeOf(context)?.showSnackBar(const SnackBar(content: Text('Belum ada kegiatan yang jendela check-in-nya dibuka.')));
       return;
@@ -248,7 +292,18 @@ class _EventsScreenState extends State<EventsScreen> with SessionWatch<EventsScr
   String _describe(EventSummary e) {
     final current = e.sessions.where((s) => s.id == e.currentSessionId).firstOrNull;
     final closes = current?.closesAt.toLocal() ?? e.checkinClosesAt;
-    return [if (e.location != null) e.location!, if (e.sessions.length > 1 && current != null) 'Sesi ${current.title}', if (closes != null) 'check-in ditutup ${_hhmm(closes)}'].join(' · ');
+    return [
+      if (e.location != null) e.location!,
+      if (e.sessions.length > 1 && current != null) 'Sesi ${current.title}',
+      if (closes != null && e.isOpenAt(DateTime.now())) 'check-in ditutup ${_hhmm(closes)}',
+      if (!e.isOpenAt(DateTime.now()) && e.checkinOpensAt != null) 'check-in dibuka ${fmtDateTime(e.checkinOpensAt!)}',
+    ].join(' · ');
+  }
+
+  String? _readiness(EventSummary e) {
+    final n = _ready[e.id], problem = _notReady[e.id];
+    if (problem != null) return n == null ? 'Belum siap offline: $problem' : 'Siap offline · $n peserta (pembaruan gagal: $problem)';
+    return n == null ? null : 'Siap offline · $n peserta';
   }
 
   String _hhmm(DateTime t) => '${t.hour.toString().padLeft(2, '0')}.${t.minute.toString().padLeft(2, '0')}';
@@ -272,9 +327,9 @@ class _EventsScreenState extends State<EventsScreen> with SessionWatch<EventsScr
       actions: [if (!widget.embedded) ShadIconButton.ghost(icon: const Icon(LucideIcons.logOut, size: 18), onPressed: _confirmLogout)],
       child: RefreshIndicator(
         onRefresh: _refresh,
-        child: FutureBuilder<List<EventSummary>>(
-          future: _events,
-          builder: (context, snap) {
+        child: Builder(
+          builder: (context) {
+            final events = _events;
             final left = <Widget>[
               Text('Halo, $_firstName 👋', style: theme.textTheme.h3, maxLines: 2, overflow: TextOverflow.ellipsis),
               const SizedBox(height: 4),
@@ -350,16 +405,19 @@ class _EventsScreenState extends State<EventsScreen> with SessionWatch<EventsScr
               ],
             ];
             final right = <Widget>[Text('Kegiatan berlangsung', style: theme.textTheme.large), const SizedBox(height: 8)];
-            if (snap.connectionState != ConnectionState.done) {
+            if (events == null && _loading) {
               right.add(
                 const Padding(
                   padding: EdgeInsets.all(32),
                   child: Center(child: CircularProgressIndicator()),
                 ),
               );
-            } else if (snap.hasError) {
-              right.add(ErrorBanner(snap.error is ApiException ? (snap.error as ApiException).message : 'Server tidak terjangkau. Tarik ke bawah untuk mencoba lagi.'));
-            } else if (snap.data!.isEmpty) {
+            } else if (events == null || (_error != null && events.isEmpty)) {
+              final error = _error;
+              right.add(ErrorBanner(error is ApiException ? error.message : 'Server tidak terjangkau dan belum ada kegiatan tersimpan di HP ini. Buka Beranda ini sekali saat online.'));
+              right.add(const SizedBox(height: 8));
+              right.add(FlexButton(label: 'Coba lagi', icon: LucideIcons.refreshCw, variant: ShadButtonVariant.outline, onPressed: _refresh));
+            } else if (events.isEmpty) {
               right.add(
                 SectionCard(
                   title: 'Tidak ada kegiatan berlangsung',
@@ -384,13 +442,20 @@ class _EventsScreenState extends State<EventsScreen> with SessionWatch<EventsScr
                 ResponsiveGrid(
                   minItemWidth: 340,
                   children: [
-                    for (final e in snap.data!)
+                    for (final e in events)
                       SectionCard(
                         title: e.title,
                         icon: LucideIcons.calendarDays,
                         description: _describe(e),
                         onTap: () => _scan(e),
-                        child: FlexButton(label: 'Mulai scan', icon: LucideIcons.scanLine, onPressed: () => _scan(e)),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          spacing: 8,
+                          children: [
+                            FlexButton(label: 'Mulai scan', icon: LucideIcons.scanLine, onPressed: () => _scan(e)),
+                            if (_readiness(e) case final text?) Text(text, style: theme.textTheme.muted.copyWith(fontSize: 12)),
+                          ],
+                        ),
                       ),
                   ],
                 ),

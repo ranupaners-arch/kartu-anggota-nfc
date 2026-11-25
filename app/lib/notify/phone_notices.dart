@@ -20,7 +20,7 @@ abstract interface class NoticePlatform {
 
 /// Notifikasi di bilah status HP: server diperiksa berkala di latar belakang, lalu yang baru ditampilkan
 /// sebagai notifikasi lokal. Tanpa Firebase, jadi berlaku untuk server organisasi mana pun; bisa terlambat
-/// (Android menentukan waktunya). Mati sampai anggota menyalakannya.
+/// (Android menentukan waktunya). Bawaan menyala; izinnya diminta sekali dan diatur di setelan Android.
 abstract final class PhoneNotices {
   static NoticePlatform platform = const AndroidNotices();
 
@@ -28,46 +28,25 @@ abstract final class PhoneNotices {
   static const maxShown = 4;
   static const maxAge = Duration(days: 3);
 
-  static String _enabledKey(String owner) => 'notif_phone@$owner';
+  static const _askedKey = 'notif_izin_diminta';
   static String _shownKey(String owner) => 'notif_shown@$owner';
 
-  static Future<bool> enabled() async {
-    final owner = (await Session.load())?.owner;
-    return owner != null && ((await SharedPreferences.getInstance()).getBool(_enabledKey(owner)) ?? false);
-  }
-
-  /// Nyalakan; false bila izin notifikasi ditolak atau sesi belum dikenali.
-  static Future<bool> enable() async {
-    final owner = (await Session.load())?.owner;
-    if (owner == null || !await platform.requestPermission()) return false;
-    final p = await SharedPreferences.getInstance();
-    await platform.schedule();
-    await p.setBool(_enabledKey(owner), true);
-    return true;
-  }
-
-  static Future<void> disable() async {
-    final owner = (await Session.load())?.owner;
-    if (owner != null) {
-      final p = await SharedPreferences.getInstance();
-      await p.remove(_enabledKey(owner));
-      await p.remove(_shownKey(owner));
-    }
-    await _stop();
-  }
-
-  /// Layar anggota dibuka: pasang penangan ketukan & pastikan pemeriksaan terjadwal bila dinyalakan.
+  /// Layar anggota dibuka: pasang penangan ketukan, minta izin (sekali), dan jadwalkan pemeriksaan.
   static Future<void> attach(void Function() onTap) async {
     try {
-      if (!await enabled()) return;
       await platform.listen(onTap);
-      await platform.schedule();
+      await platform.schedule(); // juga tanpa izin: begitu diizinkan di setelan Android, langsung berlaku
+      final p = await SharedPreferences.getInstance();
+      if (!(p.getBool(_askedKey) ?? false)) {
+        await p.setBool(_askedKey, true);
+        await platform.requestPermission();
+      }
     } catch (_) {
       // plugin tidak tersedia: app tetap jalan tanpa notifikasi HP
     }
   }
 
-  /// Keluar akun: berhenti memeriksa & hapus notifikasi yang masih tampil (pilihan akun ini tetap diingat).
+  /// Keluar akun: berhenti memeriksa & hapus notifikasi yang masih tampil.
   static Future<void> signedOut(String? owner) async {
     if (owner != null) await (await SharedPreferences.getInstance()).remove(_shownKey(owner));
     await _stop();
@@ -97,7 +76,7 @@ abstract final class PhoneNotices {
     await p.reload(); // isolate latar belakang: nilai bisa diubah app sejak terakhir dibaca
     final session = await Session.load();
     final owner = session?.owner;
-    if (session == null || owner == null || !(p.getBool(_enabledKey(owner)) ?? false)) return 0;
+    if (session == null || owner == null) return 0;
     if (session.role != 'member' && !session.hasMember) return 0;
 
     final List<MemberNotice> list;
@@ -107,9 +86,9 @@ abstract final class PhoneNotices {
       return 0; // tanpa koneksi/server sibuk: dicoba pada pemeriksaan berikutnya
     }
 
-    // Bisa jadi sudah keluar, ganti akun, atau dimatikan selama menunggu server.
+    // Bisa jadi sudah keluar, atau ganti akun selama menunggu server.
     await p.reload();
-    if ((await Session.load())?.owner != owner || !(p.getBool(_enabledKey(owner)) ?? false)) return 0;
+    if ((await Session.load())?.owner != owner) return 0;
 
     final shown = p.getStringList(_shownKey(owner))?.toSet();
     final seen = await NoticeSeen.load();

@@ -1,8 +1,10 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
 import 'ids.dart';
+import 'response_cache.dart';
 
 class ApiException implements Exception {
   ApiException(this.status, this.message, {this.otpRequired = false});
@@ -13,7 +15,8 @@ class ApiException implements Exception {
   final bool otpRequired;
 
   /// Server mati di belakang proxy (bukan jawaban aplikasi): perlakukan seperti tanpa koneksi.
-  bool get unreachable => status == 502 || status == 503 || status == 504;
+  /// 52x/530: Cloudflare tidak bisa menjangkau server.
+  bool get unreachable => status == 502 || status == 503 || status == 504 || (status >= 520 && status <= 530);
   @override
   String toString() => 'HTTP $status: $message';
 }
@@ -68,12 +71,13 @@ class SessionInfo {
 }
 
 class EventSummary {
-  const EventSummary(this.id, this.title, {this.location, this.checkinClosesAt, this.sessions = const [], this.currentSessionId});
+  const EventSummary(this.id, this.title, {this.location, this.checkinOpensAt, this.checkinClosesAt, this.sessions = const [], this.currentSessionId});
 
   factory EventSummary.fromJson(Map<String, dynamic> e) => EventSummary(
     e['id'] as int,
     e['title'] as String,
     location: e['location'] as String?,
+    checkinOpensAt: DateTime.tryParse(e['checkin_opens_at'] as String? ?? '')?.toLocal(),
     checkinClosesAt: DateTime.tryParse(e['checkin_closes_at'] as String? ?? '')?.toLocal(),
     sessions: SessionInfo.listFrom(e['sessions']),
     currentSessionId: e['current_session_id'] as int?,
@@ -82,13 +86,19 @@ class EventSummary {
   final int id;
   final String title;
   final String? location;
-  final DateTime? checkinClosesAt;
+  final DateTime? checkinOpensAt, checkinClosesAt;
 
   /// Urut sesi utama dulu. Lebih dari satu → petugas memilih sesi di layar Scan.
   final List<SessionInfo> sessions;
 
   /// Sesi yang sedang membuka check-in menurut server (saat daftar dimuat).
   final int? currentSessionId;
+
+  /// Check-in sudah dibuka (server lama tidak mengirim waktunya: anggap sudah).
+  bool isOpenAt(DateTime now) {
+    final opens = [?checkinOpensAt, for (final s in sessions) s.opensAt];
+    return isOngoingAt(now) && (opens.isEmpty || opens.any((t) => !now.isBefore(t)));
+  }
 
   /// Belum lewat waktu tutup check-in sesi terakhirnya (daftar kegiatan tersimpan saat offline).
   bool isOngoingAt(DateTime now) {
@@ -100,6 +110,7 @@ class EventSummary {
     'id': id,
     'title': title,
     'location': location,
+    'checkin_opens_at': checkinOpensAt?.toUtc().toIso8601String(),
     'checkin_closes_at': checkinClosesAt?.toUtc().toIso8601String(),
     'sessions': [for (final s in sessions) s.toJson()],
     'current_session_id': currentSessionId,
@@ -148,6 +159,12 @@ class ApiClient {
   final String baseUrl;
   final http.Client _http;
   String? token;
+
+  /// Simpanan jawaban untuk dilihat offline (layar anggota); null = tidak menyimpan.
+  ResponseCache? cache;
+
+  /// Waktu data tersimpan yang sedang ditampilkan karena server tidak terjangkau; null = data dari server.
+  final ValueNotifier<DateTime?> offlineSince = ValueNotifier(null);
 
   Future<Map<String, dynamic>> login(String email, String password, {required String deviceUuid, String deviceName = 'HP Petugas', String? otp}) async {
     final j = await _send('POST', '/api/auth/login', {'email': email, 'password': password, 'device_uuid': deviceUuid, 'device_name': deviceName, if (otp != null && otp.isNotEmpty) 'otp': otp});
@@ -290,6 +307,16 @@ class ApiClient {
     return [for (final e in j['data'] as List) EventSummary.fromJson(e as Map<String, dynamic>)];
   }
 
+  /// Kegiatan yang check-in-nya dibuka dalam [within] ke depan: disiapkan untuk offline sebelum acara.
+  Future<List<EventSummary>> upcomingEvents({Duration within = const Duration(hours: 48)}) async {
+    var j = await _send('GET', '/api/events?status=upcoming');
+    // Server mengurutkan dari yang paling jauh: yang terdekat ada di halaman terakhir.
+    final last = (j['last_page'] as num?)?.toInt() ?? 1;
+    if (last > 1) j = await _send('GET', '/api/events?status=upcoming&page=$last');
+    final limit = DateTime.now().add(within);
+    return [for (final e in j['data'] as List) EventSummary.fromJson(e as Map<String, dynamic>)].where((e) => e.checkinOpensAt != null && e.checkinOpensAt!.isBefore(limit)).toList();
+  }
+
   Future<ScanResult> scan(int eventId, String payload, {String source = 'nfc', String? clientUuid, DateTime? scannedAt, int? sessionId}) async {
     final j = await _send('POST', '/api/events/$eventId/scan', {
       'payload': payload,
@@ -411,6 +438,25 @@ class ApiClient {
   }
 
   Future<Map<String, dynamic>> _send(String method, String path, [Map<String, dynamic>? body, Duration timeout = const Duration(seconds: 10)]) async {
+    final store = method == 'GET' && ResponseCache.paths.contains(path) ? cache : null;
+    if (store == null) return _request(method, path, body, timeout);
+    final saved = await store.load(path);
+    try {
+      // Ada simpanan: jangan menunggu lama (VPN/Tailscale yang putus tidak langsung gagal).
+      final fresh = await _request(method, path, body, saved == null ? timeout : const Duration(seconds: 4));
+      offlineSince.value = null;
+      if (token != null) await store.save(path, fresh);
+      return fresh;
+    } on ApiException catch (e) {
+      if (!e.unreachable || saved == null) rethrow;
+    } catch (_) {
+      if (saved == null) rethrow;
+    }
+    offlineSince.value = saved.at;
+    return saved.body;
+  }
+
+  Future<Map<String, dynamic>> _request(String method, String path, Map<String, dynamic>? body, Duration timeout) async {
     final req = http.Request(method, Uri.parse('$baseUrl$path'))
       ..headers.addAll({'Accept': 'application/json', if (body != null) 'Content-Type': 'application/json', if (token != null) 'Authorization': 'Bearer $token'});
     if (body != null) req.body = jsonEncode(body);
