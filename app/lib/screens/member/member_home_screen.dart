@@ -69,6 +69,18 @@ class _MemberHomeScreenState extends State<MemberHomeScreen> with SessionWatch<M
     PhoneNotices.attach(() {
       if (mounted) _openNotices();
     });
+    _syncReminders();
+  }
+
+  /// Alarm pengingat kegiatan mengikuti jadwal terbaru tiap app dibuka.
+  Future<void> _syncReminders() async {
+    final owner = widget.session.owner;
+    if (owner == null) return;
+    try {
+      await PhoneNotices.syncReminders(owner, await _api.myEvents());
+    } catch (_) {
+      // tanpa koneksi: alarm lama tetap
+    }
   }
 
   Future<void> _loadNotices() async {

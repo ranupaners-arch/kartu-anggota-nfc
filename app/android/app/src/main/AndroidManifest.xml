@@ -2,6 +2,8 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.NFC" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- Alarm pengingat kegiatan dipasang lagi setelah HP dinyalakan ulang. -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <!-- required=false: HP tanpa NFC tetap bisa memasang app (pakai QR). -->
     <uses-feature android:name="android.hardware.nfc" android:required="false" />
     <application
@@ -37,6 +39,14 @@
                 <data android:scheme="kartuanggota" android:host="connect" />
             </intent-filter>
         </activity>
+        <receiver android:exported="false" android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver" />
+        <receiver android:exported="false" android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationBootReceiver">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+            </intent-filter>
+        </receiver>
         <!-- Wajib untuk Flutter (pendaftaran plugin); jangan dihapus. -->
         <meta-data
             android:name="flutterEmbedding"
