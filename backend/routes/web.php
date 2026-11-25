@@ -39,6 +39,7 @@ Route::middleware(['auth:web', 'portal'])->prefix('saya')->name('portal.')->grou
     Route::post('kegiatan/{event}/rsvp', [PortalController::class, 'rsvp'])->middleware('throttle:20,1')->name('rsvp');
     Route::post('izin', [PortalController::class, 'storeExcuse'])->middleware('throttle:10,1')->name('excuse');
     Route::get('riwayat', [PortalController::class, 'history'])->name('history');
+    Route::post('survei/{survey}', [PortalController::class, 'answerSurvey'])->whereNumber('survey')->middleware('throttle:20,1')->name('survey');
     Route::get('notulen', [PortalController::class, 'minutes'])->name('minutes');
     Route::get('dokumen/{document}', [MeController::class, 'document'])->whereNumber('document')->middleware('throttle:30,1')->name('document');
     Route::get('sertifikat/{certificate}.pdf', [MeController::class, 'certificatePdf'])->whereNumber('certificate')->middleware('throttle:20,1')->name('certificate');
@@ -122,6 +123,8 @@ Route::middleware(['auth:web', 'dashboard'])->group(function () {
     Route::post('kegiatan/{event}/sesi', [Dashboard\EventController::class, 'storeSession'])->name('events.sessions.store');
     Route::put('kegiatan/{event}/sesi/{session}', [Dashboard\EventController::class, 'updateSession'])->name('events.sessions.update');
     Route::delete('kegiatan/{event}/sesi/{session}', [Dashboard\EventController::class, 'destroySession'])->name('events.sessions.destroy');
+    Route::post('kegiatan/{event}/survei', [Dashboard\SurveyController::class, 'open'])->name('surveys.open');
+    Route::post('kegiatan-survei/{survey}/tutup', [Dashboard\SurveyController::class, 'close'])->whereNumber('survey')->name('surveys.close');
     Route::put('kegiatan/{event}/notulen', [Dashboard\MinutesController::class, 'save'])->name('minutes.save');
     Route::post('kegiatan/{event}/notulen/terbit', [Dashboard\MinutesController::class, 'publish'])->name('minutes.publish');
     Route::post('kegiatan/{event}/dokumen', [Dashboard\MinutesController::class, 'storeDocument'])->middleware('throttle:60,1')->name('documents.store');

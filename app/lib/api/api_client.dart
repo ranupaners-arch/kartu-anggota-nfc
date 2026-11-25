@@ -417,6 +417,14 @@ class ApiClient {
     return [for (final r in j['results'] as List) r as Map<String, dynamic>];
   }
 
+  Future<List<MemberSurvey>> surveys() async {
+    final j = await _send('GET', '/api/me/surveys');
+    return [for (final s in j['data'] as List) MemberSurvey.fromJson(s as Map<String, dynamic>)];
+  }
+
+  Future<void> answerSurvey(int id, {required int rating, required List<int> answers, String? comment}) =>
+      _send('POST', '/api/me/surveys/$id', {'rating': rating, 'answers': answers, 'comment': comment});
+
   Future<List<MemberMinutes>> minutes() async {
     final j = await _send('GET', '/api/me/minutes');
     return [for (final m in j['data'] as List) MemberMinutes.fromJson(m as Map<String, dynamic>)];
@@ -845,6 +853,19 @@ class ProfileChangeStatus {
 
   /// Keputusan terakhir (30 hari): status approved/rejected + catatan pengurus.
   final ({String? name, String? phone, bool photo, String status, String? note, DateTime? at})? lastDecision;
+}
+
+/// Survei kegiatan yang belum diisi.
+class MemberSurvey {
+  const MemberSurvey({required this.id, required this.event, required this.closesAt, this.questions = const []});
+
+  factory MemberSurvey.fromJson(Map<String, dynamic> j) =>
+      MemberSurvey(id: j['id'] as int, event: j['event'] as String, closesAt: DateTime.parse(j['closes_at'] as String).toLocal(), questions: (j['questions'] as List).cast<String>());
+
+  final int id;
+  final String event;
+  final DateTime closesAt;
+  final List<String> questions;
 }
 
 /// Notulen terbit & dokumen dari satu kegiatan yang diikuti.

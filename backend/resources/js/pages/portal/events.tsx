@@ -4,6 +4,7 @@ import { type FormEvent, useState } from 'react';
 import { FormField } from '@/components/form-field';
 import { StatusBadge } from '@/components/status-badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { SurveyCard, type Survey } from '@/components/survey-card';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -98,7 +99,7 @@ function RsvpBox({ event, rsvp }: { event: MemberEvent; rsvp: Rsvp }) {
     );
 }
 
-export default function PortalEvents({ events, announcements }: { events: MemberEvent[]; announcements: Announcement[] }) {
+export default function PortalEvents({ events, announcements, surveys }: { events: MemberEvent[]; announcements: Announcement[]; surveys: Survey[] }) {
     const [excuseFor, setExcuseFor] = useState<MemberEvent | null>(null);
     const soon = reminders(events);
 
@@ -112,6 +113,7 @@ export default function PortalEvents({ events, announcements }: { events: Member
                     <AlertDescription>{[fmtDateTime(e.starts_at), e.location, 'bawa kartu anggota'].filter(Boolean).join(' · ')}</AlertDescription>
                 </Alert>
             ))}
+            {surveys.map((s) => <SurveyCard key={`s${s.id}`} survey={s} />)}
             {announcements.map((a) => (
                 <Card key={`a${a.id}`} className="gap-2">
                     <CardHeader>

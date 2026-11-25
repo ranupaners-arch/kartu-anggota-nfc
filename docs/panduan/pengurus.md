@@ -184,6 +184,12 @@ untuk divisinya.
   yang perangkatnya dicabut, perannya diubah, atau akunnya dinonaktifkan; dikirim paling lambat 7 hari; belum tercatat sampai diterima), *Override*, *Anomali* (kartu sama
   di dua tempat dalam satu menit). **Terima** atau **Batalkan**.
 
+## Survei kepuasan
+
+Halaman kegiatan yang sudah **ditutup** → tab **Survei** → **Buka survei** (1–30 hari, maks. 5 pertanyaan tambahan).
+- Hanya peserta Hadir/Telat, sekali isi. **Tanpa nama:** jawaban tidak disimpan bersama identitas pengisi.
+- Hasil tampil setelah survei selesai dan ada minimal 3 jawaban. Survei tidak bisa diubah atau dibuka lagi.
+
 ## Notulen & dokumen
 
 Halaman kegiatan → tab **Notulen & Dokumen**.

@@ -128,6 +128,11 @@ ketuk lencana untuk melihat syarat & progresnya. Poin & lencana hanya Anda yang 
 lain kecuali Anda memilih **Tampilkan nama saya** (yang terlihat: nama, divisi, poin); bisa disembunyikan lagi
 kapan saja.
 
+## Survei kegiatan
+
+Setelah kegiatan yang Anda hadiri, pengurus bisa membuka survei: app **Akun → Survei kegiatan**, portal **Kegiatan**.
+Jawaban tanpa nama dan hanya sekali; jangan menulis nama di kolom saran.
+
 ## Notulen & dokumen
 
 Hasil rapat dan berkas kegiatan yang Anda ikuti: app **Akun → Notulen & dokumen**, portal **Kegiatan → Notulen & dokumen**.
