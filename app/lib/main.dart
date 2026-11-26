@@ -7,6 +7,7 @@ import 'app/server_config.dart';
 import 'app/session.dart';
 import 'screens/splash_screen.dart';
 import 'screens/welcome_screen.dart';
+import 'widgets/ui_scale.dart';
 
 void main() => runApp(const KartuAnggotaApp());
 
@@ -82,7 +83,7 @@ class _KartuAnggotaAppState extends State<KartuAnggotaApp> {
           );
         }(),
         home: widget.home ?? const _StartGate(),
-        builder: (context, child) => ShadAppBuilder(child: child!),
+        builder: (context, child) => UiScale(child: ShadAppBuilder(child: child!)),
       ),
     );
   }
