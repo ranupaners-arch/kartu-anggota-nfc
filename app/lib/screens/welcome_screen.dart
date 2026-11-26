@@ -125,7 +125,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
                 0.7,
                 1,
                 Text(
-                  '© 2026 Ranupane Rimba · GPL-3.0',
+                  '© 2026 Ranupane Rimba',
                   textAlign: TextAlign.center,
                   style: text.muted.copyWith(color: Colors.white38, fontSize: 11),
                 ),
