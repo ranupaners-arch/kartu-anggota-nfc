@@ -418,21 +418,30 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Halo, Budi 👋'), findsOneWidget);
     expect(find.text('HMPS'), findsWidgets); // subjudul bilah atas
-    for (final m in ['QR Saya', 'Izin', 'Rapor', 'Kartu', 'Denda', 'Jadwal', 'Data Diri', 'Panduan']) {
+    for (final m in ['QR Saya', 'Izin', 'Rapor', 'Lainnya']) {
       expect(find.text(m), findsOneWidget, reason: m);
     }
+    expect(find.text('Denda'), findsNothing); // ada di panel "Lainnya"
     await tester.scrollUntilVisible(find.text('Sekre tutup Jumat'), 200, scrollable: find.byType(Scrollable).first);
     expect(find.text('Kegiatan terdekat'), findsOneWidget);
     await tester.drag(find.byType(Scrollable).first, const Offset(0, 2000));
     await tester.pumpAndSettle();
 
+    await tester.tap(find.text('Lainnya'));
+    await tester.pumpAndSettle();
+    for (final m in ['Kartu', 'Denda', 'Jadwal', 'Data Diri', 'Panduan']) {
+      expect(find.text(m), findsOneWidget, reason: m);
+    }
     await tester.tap(find.text('Denda'));
     await tester.pumpAndSettle();
+    expect(find.text('Menu lain'), findsNothing); // panel tertutup sendiri
     expect(find.text('Tidak ada denda'), findsOneWidget);
     expect(find.byType(BackButton), findsOneWidget); // halaman baru, bisa kembali
     await tester.tap(find.byType(BackButton));
     await tester.pumpAndSettle();
 
+    await tester.tap(find.text('Lainnya'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Data Diri'));
     await tester.pumpAndSettle();
     expect(find.text('2401005'), findsOneWidget);

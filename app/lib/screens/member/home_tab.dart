@@ -261,31 +261,62 @@ class HomeTabState extends State<HomeTab> {
     );
   }
 
-  Widget _quickMenu(BuildContext context) {
+  /// Satu baris menu cepat; menu lainnya ada di panel "Lainnya".
+  Widget _quickMenu(BuildContext context) => _menuRow([
+    (LucideIcons.qrCode, 'QR Saya', _showQr),
+    (LucideIcons.calendarPlus, 'Izin', () => _open('Ajukan izin', ExcuseListPage(api: widget.api))),
+    (LucideIcons.fileText, 'Rapor', () => _open('Rapor kehadiran', ReportPage(api: widget.api))),
+    (LucideIcons.menu, 'Lainnya', _showMoreMenu),
+  ]);
+
+  /// Baris empat kolom; kolom kosong tetap dihitung agar lebarnya sama.
+  Widget _menuRow(List<(IconData, String, VoidCallback)> items) => Row(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      for (var c = 0; c < 4; c++)
+        Expanded(
+          child: c < items.length ? QuickAction(icon: items[c].$1, label: items[c].$2, onTap: items[c].$3) : const SizedBox.shrink(),
+        ),
+    ],
+  );
+
+  void _showMoreMenu() {
     final items = <(IconData, String, VoidCallback)>[
-      (LucideIcons.qrCode, 'QR Saya', _showQr),
-      (LucideIcons.calendarPlus, 'Izin', () => _open('Ajukan izin', ExcuseListPage(api: widget.api))),
-      (LucideIcons.fileText, 'Rapor', () => _open('Rapor kehadiran', ReportPage(api: widget.api))),
       (LucideIcons.creditCard, 'Kartu', _openCard),
       (LucideIcons.wallet, 'Denda', () => _open('Denda', FinesPage(api: widget.api))),
       (LucideIcons.calendarSync, 'Jadwal', () => showCalendarSubscription(context, widget.api)),
       (LucideIcons.idCard, 'Data Diri', () => _open('Data keanggotaan', MembershipPage(api: widget.api))),
       (LucideIcons.circleHelp, 'Panduan', () => _open('Panduan anggota', const HelpPage())),
     ];
-    // Dua baris × empat menu, seperti menu cepat aplikasi bank.
-    return Column(
-      children: [
-        for (var r = 0; r < items.length; r += 4)
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+    showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      isScrollControlled: true,
+      builder: (sheet) => SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              for (final (icon, label, onTap) in items.skip(r).take(4))
-                Expanded(
-                  child: QuickAction(icon: icon, label: label, onTap: onTap),
-                ),
+              Text('Menu lain', style: ShadTheme.of(sheet).textTheme.h4),
+              const SizedBox(height: 12),
+              // Panel ditutup dulu, lalu menunya dibuka.
+              for (var r = 0; r < items.length; r += 4)
+                _menuRow([
+                  for (final (icon, label, onTap) in items.skip(r).take(4))
+                    (
+                      icon,
+                      label,
+                      () {
+                        Navigator.of(sheet).pop();
+                        onTap();
+                      },
+                    ),
+                ]),
             ],
           ),
-      ],
+        ),
+      ),
     );
   }
 

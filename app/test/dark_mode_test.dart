@@ -84,6 +84,33 @@ void main() {
     });
   }
 
+  for (final brightness in [Brightness.light, Brightness.dark]) {
+    testWidgets('panel bawah terbaca di mode ${brightness.name}', (tester) async {
+      tester.platformDispatcher.platformBrightnessTestValue = brightness;
+      addTearDown(tester.platformDispatcher.clearPlatformBrightnessTestValue);
+      tester.view.physicalSize = const Size(411, 891);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(
+        KartuAnggotaApp(
+          home: MemberHomeScreen(session: r.memberSession, api: r.api()),
+        ),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+      await tester.tap(find.text('Lainnya'));
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+      final bg = tester.widget<Material>(find.ancestor(of: find.text('Menu lain'), matching: find.byType(Material)).first).color!;
+      expect(bg.computeLuminance() < 0.2, brightness == Brightness.dark);
+      for (final t in ['Menu lain', 'Denda', 'Panduan']) {
+        final ratio = contrast(textColor(tester, t), bg);
+        expect(ratio, greaterThanOrEqualTo(4.5), reason: '"$t" kontras ${ratio.toStringAsFixed(2)}:1 di mode ${brightness.name}');
+      }
+      await tester.pumpWidget(const SizedBox());
+    });
+  }
+
   // Teks yang diketik/terisi harus berwarna teks utama, bukan abu seperti petunjuk (dulu tampak kosong).
   for (final brightness in [Brightness.light, Brightness.dark]) {
     testWidgets('teks isian form berwarna utama, petunjuk tetap redup (${brightness.name})', (tester) async {

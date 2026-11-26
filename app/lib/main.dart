@@ -62,6 +62,8 @@ class _KartuAnggotaAppState extends State<KartuAnggotaApp> {
           WidgetStateProperty<T> bySelected<T>(T selected, T other) => WidgetStateProperty.resolveWith((s) => s.contains(WidgetState.selected) ? selected : other);
           return base.copyWith(
             textTheme: base.textTheme.apply(bodyColor: fg, displayColor: fg),
+            // Panel bawah ikut warna kartu; bawaan Material terang, sehingga teksnya hilang di mode gelap.
+            bottomSheetTheme: BottomSheetThemeData(backgroundColor: c.card, modalBackgroundColor: c.card, surfaceTintColor: Colors.transparent, dragHandleColor: c.mutedForeground),
             // Navigasi bawah mengikuti skema shadcn: aktif = foreground, lain = mutedForeground.
             // Tanpa ini ikon & label memakai warna bawaan Material (abu gelap) yang hilang di mode gelap.
             navigationBarTheme: NavigationBarThemeData(
